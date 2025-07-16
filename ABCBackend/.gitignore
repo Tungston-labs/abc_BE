@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtualenv
+venv/
+ENV/
+env/
+*.env
+
+# VS Code
+.vscode/
+
+# Pytest
+.cache/
+
+# SQLite
+*.sqlite3
+
+# Django
+staticfiles/
+media/
+db.sqlite3
+
+# Migrations (optional)
+**/migrations/*.py
+**/migrations/*.pyc
+!*/migrations/__init__.py
+
+# Logs
+*.log
+
+# IDE
+.idea/
+*.swp
+
+# Node (if using React/React Native)
+node_modules/
+npm-debug.log
+
+*.env
+

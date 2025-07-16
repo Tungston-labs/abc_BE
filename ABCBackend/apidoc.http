@@ -1,0 +1,354 @@
+### Register Super Admin
+
+@baseUrl = http://localhost:8000/api/auth
+
+POST {{baseUrl}}/register-superadmin/
+Content-Type: application/json
+
+{
+  "username": "abc3",
+  "email": "nisna@gmail.com",
+  "phone": "9999999292",
+  "password": "123"
+}
+
+
+### ✅ Login (Obtain Access & Refresh Tokens)
+POST {{baseUrl}}/login/
+Content-Type: application/json
+
+{
+  "email": "nisna.u5@gmail.com",
+  "password": "123"
+}
+
+### 🔁 Refresh Access Token
+POST {{baseUrl}}/token/refresh/
+Content-Type: application/json
+
+{
+  "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTQzNzM1NSwiaWF0IjoxNzUxMzUwOTU1LCJqdGkiOiI5MDkyNjU4ZTljYTk0YmRmOTQ1OTU1MTRmYWFmMWVhYyIsInVzZXJfaWQiOjF9.1LHKk5sLEbpPMXn60jvvRBBvZlcR1KwkTq1hxauCpp8"
+}
+
+### 🚪 Logout (Blacklist Refresh Token)
+POST {{baseUrl}}/logout/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTQzNzU4NywiaWF0IjoxNzUxMzUxMTg3LCJqdGkiOiI2MjMxMzRkZGRkN2U0Mjk3YmRlYjNkNzg0MTg4MjU5OSIsInVzZXJfaWQiOjF9.hwBmEK2O92egdJW3g7180aZ_UFACW1Lwxt-MhsnhHhM
+Content-Type: application/json
+
+{
+    "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTQzNzU4NywiaWF0IjoxNzUxMzUxMTg3LCJqdGkiOiI2MjMxMzRkZGRkN2U0Mjk3YmRlYjNkNzg0MTg4MjU5OSIsInVzZXJfaWQiOjF9.hwBmEK2O92egdJW3g7180aZ_UFACW1Lwxt-MhsnhHhM"
+
+}
+
+
+
+
+
+
+
+
+
+# --------------------FORGOT PASSWORD--------------
+
+
+
+### Send OTP
+POST {{baseUrl}}/forgot-password/send-otp/
+Content-Type: application/json
+
+{
+  "email": "nisna.u5@gmail.com"
+}
+
+### Verify OTP
+POST {{baseUrl}}/forgot-password/verify-otp/
+Content-Type: application/json
+
+{
+  "email": "nisna.u5@gmail.com",
+  "otp": "218008"
+}
+
+### Reset Password
+POST {{baseUrl}}/forgot-password/reset-password/
+Content-Type: application/json
+
+{
+  "email": "nisna.u5@gmail.com",
+  "new_password": "123",
+  "confirm_password": "123"
+}
+
+
+
+# -------------------SWITCH---------------------------------
+
+
+### Create a Switch
+POST http://localhost:8000/api/network/switches/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxMzY4MjAzLCJpYXQiOjE3NTEzNjQ2MDMsImp0aSI6IjgxNjVkNmMwZTk2MzRhZmM5YTAwNjU0NmVlYjUwYmRjIiwidXNlcl9pZCI6Mn0.-zf10_MszPPnhUEEoWIegKepyqw2XjSGYStyMusxWjE
+
+{
+  "name": "Main Switch02",
+  "uid": "SW002",
+  "make": "Cisco",
+  "model_number": "X500",
+  "serial_number": "SN123456",
+  "package_date": "2025-07-02"
+}
+
+### List Switches
+GET http://localhost:8000/api/network/switches/?page=1&page_size=2
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxMzU5MzIyLCJpYXQiOjE3NTEzNTU3MjIsImp0aSI6Ijg3NmRlMDhjZTg4ZDQ0MGQ5MzExZmVhZjc4MTlkMzhlIiwidXNlcl9pZCI6Mn0.5d95FKrV8IJWbrPspYTOFSYvhf5d1ZJGCm7z2649ZPA
+
+### Retrieve Switch
+GET http://localhost:8000/api/network/switches/1/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxMzU5MzIyLCJpYXQiOjE3NTEzNTU3MjIsImp0aSI6Ijg3NmRlMDhjZTg4ZDQ0MGQ5MzExZmVhZjc4MTlkMzhlIiwidXNlcl9pZCI6Mn0.5d95FKrV8IJWbrPspYTOFSYvhf5d1ZJGCm7z2649ZPA
+
+### Update Switch
+PUT http://localhost:8000/api/network/switches/1/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxMzU5MzIyLCJpYXQiOjE3NTEzNTU3MjIsImp0aSI6Ijg3NmRlMDhjZTg4ZDQ0MGQ5MzExZmVhZjc4MTlkMzhlIiwidXNlcl9pZCI6Mn0.5d95FKrV8IJWbrPspYTOFSYvhf5d1ZJGCm7z2649ZPA
+
+{
+  "name": "Main Switch Updated",
+  "uid": "SW001",
+  "make": "Cisco",
+  "model_number": "X600",
+  "serial_number": "SN654321",
+  "package_date": "2025-07-01"
+}
+
+### Delete Switch
+DELETE http://localhost:8000/api/network/switches/3/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxMzU5MzIyLCJpYXQiOjE3NTEzNTU3MjIsImp0aSI6Ijg3NmRlMDhjZTg4ZDQ0MGQ5MzExZmVhZjc4MTlkMzhlIiwidXNlcl9pZCI6Mn0.5d95FKrV8IJWbrPspYTOFSYvhf5d1ZJGCm7z2649ZPA
+
+
+# -------------OLT----------------
+
+### Create OLT
+POST http://localhost:8000/api/network/olts/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxMzY4MjAzLCJpYXQiOjE3NTEzNjQ2MDMsImp0aSI6IjgxNjVkNmMwZTk2MzRhZmM5YTAwNjU0NmVlYjUwYmRjIiwidXNlcl9pZCI6Mn0.-zf10_MszPPnhUEEoWIegKepyqw2XjSGYStyMusxWjE
+
+{
+  "name": "OLT 3",
+  "uid": "OLT003",
+  "make": "Huawei",
+  "model_number": "HUA-OLT-1000",
+  "serial_number": "SN1234567890",
+  "package_date": "2025-07-01",
+  "switch": 2   
+}
+
+### List OLTs
+GET http://localhost:8000/api/network/olts/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxMzY4MjAzLCJpYXQiOjE3NTEzNjQ2MDMsImp0aSI6IjgxNjVkNmMwZTk2MzRhZmM5YTAwNjU0NmVlYjUwYmRjIiwidXNlcl9pZCI6Mn0.-zf10_MszPPnhUEEoWIegKepyqw2XjSGYStyMusxWjE
+
+### Retrieve OLT
+GET http://localhost:8000/api/network/olts/1/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxMzY4MjAzLCJpYXQiOjE3NTEzNjQ2MDMsImp0aSI6IjgxNjVkNmMwZTk2MzRhZmM5YTAwNjU0NmVlYjUwYmRjIiwidXNlcl9pZCI6Mn0.-zf10_MszPPnhUEEoWIegKepyqw2XjSGYStyMusxWjE
+
+### Update OLT
+PUT http://localhost:8000/api/network/olts/1/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxMzY4MjAzLCJpYXQiOjE3NTEzNjQ2MDMsImp0aSI6IjgxNjVkNmMwZTk2MzRhZmM5YTAwNjU0NmVlYjUwYmRjIiwidXNlcl9pZCI6Mn0.-zf10_MszPPnhUEEoWIegKepyqw2XjSGYStyMusxWjE
+
+{
+  "name": "OLT 1 Updated",
+  "uid": "OLT001",
+  "make": "Huawei",
+  "model_number": "HUA-OLT-2000",
+  "serial_number": "SN9876543210",
+  "package_date": "2025-07-01",
+  "switch": 1
+}
+
+### Delete OLT
+DELETE http://localhost:8000/api/network/olts/1/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxMzY4MjAzLCJpYXQiOjE3NTEzNjQ2MDMsImp0aSI6IjgxNjVkNmMwZTk2MzRhZmM5YTAwNjU0NmVlYjUwYmRjIiwidXNlcl9pZCI6Mn0.-zf10_MszPPnhUEEoWIegKepyqw2XjSGYStyMusxWjE
+
+
+
+# ----------------------------ISP---------------------------------------
+
+### Create ISP
+POST http://localhost:8000/api/network/isp/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxMzcyODM3LCJpYXQiOjE3NTEzNjkyMzcsImp0aSI6ImE2MjYzNDBlMjI4YzQzZTQ4M2QxM2Q1ODZmYzM4ZGNkIiwidXNlcl9pZCI6Mn0.Aml5ofyH_RScsBKkul4HaVbgA5Dz2a6Mcqf0R3mHuos
+
+{
+  "name": "stampede",
+  "address": "123 Fiber Road, Kochi"
+}
+
+### List All ISPs
+GET http://localhost:8000/api/network/isp/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxMzcyODM3LCJpYXQiOjE3NTEzNjkyMzcsImp0aSI6ImE2MjYzNDBlMjI4YzQzZTQ4M2QxM2Q1ODZmYzM4ZGNkIiwidXNlcl9pZCI6Mn0.Aml5ofyH_RScsBKkul4HaVbgA5Dz2a6Mcqf0R3mHuos
+
+### Retrieve ISP
+GET http://localhost:8000/api/network/isp/1/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxMzcyODM3LCJpYXQiOjE3NTEzNjkyMzcsImp0aSI6ImE2MjYzNDBlMjI4YzQzZTQ4M2QxM2Q1ODZmYzM4ZGNkIiwidXNlcl9pZCI6Mn0.Aml5ofyH_RScsBKkul4HaVbgA5Dz2a6Mcqf0R3mHuos
+
+### Update ISP
+PUT http://localhost:8000/api/network/isp/1/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxMzcyODM3LCJpYXQiOjE3NTEzNjkyMzcsImp0aSI6ImE2MjYzNDBlMjI4YzQzZTQ4M2QxM2Q1ODZmYzM4ZGNkIiwidXNlcl9pZCI6Mn0.Aml5ofyH_RScsBKkul4HaVbgA5Dz2a6Mcqf0R3mHuos
+
+{
+  "name": "Updated ISP Name",
+  "address": "Updated ISP Address"
+}
+
+### Delete ISP
+DELETE http://localhost:8000/api/network/isp/1/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxMzcyODM3LCJpYXQiOjE3NTEzNjkyMzcsImp0aSI6ImE2MjYzNDBlMjI4YzQzZTQ4M2QxM2Q1ODZmYzM4ZGNkIiwidXNlcl9pZCI6Mn0.Aml5ofyH_RScsBKkul4HaVbgA5Dz2a6Mcqf0R3mHuos
+
+
+# --------------LCO---------------------------------
+
+### Create LCO (POST)
+POST http://localhost:8000/api/lcos/lco/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxNDQwNjQ0LCJpYXQiOjE3NTE0MzcwNDQsImp0aSI6IjgxMDRhZDhiMzYzMzQzNTNiZGUzMmMxNzhmMDM4ODE5IiwidXNlcl9pZCI6Mn0.pnkgsiJjaMCwaX99MWwJDNq95cU-PP-YfL1FOuuAlC4
+
+{
+  "name": "jesna LCO",
+  "address": "123 Main Street, Kerala",
+  "aadhaar_number": "900452789012",
+  "phone": "9876543225",
+  "email": "jeznajaz2@gmail.com",
+  "olts": [1, 2]
+}
+
+### List LCOs (GET)
+GET http://localhost:8000/api/lcos/lco/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxNDQwNjQ0LCJpYXQiOjE3NTE0MzcwNDQsImp0aSI6IjgxMDRhZDhiMzYzMzQzNTNiZGUzMmMxNzhmMDM4ODE5IiwidXNlcl9pZCI6Mn0.pnkgsiJjaMCwaX99MWwJDNq95cU-PP-YfL1FOuuAlC4
+
+### Retrieve LCO (GET, PUT, DELETE)
+GET http://localhost:8000/api/lcos/lco/1/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxNDQwNjQ0LCJpYXQiOjE3NTE0MzcwNDQsImp0aSI6IjgxMDRhZDhiMzYzMzQzNTNiZGUzMmMxNzhmMDM4ODE5IiwidXNlcl9pZCI6Mn0.pnkgsiJjaMCwaX99MWwJDNq95cU-PP-YfL1FOuuAlC4
+
+### Update LCO (GET, PUT, DELETE)
+GET http://localhost:8000/api/lcos/lco/1/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxNDQwNjQ0LCJpYXQiOjE3NTE0MzcwNDQsImp0aSI6IjgxMDRhZDhiMzYzMzQzNTNiZGUzMmMxNzhmMDM4ODE5IiwidXNlcl9pZCI6Mn0.pnkgsiJjaMCwaX99MWwJDNq95cU-PP-YfL1FOuuAlC4
+
+### Delete LCO (GET, PUT, DELETE)
+GET http://localhost:8000/api/lcos/lco/1/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxNDQwNjQ0LCJpYXQiOjE3NTE0MzcwNDQsImp0aSI6IjgxMDRhZDhiMzYzMzQzNTNiZGUzMmMxNzhmMDM4ODE5IiwidXNlcl9pZCI6Mn0.pnkgsiJjaMCwaX99MWwJDNq95cU-PP-YfL1FOuuAlC4
+
+
+# ---------CUSTOMER----------
+
+### List all customers (with search and pagination)
+GET http://localhost:8000/api/client/customer/?search=John&page=1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxNDUxOTc3LCJpYXQiOjE3NTE0NDgzNzcsImp0aSI6Ijk0MTQ4MmNkN2Y0YTQxZTg4MWY0M2I2NjJlZmU2YzMyIiwidXNlcl9pZCI6Mn0.lsdEw5zc7w9rnqK99GLd-i4Dzyzvcv854cylgpoxBYI
+
+
+### Create customer
+POST http://localhost:8000/api/client/customer/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxNDUxOTc3LCJpYXQiOjE3NTE0NDgzNzcsImp0aSI6Ijk0MTQ4MmNkN2Y0YTQxZTg4MWY0M2I2NjJlZmU2YzMyIiwidXNlcl9pZCI6Mn0.lsdEw5zc7w9rnqK99GLd-i4Dzyzvcv854cylgpoxBYI
+
+{
+  "full_name": "John Doe",
+  "phone": "9876543210",
+  "address": "123 Street",
+  "email": "john@example.com",
+  "mac_id": "00:1B:44:11:3A:B7",
+  "plan": "Premium 100Mbps",
+  "v_lan": "200",
+  "lco": 1,
+  "lco_ref": "LCO123",
+  "isp": 1,
+  "expiry_date": "2025-08-01",
+  "ont_number": "ONT56789",
+  "olt": 2,
+  "signal": "-20 dBm",
+  "kseb_post": "KP-40",
+  "port": "PON1",
+  "distance": 200.5
+}
+
+### Get single customer
+GET http://localhost:8000/api/client/customer/1/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxNDUxOTc3LCJpYXQiOjE3NTE0NDgzNzcsImp0aSI6Ijk0MTQ4MmNkN2Y0YTQxZTg4MWY0M2I2NjJlZmU2YzMyIiwidXNlcl9pZCI6Mn0.lsdEw5zc7w9rnqK99GLd-i4Dzyzvcv854cylgpoxBYI
+
+
+### Update customer
+PUT http://localhost:8000/api/client/customer/1/
+Content-Type: application/json
+
+{
+  "full_name": "John Updated",
+  "phone": "9876543210",
+  ...
+}
+
+### Delete customer
+DELETE http://localhost:8000/api/client/customer/1/
+
+
+
+# bulk upload
+
+
+# ------------REPORT 
+
+### Search all customers with "baker" in any searchable field
+GET http://localhost:8000/api/client/search/?search=kochi
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxNDU4MjY5LCJpYXQiOjE3NTE0NTQ2NjksImp0aSI6IjQ5YzQzOTg1YjI1MzQ4OGFiZjViY2VkMDllNmMzNDk5IiwidXNlcl9pZCI6Mn0.5edLRg0IOVYXT_n_dMy3d3N8We-K1ggaRU8Rssw3_Tw
+
+###
+
+### Filter by OLT, LCO, and ISP
+GET http://localhost:8000/api/client/search/?olt=2&lco=1&isp=1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxNDU4MjY5LCJpYXQiOjE3NTE0NTQ2NjksImp0aSI6IjQ5YzQzOTg1YjI1MzQ4OGFiZjViY2VkMDllNmMzNDk5IiwidXNlcl9pZCI6Mn0.5edLRg0IOVYXT_n_dMy3d3N8We-K1ggaRU8Rssw3_Tw
+
+# report generation
+
+### Generate Excel report with selected fields
+POST http://localhost:8000/api/client/report/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxNDU4MjY5LCJpYXQiOjE3NTE0NTQ2NjksImp0aSI6IjQ5YzQzOTg1YjI1MzQ4OGFiZjViY2VkMDllNmMzNDk5IiwidXNlcl9pZCI6Mn0.5edLRg0IOVYXT_n_dMy3d3N8We-K1ggaRU8Rssw3_Tw
+
+{
+  "fields": ["email", "expiry_date", "plan", "mac_id"]
+}
+
+
+
+
+
+# ====================MOBILE APPLICATION-----------------------------
+
+### ✅ Login LCO
+POST {{baseUrl}}/login/
+Content-Type: application/json
+
+{
+  "email": "jeznajaz22@gmail.com",
+  "password": "123"
+}
+
+
+### change password
+POST http://localhost:8000/api/auth/change-password/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxNTIxOTAzLCJpYXQiOjE3NTE1MTgzMDMsImp0aSI6ImMxNTEwZjk0Yjg1NjRkODA5ODM3OGQwYWI3NTg0MDA3IiwidXNlcl9pZCI6N30.j-uTqHuCnb7vwGwHSWC1AwIvHOw9333WiUr4SqJQ7xw
+
+{
+  "old_password": "ZKqkNIdE",
+  "new_password": "123",
+  "confirm_password": "123"
+}
+
+
+# LCO customer list 
+
+### Get customers for logged-in LCO (search by name or phone, filtered by ISP/OLT)
+GET http://localhost:8000/api/client/my-customers/search/?search=John&isp=3&olt=2
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxNTIxOTAzLCJpYXQiOjE3NTE1MTgzMDMsImp0aSI6ImMxNTEwZjk0Yjg1NjRkODA5ODM3OGQwYWI3NTg0MDA3IiwidXNlcl9pZCI6N30.j-uTqHuCnb7vwGwHSWC1AwIvHOw9333WiUr4SqJQ7xw
