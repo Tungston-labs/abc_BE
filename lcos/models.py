@@ -10,7 +10,6 @@ class LCO(TimeStampedModel):
     address = models.TextField()
     aadhaar_number = models.CharField(max_length=12, unique=True)
     phone = models.CharField(max_length=15)
-    olts = models.ManyToManyField(OLT, related_name='lcos')
 
     def __str__(self):
         return self.name

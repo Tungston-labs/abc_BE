@@ -1,7 +1,6 @@
 
 from django.db import models
 from shared.models import TimeStampedModel
-
 class Switch(TimeStampedModel):
     name = models.CharField(max_length=100)
     uid = models.CharField(max_length=100, unique=True)
@@ -23,6 +22,8 @@ class OLT(TimeStampedModel):
     serial_number = models.CharField(max_length=100)
     package_date = models.DateField()
     switch = models.ForeignKey('network.Switch', on_delete=models.CASCADE, related_name='olts')
+    lco = models.ForeignKey('lcos.LCO', on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_olts')
+
 
     def __str__(self):
         return f"{self.name} ({self.uid})"

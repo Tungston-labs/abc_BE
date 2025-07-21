@@ -100,8 +100,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 
 ### List Switches
 GET http://localhost:8000/api/network/switches/?page=1&page_size=2
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxMzU5MzIyLCJpYXQiOjE3NTEzNTU3MjIsImp0aSI6Ijg3NmRlMDhjZTg4ZDQ0MGQ5MzExZmVhZjc4MTlkMzhlIiwidXNlcl9pZCI6Mn0.5d95FKrV8IJWbrPspYTOFSYvhf5d1ZJGCm7z2649ZPA
-
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMDM2MjM2LCJpYXQiOjE3NTMwMzI2MzYsImp0aSI6IjVlNDlkNzFjOTNjZDRlYTViMzBkOTUwZGZiMGNiZTQ1IiwidXNlcl9pZCI6Mn0.QSNlS_vB6_83EPK1GkFgjPdHRcHHvCB0uBP0x1hfsF4
 ### Retrieve Switch
 GET http://localhost:8000/api/network/switches/1/
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxMzU5MzIyLCJpYXQiOjE3NTEzNTU3MjIsImp0aSI6Ijg3NmRlMDhjZTg4ZDQ0MGQ5MzExZmVhZjc4MTlkMzhlIiwidXNlcl9pZCI6Mn0.5d95FKrV8IJWbrPspYTOFSYvhf5d1ZJGCm7z2649ZPA
@@ -144,7 +143,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 
 ### List OLTs
 GET http://localhost:8000/api/network/olts/
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxMzY4MjAzLCJpYXQiOjE3NTEzNjQ2MDMsImp0aSI6IjgxNjVkNmMwZTk2MzRhZmM5YTAwNjU0NmVlYjUwYmRjIiwidXNlcl9pZCI6Mn0.-zf10_MszPPnhUEEoWIegKepyqw2XjSGYStyMusxWjE
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMDMyNTY2LCJpYXQiOjE3NTMwMjg5NjYsImp0aSI6IjZkZGMzMThiZWU4MDQ2YzJhY2ZjNDQ4MjdlZjY0ZmJiIiwidXNlcl9pZCI6Mn0.DAxnKN1zQX5wJt-Goi5a3SCxxKZmxc8wTnXU3TiWOu8
 
 ### Retrieve OLT
 GET http://localhost:8000/api/network/olts/1/
@@ -169,6 +168,9 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 DELETE http://localhost:8000/api/network/olts/1/
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxMzY4MjAzLCJpYXQiOjE3NTEzNjQ2MDMsImp0aSI6IjgxNjVkNmMwZTk2MzRhZmM5YTAwNjU0NmVlYjUwYmRjIiwidXNlcl9pZCI6Mn0.-zf10_MszPPnhUEEoWIegKepyqw2XjSGYStyMusxWjE
 
+###un assigned olt
+GET http://localhost:8000/api/network/unassigned-olts/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMDMyNTY2LCJpYXQiOjE3NTMwMjg5NjYsImp0aSI6IjZkZGMzMThiZWU4MDQ2YzJhY2ZjNDQ4MjdlZjY0ZmJiIiwidXNlcl9pZCI6Mn0.DAxnKN1zQX5wJt-Goi5a3SCxxKZmxc8wTnXU3TiWOu8
 
 
 # ----------------------------ISP---------------------------------------
@@ -224,7 +226,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 
 ### List LCOs (GET)
 GET http://localhost:8000/api/lcos/lco/
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxNDQwNjQ0LCJpYXQiOjE3NTE0MzcwNDQsImp0aSI6IjgxMDRhZDhiMzYzMzQzNTNiZGUzMmMxNzhmMDM4ODE5IiwidXNlcl9pZCI6Mn0.pnkgsiJjaMCwaX99MWwJDNq95cU-PP-YfL1FOuuAlC4
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMDMyNTY2LCJpYXQiOjE3NTMwMjg5NjYsImp0aSI6IjZkZGMzMThiZWU4MDQ2YzJhY2ZjNDQ4MjdlZjY0ZmJiIiwidXNlcl9pZCI6Mn0.DAxnKN1zQX5wJt-Goi5a3SCxxKZmxc8wTnXU3TiWOu8
 
 ### Retrieve LCO (GET, PUT, DELETE)
 GET http://localhost:8000/api/lcos/lco/1/
@@ -243,19 +245,19 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 
 ### List all customers (with search and pagination)
 GET http://localhost:8000/api/client/customer/?search=John&page=1
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxNDUxOTc3LCJpYXQiOjE3NTE0NDgzNzcsImp0aSI6Ijk0MTQ4MmNkN2Y0YTQxZTg4MWY0M2I2NjJlZmU2YzMyIiwidXNlcl9pZCI6Mn0.lsdEw5zc7w9rnqK99GLd-i4Dzyzvcv854cylgpoxBYI
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUyOTA2MTgzLCJpYXQiOjE3NTI5MDI1ODMsImp0aSI6IjRiNjgyMWM3ZGUwZjQ4MWI4ODE1NWRlMzYzN2VhMjExIiwidXNlcl9pZCI6Mn0.0LBhP3Li8g82uqS6QN6Eag5o9gI8QwdBY8TyLi1mwp4
 
 
 ### Create customer
 POST http://localhost:8000/api/client/customer/
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxNDUxOTc3LCJpYXQiOjE3NTE0NDgzNzcsImp0aSI6Ijk0MTQ4MmNkN2Y0YTQxZTg4MWY0M2I2NjJlZmU2YzMyIiwidXNlcl9pZCI6Mn0.lsdEw5zc7w9rnqK99GLd-i4Dzyzvcv854cylgpoxBYI
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUyOTE1ODI2LCJpYXQiOjE3NTI5MTIyMjYsImp0aSI6IjI4ZDVmNDQ1N2Q3YTQ4ZTFiODFjNDYyNjBlNTEwZjEzIiwidXNlcl9pZCI6Mn0.c4LUschf1YIeOFY2b3exva8ZwmVmnHAVD1TRR2Ikti0
 
 {
   "full_name": "John Doe",
-  "phone": "9876543210",
+  "phone": "9876843210",
   "address": "123 Street",
-  "email": "john@example.com",
+  "email": "johgn@example.com",
   "mac_id": "00:1B:44:11:3A:B7",
   "plan": "Premium 100Mbps",
   "v_lan": "200",

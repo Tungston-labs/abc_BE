@@ -31,6 +31,8 @@ class OLTListCreateView(generics.ListCreateAPIView):
     queryset = OLT.objects.all()
     serializer_class = OLTSerializer
     permission_classes = [IsAuthenticated, IsSuperAdmin]
+    pagination_class = StandardResultsSetPagination
+
 
 class OLTRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = OLT.objects.all()
@@ -38,11 +40,24 @@ class OLTRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated, IsSuperAdmin]
 
 
+from rest_framework import generics, permissions
+from network.models import OLT
+from network.serializers import OLTSerializer
+
+class UnassignedOLTListView(generics.ListAPIView):
+    queryset = OLT.objects.filter(lco__isnull=True)
+    serializer_class = OLTSerializer
+    permission_classes = [IsAuthenticated,IsSuperAdmin]  
+
+
+
 
 class ISPCreateListView(generics.ListCreateAPIView):
     queryset = ISP.objects.all()
     serializer_class = ISPSerializer
     permission_classes = [IsAuthenticated, IsSuperAdmin]
+    pagination_class = StandardResultsSetPagination
+
 
 class ISPRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = ISP.objects.all()

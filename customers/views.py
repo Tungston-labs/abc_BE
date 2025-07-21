@@ -5,6 +5,7 @@ from .serializers import CustomerSerializer
 from rest_framework.pagination import PageNumberPagination
 from shared.permissions import IsSuperAdmin,IsLCO
 from rest_framework.permissions import IsAuthenticated
+from shared.paginations import StandardResultsSetPagination
 
 
 class CustomerPagination(PageNumberPagination):
@@ -20,7 +21,7 @@ class CustomerListCreateView(generics.ListCreateAPIView):
 
     queryset = Customer.objects.all().order_by('-last_updated')
     serializer_class = CustomerSerializer
-    pagination_class = CustomerPagination
+    pagination_class = StandardResultsSetPagination
     filter_backends = [filters.SearchFilter]
     search_fields = ['full_name', 'phone']
 
@@ -173,9 +174,7 @@ from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q
 
-class CustomerPagination(PageNumberPagination):
-    page_size = 10
-    page_size_query_param = 'page_size'
+
 
 class CustomerSearchListView(generics.ListAPIView):
     queryset = Customer.objects.all().order_by('-last_updated')
@@ -235,7 +234,7 @@ class CustomerReportView(APIView):
 class LCOCustomerSearchListView(generics.ListAPIView):
     serializer_class = CustomerSerializer
     permission_classes = [IsAuthenticated, IsLCO]
-    pagination_class = CustomerPagination
+    pagination_class = StandardResultsSetPagination
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
     search_fields = [
         'full_name', 'phone', 'email', 'mac_id', 'ont_number', 'address',

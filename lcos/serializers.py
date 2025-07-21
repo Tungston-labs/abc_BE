@@ -2,24 +2,30 @@
 
 import random
 import string
-from network.serializers import OLTSerializer
 from rest_framework import serializers
-from network.models import  OLT
+from network.models import OLT
 from accounts.models import User
 from django.core.mail import send_mail
 from .models import LCO
 from django.conf import settings
+from network.serializers import OLTSerializer
+
 
 class LCOSerializer(serializers.ModelSerializer):
-    olts = serializers.PrimaryKeyRelatedField(queryset=OLT.objects.all(), many=True, write_only=True)
+    # Show only unassigned OLTs in dropdown
+    olts = serializers.PrimaryKeyRelatedField(
+        queryset=OLT.objects.filter(lco__isnull=True), 
+        many=True,
+        write_only=True
+    )
 
-    email = serializers.EmailField(write_only=True)  # Used only during creation
+    email = serializers.EmailField(write_only=True)
     name = serializers.CharField()
     aadhaar_number = serializers.CharField()
     phone = serializers.CharField()
     address = serializers.CharField()
 
-    olt_details = OLTSerializer(source='olts', many=True, read_only=True)
+    olt_details = OLTSerializer(source='assigned_olts', many=True, read_only=True)
     username = serializers.CharField(source='user.username', read_only=True)
     user_email = serializers.EmailField(source='user.email', read_only=True)
 
@@ -54,7 +60,11 @@ class LCOSerializer(serializers.ModelSerializer):
             aadhaar_number=aadhaar_number,
             phone=phone
         )
-        lco.olts.set(olts)
+
+        # Assign OLTs to this LCO
+        for olt in olts:
+            olt.lco = lco
+            olt.save()
 
         send_mail(
             subject="LCO Account Created",
@@ -65,4 +75,3 @@ class LCOSerializer(serializers.ModelSerializer):
         )
 
         return lco
-

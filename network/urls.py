@@ -1,6 +1,6 @@
 
 from django.urls import path
-from .views import SwitchListCreateView, SwitchRetrieveUpdateDestroyView,OLTListCreateView,OLTRetrieveUpdateDestroyView,ISPCreateListView,ISPRetrieveUpdateDeleteView
+from .views import SwitchListCreateView, SwitchRetrieveUpdateDestroyView,OLTListCreateView,OLTRetrieveUpdateDestroyView,ISPCreateListView,ISPRetrieveUpdateDeleteView,UnassignedOLTListView
 
 urlpatterns = [
     path('switches/', SwitchListCreateView.as_view(), name='switch-list-create'),
@@ -9,4 +9,5 @@ urlpatterns = [
     path('olts/<int:pk>/', OLTRetrieveUpdateDestroyView.as_view(), name='olt-detail'),
     path('isp/', ISPCreateListView.as_view(), name='isp-create-list'),
     path('isp/<int:pk>/', ISPRetrieveUpdateDeleteView.as_view(), name='isp-detail'),
+    path('unassigned-olts/', UnassignedOLTListView.as_view(), name='unassigned-olts'),
 ]
