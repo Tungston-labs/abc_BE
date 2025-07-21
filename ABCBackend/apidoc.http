@@ -213,15 +213,15 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 ### Create LCO (POST)
 POST http://localhost:8000/api/lcos/lco/
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxNDQwNjQ0LCJpYXQiOjE3NTE0MzcwNDQsImp0aSI6IjgxMDRhZDhiMzYzMzQzNTNiZGUzMmMxNzhmMDM4ODE5IiwidXNlcl9pZCI6Mn0.pnkgsiJjaMCwaX99MWwJDNq95cU-PP-YfL1FOuuAlC4
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMDk1NTQ2LCJpYXQiOjE3NTMwOTE5NDYsImp0aSI6IjE0YTczMzhiNTg4YTQ2ZmZiMDU0OGQ0NzVhMGU3ZjU2IiwidXNlcl9pZCI6Mn0.4IeNaE-_42EJk41lzLIbngaU-y97hF1eujwPM1RMQGU
 
 {
   "name": "jesna LCO",
   "address": "123 Main Street, Kerala",
-  "aadhaar_number": "900452789012",
+  "aadhaar_number": "900772789012",
   "phone": "9876543225",
-  "email": "jeznajaz2@gmail.com",
-  "olts": [1, 2]
+  "email": "abcd@gmail.com",
+  "olts": [4]
 }
 
 ### List LCOs (GET)
@@ -301,14 +301,14 @@ DELETE http://localhost:8000/api/client/customer/1/
 ### Search all customers with "baker" in any searchable field
 GET http://localhost:8000/api/client/search/?search=kochi
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxNDU4MjY5LCJpYXQiOjE3NTE0NTQ2NjksImp0aSI6IjQ5YzQzOTg1YjI1MzQ4OGFiZjViY2VkMDllNmMzNDk5IiwidXNlcl9pZCI6Mn0.5edLRg0IOVYXT_n_dMy3d3N8We-K1ggaRU8Rssw3_Tw
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMDgyMTYwLCJpYXQiOjE3NTMwNzg1NjAsImp0aSI6IjUyOTA5NWMyYTUzZTQ0YTM5YjU3NTA0NTA0MGNiMmZkIiwidXNlcl9pZCI6Mn0.CaZFERiv9NyN87A3P9W3YjELQqxvPaYQ57OR4wjc9HY
 
 ###
 
 ### Filter by OLT, LCO, and ISP
 GET http://localhost:8000/api/client/search/?olt=2&lco=1&isp=1
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxNDU4MjY5LCJpYXQiOjE3NTE0NTQ2NjksImp0aSI6IjQ5YzQzOTg1YjI1MzQ4OGFiZjViY2VkMDllNmMzNDk5IiwidXNlcl9pZCI6Mn0.5edLRg0IOVYXT_n_dMy3d3N8We-K1ggaRU8Rssw3_Tw
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMDgyMTYwLCJpYXQiOjE3NTMwNzg1NjAsImp0aSI6IjUyOTA5NWMyYTUzZTQ0YTM5YjU3NTA0NTA0MGNiMmZkIiwidXNlcl9pZCI6Mn0.CaZFERiv9NyN87A3P9W3YjELQqxvPaYQ57OR4wjc9HY
 
 # report generation
 

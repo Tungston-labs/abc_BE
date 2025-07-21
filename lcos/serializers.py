@@ -10,6 +10,9 @@ from .models import LCO
 from django.conf import settings
 from network.serializers import OLTSerializer
 
+from rest_framework.exceptions import ValidationError
+from django.db import IntegrityError
+
 
 class LCOSerializer(serializers.ModelSerializer):
     # Show only unassigned OLTs in dropdown
@@ -36,6 +39,7 @@ class LCOSerializer(serializers.ModelSerializer):
             'olt_details', 'username', 'user_email'
         ]
 
+
     def create(self, validated_data):
         email = validated_data.pop('email')
         name = validated_data.pop('name')
@@ -45,14 +49,20 @@ class LCOSerializer(serializers.ModelSerializer):
         olts = validated_data.pop('olts')
 
         password = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
-        user = User.objects.create_user(
-            username=email,
-            email=email,
-            password=password,
-            phone=phone,
-            is_lco=True
-        )
 
+        # 🔴 Wrap user creation in try-except
+        try:
+            user = User.objects.create_user(
+                username=email,
+                email=email,
+                password=password,
+                phone=phone,
+                is_lco=True
+            )
+        except IntegrityError:
+            raise ValidationError({"email": "A user with this email already exists."})
+
+        # ✅ Proceed if no exception
         lco = LCO.objects.create(
             user=user,
             name=name,
@@ -61,7 +71,6 @@ class LCOSerializer(serializers.ModelSerializer):
             phone=phone
         )
 
-        # Assign OLTs to this LCO
         for olt in olts:
             olt.lco = lco
             olt.save()
@@ -75,3 +84,4 @@ class LCOSerializer(serializers.ModelSerializer):
         )
 
         return lco
+
