@@ -9,6 +9,10 @@ class SwitchSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class SwitchDropdownSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Switch
+        fields = ['id', 'name']
 
 
 class OLTSerializer(serializers.ModelSerializer):

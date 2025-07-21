@@ -4,6 +4,8 @@ from .models import Switch,ISP
 from .serializers import SwitchSerializer,ISPSerializer
 from shared.permissions import IsSuperAdmin
 from shared.paginations import StandardResultsSetPagination
+from .serializers import SwitchDropdownSerializer
+
 
 
 class SwitchListCreateView(generics.ListCreateAPIView):
@@ -17,6 +19,12 @@ class SwitchRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = SwitchSerializer
     permission_classes = [IsAuthenticated, IsSuperAdmin]
 
+
+class SwitchDropdownListView(generics.ListAPIView):
+    queryset = Switch.objects.all()
+    serializer_class = SwitchDropdownSerializer
+    permission_classes = [IsAuthenticated]  # You can modify permissions as needed
+    pagination_class = None  # Disable pagination to return all items
 
 
 # network/views.py
