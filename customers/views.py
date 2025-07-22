@@ -6,6 +6,15 @@ from rest_framework.pagination import PageNumberPagination
 from shared.permissions import IsSuperAdmin,IsLCO
 from rest_framework.permissions import IsAuthenticated
 from shared.paginations import StandardResultsSetPagination
+import pandas as pd
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Customer
+from lcos.models import LCO
+from network.models import OLT, ISP
+from django.core.exceptions import ObjectDoesNotExist
+from rest_framework.parsers import MultiPartParser, FormParser
 
 
 class CustomerPagination(PageNumberPagination):
@@ -40,18 +49,62 @@ class CustomerRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CustomerSerializer
 
 
+# drop down data of lco,olt,isp
+
+class DropdownDataAPIView(APIView):
+    def get(self, request):
+        lco_id = request.query_params.get("lco_id", None)
+
+        # LCO list with name and address
+        lcos = LCO.objects.all()
+        lco_data = [
+            {
+                "id": lco.id,
+                "label": f"{lco.name} ({lco.address})"
+            } for lco in lcos
+        ]
+
+        # ISP list
+        isps = ISP.objects.all()
+        isp_data = [
+            {
+                "id": isp.id,
+                "name": isp.name
+            } for isp in isps
+        ]
+
+        # Filtered OLTs based on selected LCO
+        if lco_id:
+            olts = OLT.objects.filter(lco_id=lco_id)
+        else:
+            olts = OLT.objects.none()
+
+        olt_data = [
+            {
+                "id": olt.id,
+                "name": olt.name
+            } for olt in olts
+        ]
+
+        # LCO ref (e.g., username of linked user)
+        lco_ref = None
+        if lco_id:
+            try:
+                lco = LCO.objects.get(id=lco_id)
+                lco_ref = lco.user.username
+            except LCO.DoesNotExist:
+                return Response({"error": "LCO not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response({
+            "lcos": lco_data,
+            "isps": isp_data,
+            "olts": olt_data,
+            "lco_ref": lco_ref
+        })
 
 #  BULK UPLOAD
 
-import pandas as pd
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from .models import Customer
-from lcos.models import LCO
-from network.models import OLT, ISP
-from django.core.exceptions import ObjectDoesNotExist
-from rest_framework.parsers import MultiPartParser, FormParser
+
 
 class BulkCustomerUpload(APIView):
     parser_classes = (MultiPartParser, FormParser)

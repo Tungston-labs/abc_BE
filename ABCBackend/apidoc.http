@@ -274,9 +274,8 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 }
 
 ### Get single customer
-GET http://localhost:8000/api/client/customer/1/
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxNDUxOTc3LCJpYXQiOjE3NTE0NDgzNzcsImp0aSI6Ijk0MTQ4MmNkN2Y0YTQxZTg4MWY0M2I2NjJlZmU2YzMyIiwidXNlcl9pZCI6Mn0.lsdEw5zc7w9rnqK99GLd-i4Dzyzvcv854cylgpoxBYI
-
+GET http://localhost:8000/api/client/customer/13/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMTY1MjcxLCJpYXQiOjE3NTMxNjE2NzEsImp0aSI6ImNiZGZmYTE0Mjg0NTQ3NGU4NTZhYzJkZTkxOTk2ZTY4IiwidXNlcl9pZCI6Mn0.Wms2KNfdI10Ak3bkoQ9jcy6bEkd1V-IgLWgWwlNuRA0
 
 ### Update customer
 PUT http://localhost:8000/api/client/customer/1/
@@ -299,10 +298,9 @@ DELETE http://localhost:8000/api/client/customer/1/
 # ------------REPORT 
 
 ### Search all customers with "baker" in any searchable field
-GET http://localhost:8000/api/client/search/?search=kochi
+GET http://localhost:8000/api/client/search/
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMDgyMTYwLCJpYXQiOjE3NTMwNzg1NjAsImp0aSI6IjUyOTA5NWMyYTUzZTQ0YTM5YjU3NTA0NTA0MGNiMmZkIiwidXNlcl9pZCI6Mn0.CaZFERiv9NyN87A3P9W3YjELQqxvPaYQ57OR4wjc9HY
-
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMTc4MDU4LCJpYXQiOjE3NTMxNzQ0NTgsImp0aSI6ImJiNDRlY2U2YTU5YzQ3ZjBhOWFiYmM3NGY0NmRiNTRmIiwidXNlcl9pZCI6Mn0.GaRp7YbADBUJILK2a80qHovl-NRWvnP3qgfwcmn6Y-w
 ###
 
 ### Filter by OLT, LCO, and ISP
