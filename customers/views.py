@@ -105,13 +105,18 @@ class DropdownDataAPIView(APIView):
 #  BULK UPLOAD
 
 
+from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from .models import Customer, ISP, OLT, LCO
+import pandas as pd
+
 
 class BulkCustomerUpload(APIView):
     parser_classes = (MultiPartParser, FormParser)
     permission_classes = [IsAuthenticated, IsSuperAdmin]
 
-
-    # Mapping of multiple header aliases to model fields
     HEADER_ALIASES = {
         "full_name": ["full name", "name", "customer name"],
         "phone": ["phone", "mobile", "contact number"],
@@ -149,6 +154,8 @@ class BulkCustomerUpload(APIView):
         if not file:
             return Response({'error': 'No file uploaded'}, status=400)
 
+        request_isp_id = request.data.get("isp")  # Get ISP from form
+
         try:
             df = pd.read_excel(file)
             header_map = self.normalize_headers(df)
@@ -159,20 +166,28 @@ class BulkCustomerUpload(APIView):
             for index, row in df.iterrows():
                 data = {}
 
+                # Map Excel data to internal fields
                 for field, excel_col in header_map.items():
                     data[field] = row.get(excel_col)
 
+                # Handle ISP logic
                 try:
-                    # Foreign key lookups
-                    data['isp'] = ISP.objects.get(pk=int(data['isp'])) if data.get('isp') else None
-                except:
+                    if request_isp_id:
+                        data['isp'] = ISP.objects.get(pk=int(request_isp_id))
+                    elif data.get('isp'):
+                        data['isp'] = ISP.objects.get(pk=int(data['isp']))
+                    else:
+                        data['isp'] = None
+                except Exception as e:
                     data['isp'] = None
 
+                # Handle OLT
                 try:
                     data['olt'] = OLT.objects.get(pk=int(data['olt'])) if data.get('olt') else None
                 except:
                     data['olt'] = None
 
+                # Handle LCO by lco_ref
                 try:
                     data['lco'] = LCO.objects.get(lco_ref=data['lco_ref']) if data.get('lco_ref') else None
                 except:
