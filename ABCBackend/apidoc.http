@@ -320,6 +320,13 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 }
 
 
+###dashboard
+GET http://localhost:8000/api/client/counts/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMjQ1NTY4LCJpYXQiOjE3NTMyNDE5NjgsImp0aSI6IjJkODQwMGFkYTAxZTQ2ZjE4MzQ4YTc5YWYzZTJmMzRkIiwidXNlcl9pZCI6Mn0.RH87zzyeI72PXi135gdRQGdIA9cMZwCKp6659uk_o_4
+
+
+
 
 
 

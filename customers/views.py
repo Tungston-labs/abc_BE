@@ -275,6 +275,30 @@ class CustomerReportView(APIView):
         return response
 
 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from django.utils import timezone
+from customers.models import Customer
+from lcos.models import LCO
+from network.models import OLT, ISP
+
+
+class DashboardCountsView(APIView):
+    permission_classes = [IsAuthenticated]  # Optional: Use if auth is required
+
+    def get(self, request):
+        today = timezone.now().date()
+
+        data = {
+            "total_customers": Customer.objects.count(),
+            "expired_plan_customers": Customer.objects.filter(expiry_date__lt=today).count(),
+            "total_lcos": LCO.objects.count(),
+            "total_olts": OLT.objects.count(),
+            "total_isps": ISP.objects.count(),
+        }
+
+        return Response(data)
 
 
 

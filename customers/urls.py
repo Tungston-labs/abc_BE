@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import CustomerListCreateView, CustomerRetrieveUpdateDestroyView,BulkCustomerUpload,CustomerSearchListView,LCOByOLTView,ISPByLCOView,CustomerReportView,LCOCustomerSearchListView,DropdownDataAPIView
+from .views import CustomerListCreateView, CustomerRetrieveUpdateDestroyView,BulkCustomerUpload,CustomerSearchListView,LCOByOLTView,ISPByLCOView,CustomerReportView,LCOCustomerSearchListView,DropdownDataAPIView,DashboardCountsView
 from django.conf.urls.static import static
 from django.conf import settings
 
@@ -28,6 +28,8 @@ urlpatterns = [
     path('my-customers/search/', LCOCustomerSearchListView.as_view(), name='lco-customer-search'),
 
     path('dropdowns/', DropdownDataAPIView.as_view(), name='dropdowns-all'),
+
+    path('counts/', DashboardCountsView.as_view(), name='dashboard-counts'),
 
 ]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
