@@ -9,7 +9,7 @@ urlpatterns = [
     path('register-superadmin/',views.SuperAdminRegisterView.as_view(), name='register-superadmin'),
 
         # Login (obtain access + refresh tokens)
-    path('login/',TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('login/',views.CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
 
     # Refresh access token
     path('token/refresh/',TokenRefreshView.as_view(), name='token_refresh'),

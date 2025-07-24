@@ -18,8 +18,8 @@ POST {{baseUrl}}/login/
 Content-Type: application/json
 
 {
-  "email": "nisna.u5@gmail.com",
-  "password": "1234"
+  "email": "nisna@gmail.com",
+  "password": "123"
 }
 
 ### 🔁 Refresh Access Token
@@ -27,16 +27,16 @@ POST {{baseUrl}}/token/refresh/
 Content-Type: application/json
 
 {
-  "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTQzNzM1NSwiaWF0IjoxNzUxMzUwOTU1LCJqdGkiOiI5MDkyNjU4ZTljYTk0YmRmOTQ1OTU1MTRmYWFmMWVhYyIsInVzZXJfaWQiOjF9.1LHKk5sLEbpPMXn60jvvRBBvZlcR1KwkTq1hxauCpp8"
+  "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MzQxNDk3MCwiaWF0IjoxNzUzMzI4NTcwLCJqdGkiOiI4YjMyYTJjNDdlNmY0NTM1YWRjNzRmNjVkNmM2ODFmZiIsInVzZXJfaWQiOjF9.sVvTOsc8yXjpoYdIv-KcK5qWvw_4Vb0U7qGI1kUeCGQ"
 }
 
 ### 🚪 Logout (Blacklist Refresh Token)
 POST {{baseUrl}}/logout/
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTQzNzU4NywiaWF0IjoxNzUxMzUxMTg3LCJqdGkiOiI2MjMxMzRkZGRkN2U0Mjk3YmRlYjNkNzg0MTg4MjU5OSIsInVzZXJfaWQiOjF9.hwBmEK2O92egdJW3g7180aZ_UFACW1Lwxt-MhsnhHhM
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMzU0NTUyLCJpYXQiOjE3NTMzNTA5NTIsImp0aSI6Ijg2OTg0ZTUyODM0MzRmMzJhYjdiMGQ2MTc1ZmIxNTQ1IiwidXNlcl9pZCI6MX0.3BH1GRlDUZCArHhAuF6mL-1uNXdR7dPIXqH6bsf2A80
 Content-Type: application/json
 
 {
-    "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MTQzNzU4NywiaWF0IjoxNzUxMzUxMTg3LCJqdGkiOiI2MjMxMzRkZGRkN2U0Mjk3YmRlYjNkNzg0MTg4MjU5OSIsInVzZXJfaWQiOjF9.hwBmEK2O92egdJW3g7180aZ_UFACW1Lwxt-MhsnhHhM"
+    "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MzQzNzM1MiwiaWF0IjoxNzUzMzUwOTUyLCJqdGkiOiI4ZGZlNjliNWViOGQ0ZmM3ODFiNWUwMTU0NWZjNTA5MSIsInVzZXJfaWQiOjF9.P0cN_kVWh3d5Bd7Cxq-xMzL9orbAIVdOdBaMpWMC4cw"
 
 }
 
@@ -57,7 +57,7 @@ POST {{baseUrl}}/forgot-password/send-otp/
 Content-Type: application/json
 
 {
-  "email": "nisna.u5@gmail.com"
+  "email": "abcd@gmail.com"
 }
 
 ### Verify OTP
@@ -65,8 +65,8 @@ POST {{baseUrl}}/forgot-password/verify-otp/
 Content-Type: application/json
 
 {
-  "email": "nisna.u5@gmail.com",
-  "otp": "218008"
+  "email": "abcd@gmail.com",
+  "otp": "477360"
 }
 
 ### Reset Password
@@ -74,7 +74,7 @@ POST {{baseUrl}}/forgot-password/reset-password/
 Content-Type: application/json
 
 {
-  "email": "nisna.u5@gmail.com",
+  "email": "abcd@gmail.com",
   "new_password": "123",
   "confirm_password": "123"
 }
@@ -337,8 +337,8 @@ POST {{baseUrl}}/login/
 Content-Type: application/json
 
 {
-  "email": "jeznajaz22@gmail.com",
-  "password": "123"
+  "email": "abcd@gmail.com",
+  "password": "b2cCFwSV"
 }
 
 

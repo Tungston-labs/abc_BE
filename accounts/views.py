@@ -23,6 +23,14 @@ class SuperAdminRegisterView(generics.CreateAPIView):
     permission_classes = [AllowAny]  
 
 
+    
+from rest_framework_simplejwt.views import TokenObtainPairView
+from .serializers import CustomTokenObtainPairSerializer
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+
+
 # logout view
 
 class LogoutView(APIView):

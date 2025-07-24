@@ -2,6 +2,32 @@ from rest_framework import serializers
 from .models import User,OTP
 from django.contrib.auth import get_user_model
 
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super().validate(attrs)
+
+        user = self.user
+
+        # Safely get LCO name if exists
+        lco_name = ''
+        if hasattr(user, 'lco_profile') and user.lco_profile:
+            lco_name = user.lco_profile.name
+
+        data['user'] = {
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'phone': user.phone,
+            'lco_name': lco_name,
+        }
+
+        return data
+
+
+
+
 
 class SuperAdminRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
