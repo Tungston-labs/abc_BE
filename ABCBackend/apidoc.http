@@ -32,11 +32,11 @@ Content-Type: application/json
 
 ### 🚪 Logout (Blacklist Refresh Token)
 POST {{baseUrl}}/logout/
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMzU0NTUyLCJpYXQiOjE3NTMzNTA5NTIsImp0aSI6Ijg2OTg0ZTUyODM0MzRmMzJhYjdiMGQ2MTc1ZmIxNTQ1IiwidXNlcl9pZCI6MX0.3BH1GRlDUZCArHhAuF6mL-1uNXdR7dPIXqH6bsf2A80
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzNDIxNDkxLCJpYXQiOjE3NTM0MTc4OTEsImp0aSI6IjllYTVkNTgxZDkxMDQyOWQ5YzkzNGE2N2Y0M2YwYmVhIiwidXNlcl9pZCI6MX0.OsMdtD7wfmguvOqVJqmBQS8g7P0_tN0lhF9t964yct8
 Content-Type: application/json
 
 {
-    "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MzQzNzM1MiwiaWF0IjoxNzUzMzUwOTUyLCJqdGkiOiI4ZGZlNjliNWViOGQ0ZmM3ODFiNWUwMTU0NWZjNTA5MSIsInVzZXJfaWQiOjF9.P0cN_kVWh3d5Bd7Cxq-xMzL9orbAIVdOdBaMpWMC4cw"
+    "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MzUwNDI5MSwiaWF0IjoxNzUzNDE3ODkxLCJqdGkiOiJjNmI4NTFmYmJjNzQ0ZjVkYjQxMzg2MThmNDg2ODUxNyIsInVzZXJfaWQiOjF9.utZwUQU8rCQ4fAh2Uf9agGZ80XYNY63xa6PNDo_NXiY"
 
 }
 
@@ -244,8 +244,8 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 # ---------CUSTOMER----------
 
 ### List all customers (with search and pagination)
-GET http://localhost:8000/api/client/customer/?search=John&page=1
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUyOTA2MTgzLCJpYXQiOjE3NTI5MDI1ODMsImp0aSI6IjRiNjgyMWM3ZGUwZjQ4MWI4ODE1NWRlMzYzN2VhMjExIiwidXNlcl9pZCI6Mn0.0LBhP3Li8g82uqS6QN6Eag5o9gI8QwdBY8TyLi1mwp4
+GET http://localhost:8000/api/client/customer/?search=&page=1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzNDI1MjMzLCJpYXQiOjE3NTM0MjE2MzMsImp0aSI6Ijk0ZjNkNjdmNDg2ZTQ5YjBhNDNmNDk5ZjUzZmJiZDBjIiwidXNlcl9pZCI6MX0.ZAKJ6uWt4COVTnnunsq8KGhRfYwqiymDHmvjMhHZknw
 
 
 ### Create customer
