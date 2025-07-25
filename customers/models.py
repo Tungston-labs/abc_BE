@@ -3,8 +3,9 @@ from django.db import models
 from lcos.models import LCO
 from network.models import OLT, ISP
 from django.utils import timezone
+from shared.models import TimeStampedModel
 
-class Customer(models.Model):
+class Customer(TimeStampedModel):
     profile_pic = models.ImageField(upload_to='customer_profiles/', null=True, blank=True)
     full_name = models.CharField(max_length=100)
     phone = models.CharField(max_length=15)

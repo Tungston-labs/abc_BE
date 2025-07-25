@@ -15,6 +15,7 @@ from lcos.models import LCO
 from network.models import OLT, ISP
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.parsers import MultiPartParser, FormParser
+from shared.mixins import TrackCreatedUpdatedUserMixin
 
 
 class CustomerPagination(PageNumberPagination):
@@ -25,7 +26,7 @@ class CustomerPagination(PageNumberPagination):
 from rest_framework.response import Response
 from rest_framework import status
 
-class CustomerListCreateView(generics.ListCreateAPIView):
+class CustomerListCreateView(TrackCreatedUpdatedUserMixin,generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated, IsSuperAdmin]
 
     queryset = Customer.objects.all().order_by('-last_updated')
@@ -43,7 +44,7 @@ class CustomerListCreateView(generics.ListCreateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class CustomerRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+class CustomerRetrieveUpdateDestroyView(TrackCreatedUpdatedUserMixin,generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated, IsSuperAdmin]
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
@@ -103,33 +104,33 @@ class DropdownDataAPIView(APIView):
         })
 
 #  BULK UPLOAD
-
-
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from .models import Customer, ISP, OLT, LCO
+from shared.mixins import TrackCreatedUpdatedUserMixin
 import pandas as pd
+from datetime import datetime
 
-
-class BulkCustomerUpload(APIView):
+class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
     parser_classes = (MultiPartParser, FormParser)
     permission_classes = [IsAuthenticated, IsSuperAdmin]
 
     HEADER_ALIASES = {
-        "full_name": ["full name", "name", "customer name"],
-        "phone": ["phone", "mobile", "contact number"],
-        "email": ["email", "e-mail", "mail"],
-        "address": ["address", "residence"],
-        "mac_id": ["mac", "mac id", "macid"],
-        "plan": ["plan", "internet plan"],
+        "full_name": ["username", "Customer", "name", "Customer Name", "Name,", "Full Name", "Username"],
+        "phone": ["phone", "mobile", "contact number", "Mobile", "Mobile No.", "Phone", "MOBILE"],
+        "email": ["email", "e-mail", "mail", "EMAIL_ID", "Email Address", "Email", "Primary Email"],
+        "address": ["address", "residence", "Address", "ADDRESS", "Permanent Address"],
+        "mac_id": ["mac", "mac id", "macid", "MACID"],
+        "plan": ["plan", "internet plan", "Plan", "Plan Name"],
         "lco_ref": ["lco code", "lco_ref"],
+        "lco": ["lco", "LCO Code"],
         "isp": ["isp id", "isp"],
-        "olt": ["olt id", "olt"],
+        "olt": ["olt id", "olt", "OLT IP"],
         "v_lan": ["vlan", "v lan", "v_lan"],
         "ont_number": ["ont number", "ont", "ont no"],
-        "expiry_date": ["expiry", "expiry date"],
+        "expiry_date": ["expiry", "expiry date", "Expiry Date", "Validity End", "Expiry date"],
         "signal": ["signal"],
         "kseb_post": ["kseb post", "post"],
         "port": ["port"],
@@ -137,7 +138,7 @@ class BulkCustomerUpload(APIView):
     }
 
     def normalize_headers(self, df):
-        """ Map Excel headers to model fields dynamically """
+        """Map Excel headers to model fields dynamically"""
         header_map = {}
         lower_cols = [col.lower().strip() for col in df.columns]
 
@@ -154,7 +155,7 @@ class BulkCustomerUpload(APIView):
         if not file:
             return Response({'error': 'No file uploaded'}, status=400)
 
-        request_isp_id = request.data.get("isp")  # Get ISP from form
+        request_isp_id = request.data.get("isp")
 
         try:
             df = pd.read_excel(file)
@@ -170,7 +171,23 @@ class BulkCustomerUpload(APIView):
                 for field, excel_col in header_map.items():
                     data[field] = row.get(excel_col)
 
-                # Handle ISP logic
+                # Convert expiry_date from Excel serial or string
+                if isinstance(data.get('expiry_date'), (int, float)):
+                    try:
+                        data['expiry_date'] = pd.to_datetime(data['expiry_date'], unit='d', origin='1899-12-30').date()
+                    except:
+                        data['expiry_date'] = None
+                elif isinstance(data.get('expiry_date'), str):
+                    try:
+                        data['expiry_date'] = pd.to_datetime(data['expiry_date']).date()
+                    except:
+                        data['expiry_date'] = None
+
+                # Clean up phone if numeric float
+                if data.get('phone'):
+                    data['phone'] = str(data['phone']).split('.')[0]
+
+                # Handle ISP
                 try:
                     if request_isp_id:
                         data['isp'] = ISP.objects.get(pk=int(request_isp_id))
@@ -178,7 +195,7 @@ class BulkCustomerUpload(APIView):
                         data['isp'] = ISP.objects.get(pk=int(data['isp']))
                     else:
                         data['isp'] = None
-                except Exception as e:
+                except:
                     data['isp'] = None
 
                 # Handle OLT
@@ -194,7 +211,12 @@ class BulkCustomerUpload(APIView):
                     data['lco'] = None
 
                 try:
-                    Customer.objects.create(**data)
+                    # Skip duplicate phone
+                    if Customer.objects.filter(phone=data.get('phone')).exists():
+                        errors.append(f"Row {index+1}: Customer with phone {data.get('phone')} already exists")
+                        continue
+
+                    Customer.objects.create(**data, created_by=request.user, updated_by=request.user)
                     success_count += 1
                 except Exception as e:
                     errors.append(f"Row {index+1}: {str(e)}")
@@ -219,7 +241,7 @@ from rest_framework.response import Response
 from .models import LCO,ISP
 from .serializers import LCODropdownSerializer,ISPDropdownSerializer
 
-class LCOByOLTView(APIView):
+class LCOByOLTView(TrackCreatedUpdatedUserMixin,APIView):
     permission_classes = [IsAuthenticated, IsSuperAdmin]
 
     def get(self, request, olt_id):
@@ -228,7 +250,7 @@ class LCOByOLTView(APIView):
         return Response(serializer.data)
 
 
-class ISPByLCOView(APIView):
+class ISPByLCOView(TrackCreatedUpdatedUserMixin,APIView):
     def get(self, request, lco_id):
         isps = ISP.objects.filter(lco__id=lco_id)
         serializer = ISPDropdownSerializer(isps, many=True)
@@ -244,7 +266,7 @@ from django.db.models import Q
 
 
 
-class CustomerSearchListView(generics.ListAPIView):
+class CustomerSearchListView(TrackCreatedUpdatedUserMixin,generics.ListAPIView):
     queryset = Customer.objects.all().order_by('-last_updated')
     serializer_class = CustomerSerializer
     permission_classes = [IsAuthenticated, IsSuperAdmin]
@@ -263,7 +285,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from .models import Customer
 
-class CustomerReportView(APIView):
+class CustomerReportView(TrackCreatedUpdatedUserMixin,APIView):
     permission_classes = [IsAuthenticated, IsSuperAdmin]
 
     def post(self, request):
