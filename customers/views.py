@@ -216,10 +216,14 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
                         errors.append(f"Row {index+1}: Customer with phone {data.get('phone')} already exists")
                         continue
 
+                    print(f"Row {index+1} Data: {data}")    
+
                     Customer.objects.create(**data, created_by=request.user, updated_by=request.user)
                     success_count += 1
                 except Exception as e:
                     errors.append(f"Row {index+1}: {str(e)}")
+                    print(f"Row {index+1} Error: {str(e)}")
+
 
             return Response({
                 "message": f"{success_count} customers uploaded successfully",
