@@ -103,13 +103,13 @@ class DropdownDataAPIView(APIView):
             "lco_ref": lco_ref
         })
 
-#  BULK UPLOAD
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from .models import Customer, ISP, OLT, LCO
 from shared.mixins import TrackCreatedUpdatedUserMixin
+from shared.permissions import IsSuperAdmin  # Make sure you import this
 import pandas as pd
 from datetime import datetime
 
@@ -138,7 +138,6 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
     }
 
     def normalize_headers(self, df):
-        """Map Excel headers to model fields dynamically"""
         header_map = {}
         lower_cols = [col.lower().strip() for col in df.columns]
 
@@ -211,27 +210,37 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
                     data['lco'] = None
 
                 try:
-                    # Skip duplicate phone
-                    if Customer.objects.filter(phone=data.get('phone')).exists():
-                        errors.append(f"Row {index+1}: Customer with phone {data.get('phone')} already exists")
+                    phone = data.get('phone')
+                    if not phone:
+                        errors.append(f"Row {index+1}: Missing phone number")
                         continue
 
-                    print(f"Row {index+1} Data: {data}")    
+                    # UPDATE if exists, else CREATE
+                    try:
+                        customer = Customer.objects.get(phone=phone)
+                        for field, value in data.items():
+                            setattr(customer, field, value)
+                        customer.updated_by = request.user
+                        customer.save()
+                        print(f"Row {index+1}: Updated existing customer with phone {phone}")
+                    except Customer.DoesNotExist:
+                        Customer.objects.create(**data, created_by=request.user, updated_by=request.user)
+                        print(f"Row {index+1}: Created new customer with phone {phone}")
 
-                    Customer.objects.create(**data, created_by=request.user, updated_by=request.user)
                     success_count += 1
+
                 except Exception as e:
                     errors.append(f"Row {index+1}: {str(e)}")
                     print(f"Row {index+1} Error: {str(e)}")
 
-
             return Response({
-                "message": f"{success_count} customers uploaded successfully",
+                "message": f"{success_count} customers uploaded/updated successfully",
                 "errors": errors
             }, status=200)
 
         except Exception as e:
             return Response({'error': str(e)}, status=500)
+
 
 
 
@@ -274,7 +283,7 @@ class CustomerSearchListView(TrackCreatedUpdatedUserMixin,generics.ListAPIView):
     queryset = Customer.objects.all().order_by('-last_updated')
     serializer_class = CustomerSerializer
     permission_classes = [IsAuthenticated, IsSuperAdmin]
-    pagination_class = CustomerPagination
+    # pagination_class = CustomerPagination
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
     search_fields = [
         'full_name', 'phone', 'email', 'mac_id', 'ont_number', 'address',

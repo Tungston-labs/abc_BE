@@ -1,6 +1,7 @@
 ### Register Super Admin
 
-@baseUrl = http://178.248.112.16:8001/api/auth
+# @baseUrl = http://178.248.112.16:8001/api/auth
+@baseUrl = http://localhost:8000/api/auth
 
 POST {{baseUrl}}/register-superadmin/
 Content-Type: application/json
@@ -306,7 +307,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 ### Filter by OLT, LCO, and ISP
 GET http://localhost:8000/api/client/search/?olt=2&lco=1&isp=1
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMDgyMTYwLCJpYXQiOjE3NTMwNzg1NjAsImp0aSI6IjUyOTA5NWMyYTUzZTQ0YTM5YjU3NTA0NTA0MGNiMmZkIiwidXNlcl9pZCI6Mn0.CaZFERiv9NyN87A3P9W3YjELQqxvPaYQ57OR4wjc9HY
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzNzc0NzgzLCJpYXQiOjE3NTM3NzExODMsImp0aSI6IjBjZDVlNWYxYmY0YTQzZjRhYmZhMTMxYWEyMTg0OGY2IiwidXNlcl9pZCI6MX0.br4Bx2wSiGrva4a1v81oxR-OjdbYff7ezxFuEy8clYI
 
 # report generation
 

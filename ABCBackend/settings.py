@@ -129,7 +129,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ),
     'DEFAULT_PAGINATION_CLASS': 'shared.paginations.StandardResultsSetPagination',
-    'PAGE_SIZE': 15,
+    'PAGE_SIZE': 500,
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
 }
 
