@@ -139,6 +139,7 @@ class ResetPasswordView(APIView):
 # CHANGE PASSWORD
 
 
+import re
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -146,6 +147,10 @@ from rest_framework import status
 
 class ChangePasswordView(APIView):
     permission_classes = [IsAuthenticated]
+
+    def validate_password(self, password):
+        pattern = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$'
+        return re.match(pattern, password)
 
     def post(self, request):
         user = request.user
@@ -161,6 +166,11 @@ class ChangePasswordView(APIView):
 
         if old_password == new_password:
             return Response({'error': 'New password must be different from the old password.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not self.validate_password(new_password):
+            return Response({
+                'error': 'Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.'
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         user.set_password(new_password)
         user.save()
