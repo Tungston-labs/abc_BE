@@ -1,9 +1,8 @@
 from django.apps import AppConfig
 
-
 class SharedConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'shared'
-    
-def ready(self):
-    import logs.signals
+
+    def ready(self):
+        import shared.signals  # ✅ This must be inside the class

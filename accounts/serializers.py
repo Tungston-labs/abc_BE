@@ -4,6 +4,8 @@ from django.contrib.auth import get_user_model
 
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         data = super().validate(attrs)
@@ -20,10 +22,12 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             'username': user.username,
             'email': user.email,
             'phone': user.phone,
+            'is_super_admin': user.is_super_admin,  # ✅ Add this
             'lco_name': lco_name,
         }
 
         return data
+
 
 
 

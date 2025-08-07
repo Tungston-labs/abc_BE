@@ -41,10 +41,29 @@ class BulkLCOUpload(APIView):
     HEADER_ALIASES = {
         "name": ["name", "lco name", "Name"],
         "email": ["email", "Email"],
-        "aadhaar_number": ["aadhaar", "aadhaar number", "Aadhaar Number"],
+        "aadhaar_number": [
+        "aadhaar", "aadhaar number", "Aadhaar Number","Aadhar",
+        "aadhar", "aadhar number", "Aadhar Number"
+        ],
         "phone": ["phone", "mobile", "Phone"],
-        "address": ["address", "Address"],
-        "olt_uids": ["olt uids", "OLT UIDs", "olts"],  # comma-separated list
+        "address": [
+            "address", "Address", "addr", "Addr", "ADDR", "ADDRESS",
+            "residential address", "Residential Address",
+            "home address", "Home Address",
+            "full address", "Full Address",
+            "current address", "Current Address",
+            "present address", "Present Address",
+            "house address", "House Address",
+            "location", "Location",
+            "address line", "Address Line", "addressline", "AddressLine",
+            "street address", "Street Address",
+            "addr_line", "addr_line1", "addr_line2", "address1", "address2",
+            "line1", "line2", "Line 1", "Line 2",
+            "house no", "House No", "house number", "House Number",
+            "place", "Place", "village", "Village", "town", "Town",
+            "building", "Building", "road", "Road", "area", "Area",
+        ],
+        "olt_uids": ["olt uids", "OLT UIDs", "olts","OLT"],  # comma-separated list
         "lco_name": ["lco", "lco name", "lco_name", "LCO", "LCO Name"]
     }
 
@@ -140,10 +159,17 @@ class BulkLCOUpload(APIView):
                 except Exception as e:
                     errors.append(f"Row {index+1}: {str(e)}")
 
+            if success_count == 0:
+                return Response({
+                    "message": "No LCOs were uploaded.",
+                    "errors": errors
+                }, status=400)
+
             return Response({
-                "message": f"{success_count} LCOs uploaded successfully",
+                "message": f"{success_count} LCO(s) uploaded successfully.",
                 "errors": errors
-            })
+            }, status=201)
+
 
         except Exception as e:
             return Response({'error': str(e)}, status=500)

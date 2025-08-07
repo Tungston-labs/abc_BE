@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.contrib.contenttypes.models import ContentType
-from logs.models import ActivityLog
+from shared.models import ActivityLog
 from django.utils.timezone import now
 
 def get_user_from_instance(instance):

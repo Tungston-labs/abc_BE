@@ -14,7 +14,16 @@ Content-Type: application/json
 }
 
 
-### ✅ Login (Obtain Access & Refresh Tokens)
+### ✅ Login (Obtain Access & Refresh Tokens)---for lco
+POST {{baseUrl}}/login/
+Content-Type: application/json
+
+{
+  "email": "abcd@gmail.com",
+  "password": "Password@123"
+}
+
+### ✅ Login (Obtain Access & Refresh Tokens)---for admin
 POST {{baseUrl}}/login/
 Content-Type: application/json
 
@@ -246,7 +255,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 
 ### List all customers (with search and pagination)
 GET http://localhost:8000/api/client/customer/?search=&page=1
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzNDI1MjMzLCJpYXQiOjE3NTM0MjE2MzMsImp0aSI6Ijk0ZjNkNjdmNDg2ZTQ5YjBhNDNmNDk5ZjUzZmJiZDBjIiwidXNlcl9pZCI6MX0.ZAKJ6uWt4COVTnnunsq8KGhRfYwqiymDHmvjMhHZknw
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0NDY2MTM2LCJpYXQiOjE3NTQ0NjI1MzYsImp0aSI6IjQzNzAzYmU0NjgwMTQ1MDJiYmVkMjVkOTUxYjc2YjMyIiwidXNlcl9pZCI6Mn0.rJD3inUr2CLs_bq-HNjVz9nx0ZA-G7YJz-d_CZi-dQg
 
 
 ### Create customer
@@ -290,6 +299,11 @@ Content-Type: application/json
 
 ### Delete customer
 DELETE http://localhost:8000/api/client/customer/1/
+
+
+### plan expiring soon customer 
+GET http://localhost:8000/api/client/expiring-soon/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0NDgwNjkwLCJpYXQiOjE3NTQ0NzcwOTAsImp0aSI6Ijg2NjJlZWMwNWJlZjQ1MWRiZWY1MTE0ZjdiOWJiM2RhIiwidXNlcl9pZCI6MX0.PKqt4Orn1t1HKPzsBIVuM0CEV8qiW_I-nywB3VpU1H0
 
 
 

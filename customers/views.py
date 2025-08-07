@@ -22,32 +22,72 @@ class CustomerPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
 
-# customers/views.py
+
 from rest_framework.response import Response
-from rest_framework import status
 
-class CustomerListCreateView(TrackCreatedUpdatedUserMixin,generics.ListCreateAPIView):
-    permission_classes = [IsAuthenticated, IsSuperAdmin]
-
-    queryset = Customer.objects.all().order_by('-last_updated')
+class CustomerListCreateView(TrackCreatedUpdatedUserMixin, generics.ListCreateAPIView):
+    permission_classes = [IsAuthenticated]
     serializer_class = CustomerSerializer
     pagination_class = StandardResultsSetPagination
     filter_backends = [filters.SearchFilter]
     search_fields = ['full_name', 'phone']
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_super_admin:
+            return Customer.objects.all().order_by('-last_updated')
+        if hasattr(user, 'lco_profile'):
+            lco = user.lco_profile
+            return Customer.objects.filter(lco=lco).order_by('-last_updated')
+        return Customer.objects.none()
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             self.perform_create(serializer)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        print("Validation error:", serializer.errors)  # Add this
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    def perform_create(self, serializer):
+        user = self.request.user
+        if hasattr(user, 'lco_profile') and not user.is_super_admin:
+            serializer.save(lco=user.lco_profile)
+        else:
+            serializer.save()
 
-class CustomerRetrieveUpdateDestroyView(TrackCreatedUpdatedUserMixin,generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = [IsAuthenticated, IsSuperAdmin]
-    queryset = Customer.objects.all()
+    # ✅ Add this method
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            paginated_data = self.get_paginated_response(serializer.data).data
+            # ✅ Inject user role
+            paginated_data['is_super_admin'] = request.user.is_super_admin
+            return Response(paginated_data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({
+            "results": serializer.data,
+            "is_super_admin": request.user.is_super_admin
+        })
+
+
+
+class CustomerRetrieveUpdateDestroyView(TrackCreatedUpdatedUserMixin, generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAuthenticated]
     serializer_class = CustomerSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_super_admin:
+            return Customer.objects.all()
+        elif hasattr(user, 'lco_profile'):
+            return Customer.objects.filter(lco=user.lco_profile)
+        return Customer.objects.none()
+
+
 
 
 # drop down data of lco,olt,isp
@@ -371,3 +411,39 @@ class LCOCustomerSearchListView(generics.ListAPIView):
 
     def get_queryset(self):
         return Customer.objects.filter(lco__user=self.request.user).order_by('-last_updated')
+
+
+# customers/views.py
+
+from rest_framework import generics, filters
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from django_filters.rest_framework import DjangoFilterBackend
+from datetime import date, timedelta
+from .models import Customer
+from .serializers import CustomerSerializer
+
+class CustomersExpiringSoonFilteredView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = CustomerSerializer
+    pagination_class = StandardResultsSetPagination
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ['lco']
+    search_fields = ['full_name', 'phone','plan']
+
+    def get_queryset(self):
+        today = timezone.now().date()
+        five_days_from_now = today + timedelta(days=5)
+
+        queryset = Customer.objects.filter(
+            expiry_date__range=(today, five_days_from_now)
+        ).order_by('expiry_date')
+
+        user = self.request.user
+
+        if user.is_super_admin:
+            return queryset
+        elif hasattr(user, 'lco_profile'):
+            return queryset.filter(lco=user.lco_profile)
+        return Customer.objects.none()
+

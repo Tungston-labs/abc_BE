@@ -9,6 +9,8 @@ urlpatterns = [
     path('api/network/', include('network.urls')),
     path('api/lcos/', include('lcos.urls')),
     path('api/client/', include('customers.urls')),
+    path('api/shared/', include('shared.urls')),
+
 ]
 
 if settings.DEBUG:
