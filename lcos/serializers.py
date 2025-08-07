@@ -36,7 +36,7 @@ class LCOSerializer(serializers.ModelSerializer):
         model = LCO
         fields = [
             'id', 'name', 'address', 'aadhaar_number', 'phone', 'email', 'olts',
-            'olt_details', 'username', 'user_email'
+            'olt_details', 'username', 'user_email','unique_id'
         ]
 
 

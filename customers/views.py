@@ -153,6 +153,7 @@ from shared.permissions import IsSuperAdmin  # Make sure you import this
 import pandas as pd
 from datetime import datetime
 
+
 class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
     parser_classes = (MultiPartParser, FormParser)
     permission_classes = [IsAuthenticated, IsSuperAdmin]
@@ -167,7 +168,7 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
         "lco_ref": ["lco code", "lco_ref"],
         "lco": ["lco", "LCO Code"],
         "isp": ["isp id", "isp"],
-        "olt": ["olt id", "olt", "OLT IP"],
+        "olt": ["olt id", "olt", "OLT IP", "OLT Name"],
         "v_lan": ["vlan", "v lan", "v_lan"],
         "ont_number": ["ont number", "ont", "ont no"],
         "expiry_date": ["expiry", "expiry date", "Expiry Date", "Validity End", "Expiry date"],
@@ -237,10 +238,20 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
                 except:
                     data['isp'] = None
 
-                # Handle OLT
-                try:
-                    data['olt'] = OLT.objects.get(pk=int(data['olt'])) if data.get('olt') else None
-                except:
+                # Handle OLT (ID or name)
+                olt_val = data.get('olt')
+                if olt_val:
+                    try:
+                        # Try by ID
+                        data['olt'] = OLT.objects.get(pk=int(olt_val))
+                    except (ValueError, OLT.DoesNotExist):
+                        try:
+                            # Try by name
+                            data['olt'] = OLT.objects.get(name__iexact=str(olt_val).strip())
+                        except OLT.DoesNotExist:
+                            errors.append(f"Row {index+1}: OLT '{olt_val}' not found.")
+                            data['olt'] = None
+                else:
                     data['olt'] = None
 
                 # Handle LCO by lco_ref
@@ -280,6 +291,7 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
 
         except Exception as e:
             return Response({'error': str(e)}, status=500)
+
 
 
 

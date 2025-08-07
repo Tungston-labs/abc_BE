@@ -42,8 +42,8 @@ class BulkLCOUpload(APIView):
         "name": ["name", "lco name", "Name"],
         "email": ["email", "Email"],
         "aadhaar_number": [
-        "aadhaar", "aadhaar number", "Aadhaar Number","Aadhar",
-        "aadhar", "aadhar number", "Aadhar Number"
+            "aadhaar", "aadhaar number", "Aadhaar Number", "Aadhar",
+            "aadhar", "aadhar number", "Aadhar Number"
         ],
         "phone": ["phone", "mobile", "Phone"],
         "address": [
@@ -63,7 +63,7 @@ class BulkLCOUpload(APIView):
             "place", "Place", "village", "Village", "town", "Town",
             "building", "Building", "road", "Road", "area", "Area",
         ],
-        "olt_uids": ["olt uids", "OLT UIDs", "olts","OLT"],  # comma-separated list
+        "olt_uids": ["olt uids", "OLT UIDs", "olts", "OLT", "olt names", "OLT Names"],
         "lco_name": ["lco", "lco name", "lco_name", "LCO", "LCO Name"]
     }
 
@@ -93,7 +93,6 @@ class BulkLCOUpload(APIView):
 
             for index, row in df.iterrows():
                 try:
-                    # Extract and normalize values
                     name = row.get(header_map['name'])
                     email = row.get(header_map['email'])
                     aadhaar_number = str(row.get(header_map['aadhaar_number']))
@@ -107,7 +106,6 @@ class BulkLCOUpload(APIView):
 
                     password = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
 
-                    # Create user
                     try:
                         user = User.objects.create_user(
                             username=email,
@@ -120,7 +118,6 @@ class BulkLCOUpload(APIView):
                         errors.append(f"Row {index+1}: User with email {email} already exists")
                         continue
 
-                    # Create LCO
                     lco = LCO.objects.create(
                         user=user,
                         name=name,
@@ -131,18 +128,27 @@ class BulkLCOUpload(APIView):
                         updated_by=request.user
                     )
 
-                    # Assign OLTs
+                    # Assign OLTs by UID or Name
                     if olt_uids_str:
-                        olt_uids = [uid.strip() for uid in str(olt_uids_str).split(',') if uid.strip()]
-                        for uid in olt_uids:
+                        olt_inputs = [x.strip() for x in str(olt_uids_str).split(',') if x.strip()]
+                        for olt_val in olt_inputs:
                             try:
-                                olt = OLT.objects.get(uid=uid, lco__isnull=True)
-                                olt.lco = lco
-                                olt.save()
-                            except OLT.DoesNotExist:
-                                errors.append(f"Row {index+1}: OLT with UID '{uid}' not found or already assigned")
+                                olt = None
+                                # Try OLT by UID
+                                try:
+                                    olt = OLT.objects.get(uid=olt_val, lco__isnull=True)
+                                except OLT.DoesNotExist:
+                                    # Try OLT by name (case-insensitive)
+                                    olt = OLT.objects.get(name__iexact=olt_val.strip(), lco__isnull=True)
 
-                    # Send email
+                                if olt:
+                                    olt.lco = lco
+                                    olt.save()
+                                else:
+                                    raise OLT.DoesNotExist
+                            except OLT.DoesNotExist:
+                                errors.append(f"Row {index+1}: OLT '{olt_val}' not found or already assigned")
+
                     try:
                         send_mail(
                             subject="LCO Account Created",
@@ -170,7 +176,5 @@ class BulkLCOUpload(APIView):
                 "errors": errors
             }, status=201)
 
-
         except Exception as e:
             return Response({'error': str(e)}, status=500)
-
