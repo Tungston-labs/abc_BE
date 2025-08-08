@@ -14,7 +14,7 @@ class LCO(TimeStampedModel):
 
 
     def save(self, *args, **kwargs):
-        if not self.unique_id:
+        if self.pk is None and not self.unique_id:  # new object only
             last_obj = LCO.objects.order_by('-id').first()
             if last_obj and last_obj.unique_id:
                 try:
@@ -25,6 +25,7 @@ class LCO(TimeStampedModel):
                 last_number = 0
             self.unique_id = f"LCO{last_number + 1:03d}"
         super().save(*args, **kwargs)
+
 
 
     def __str__(self):

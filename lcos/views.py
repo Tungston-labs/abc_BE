@@ -14,10 +14,26 @@ class LCOCreateListView(TrackCreatedUpdatedUserMixin,generics.ListCreateAPIView)
     permission_classes = [IsAuthenticated, IsSuperAdmin]
     pagination_class = StandardResultsSetPagination
 
-class LCORetrieveUpdateDeleteView(TrackCreatedUpdatedUserMixin,generics.RetrieveUpdateDestroyAPIView):
+from rest_framework.response import Response
+from rest_framework import status
+
+class LCORetrieveUpdateDeleteView(
+    TrackCreatedUpdatedUserMixin,
+    generics.RetrieveUpdateDestroyAPIView
+):
     queryset = LCO.objects.all()
     serializer_class = LCOSerializer
     permission_classes = [IsAuthenticated, IsSuperAdmin]
+
+    def update(self, request, *args, **kwargs):
+        try:
+            return super().update(request, *args, **kwargs)
+        except Exception as e:
+            import traceback
+            print("UPDATE ERROR:", str(e))
+            traceback.print_exc()
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
 from rest_framework.views import APIView

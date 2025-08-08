@@ -1,23 +1,20 @@
-# network/serializers.py
-
 import random
 import string
 from rest_framework import serializers
+from django.db import models, IntegrityError
+from rest_framework.exceptions import ValidationError
+from django.core.mail import send_mail
+from django.conf import settings
+
 from network.models import OLT
 from accounts.models import User
-from django.core.mail import send_mail
 from .models import LCO
-from django.conf import settings
 from network.serializers import OLTSerializer
-
-from rest_framework.exceptions import ValidationError
-from django.db import IntegrityError
 
 
 class LCOSerializer(serializers.ModelSerializer):
-    # Show only unassigned OLTs in dropdown
     olts = serializers.PrimaryKeyRelatedField(
-        queryset=OLT.objects.filter(lco__isnull=True), 
+        queryset=OLT.objects.all(),
         many=True,
         write_only=True
     )
@@ -31,14 +28,27 @@ class LCOSerializer(serializers.ModelSerializer):
     olt_details = OLTSerializer(source='assigned_olts', many=True, read_only=True)
     username = serializers.CharField(source='user.username', read_only=True)
     user_email = serializers.EmailField(source='user.email', read_only=True)
+    unique_id = serializers.CharField(read_only=True)
 
     class Meta:
         model = LCO
         fields = [
             'id', 'name', 'address', 'aadhaar_number', 'phone', 'email', 'olts',
-            'olt_details', 'username', 'user_email','unique_id'
+            'olt_details', 'username', 'user_email', 'unique_id'
         ]
 
+    def __init__(self, *args, **kwargs):
+        """Dynamically adjust OLT queryset based on create or update."""
+        super().__init__(*args, **kwargs)
+        request = self.context.get('request')
+        if request and request.method in ['PUT', 'PATCH'] and self.instance:
+            # Allow unassigned + currently assigned OLTs
+            self.fields['olts'].queryset = OLT.objects.filter(
+                models.Q(lco__isnull=True) | models.Q(lco_id=self.instance.id)
+            )
+        else:
+            # Only unassigned OLTs for create
+            self.fields['olts'].queryset = OLT.objects.filter(lco__isnull=True)
 
     def create(self, validated_data):
         email = validated_data.pop('email')
@@ -46,11 +56,10 @@ class LCOSerializer(serializers.ModelSerializer):
         aadhaar_number = validated_data.pop('aadhaar_number')
         phone = validated_data.pop('phone')
         address = validated_data.pop('address')
-        olts = validated_data.pop('olts')
+        olts = validated_data.pop('olts', [])
 
         password = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
 
-        # 🔴 Wrap user creation in try-except
         try:
             user = User.objects.create_user(
                 username=email,
@@ -62,7 +71,6 @@ class LCOSerializer(serializers.ModelSerializer):
         except IntegrityError:
             raise ValidationError({"email": "A user with this email already exists."})
 
-        # ✅ Proceed if no exception
         lco = LCO.objects.create(
             user=user,
             name=name,
@@ -85,3 +93,28 @@ class LCOSerializer(serializers.ModelSerializer):
 
         return lco
 
+    def update(self, instance, validated_data):
+        email = validated_data.pop('email', None)
+        olts = validated_data.pop('olts', None)
+
+        # Update LCO fields
+        instance.name = validated_data.get('name', instance.name)
+        instance.address = validated_data.get('address', instance.address)
+        instance.aadhaar_number = validated_data.get('aadhaar_number', instance.aadhaar_number)
+        instance.phone = validated_data.get('phone', instance.phone)
+        instance.save()
+
+        # Update user email if provided
+        if email:
+            instance.user.email = email
+            instance.user.username = email  # Keep username in sync
+            instance.user.save()
+
+        # Update OLT assignments if provided
+        if olts is not None:
+            OLT.objects.filter(lco=instance).update(lco=None)  # Unassign old ones
+            for olt in olts:
+                olt.lco = instance
+                olt.save()
+
+        return instance

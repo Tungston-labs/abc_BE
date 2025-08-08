@@ -10,14 +10,17 @@ class Switch(TimeStampedModel):
     package_date = models.DateField()
     unique_id = models.CharField(max_length=50,unique=True,null=True,blank=True)
     def save(self, *args, **kwargs):
-        if not self.unique_id:
+        if self.pk is None and not self.unique_id:  # only on create
             last_switch = Switch.objects.order_by('-id').first()
             if last_switch and last_switch.unique_id:
-                last_number = int(last_switch.unique_id.replace("SW", ""))
+                try:
+                    last_number = int(last_switch.unique_id.replace("SW", ""))
+                except ValueError:
+                    last_number = 0    
             else:
                 last_number = 0
             self.unique_id = f"SW{last_number + 1:03d}"  # padded with zeros like SW001
-        super().save(*args, **kwargs)
+        super().save(*args, **kwargs)    
 
     def __str__(self):
         return f"{self.name} ({self.uid})"
@@ -36,16 +39,18 @@ class OLT(TimeStampedModel):
     unique_id = models.CharField(max_length=50,unique=True,null=True,blank=True)
 
 
-
     def save(self, *args, **kwargs):
-        if not self.unique_id:
+        if self.pk is None and not self.unique_id:  # only on create
             last_obj = OLT.objects.order_by('-id').first()
             if last_obj and last_obj.unique_id:
-                last_number = int(last_obj.unique_id.replace("OLT", ""))
+                try:
+                    last_number = int(last_obj.unique_id.replace("OLT", ""))
+                except ValueError:
+                    last_number = 0
             else:
                 last_number = 0
             self.unique_id = f"OLT{last_number + 1:03d}"
-        super().save(*args, **kwargs)
+        super().save(*args, **kwargs)    
 
     def __str__(self):
 
@@ -60,14 +65,18 @@ class ISP(TimeStampedModel):
 
 
     def save(self, *args, **kwargs):
-        if not self.unique_id:
+        if self.pk is None and not self.unique_id:  # only on create
             last_obj = ISP.objects.order_by('-id').first()
             if last_obj and last_obj.unique_id:
-                last_number = int(last_obj.unique_id.replace("ISP", ""))
+                try:
+                    last_number = int(last_obj.unique_id.replace("OLT", ""))
+                except ValueError:
+                    last_number = 0            
             else:
                 last_number = 0
             self.unique_id = f"ISP{last_number + 1:03d}"
         super().save(*args, **kwargs)
+       
 
 
 
