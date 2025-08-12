@@ -22,7 +22,7 @@ class CustomerSerializer(serializers.ModelSerializer):
     'last_updated', 'lco', 'lco_ref', 'mac_id', 'plan', 'v_lan',
     'isp', 'expiry_date', 'ont_number', 'olt', 'signal',
     'kseb_post', 'port', 'distance',
-    'lco_name', 'isp_name', 'olt_name'
+    'lco_name', 'isp_name', 'olt_name','username'
 ]
 
         read_only_fields = ['lco_ref']  # optionally make it read-only if it's derived

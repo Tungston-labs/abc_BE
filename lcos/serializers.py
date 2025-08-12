@@ -34,7 +34,7 @@ class LCOSerializer(serializers.ModelSerializer):
         model = LCO
         fields = [
             'id', 'name', 'address', 'aadhaar_number', 'phone', 'email', 'olts',
-            'olt_details', 'username', 'user_email', 'unique_id'
+            'olt_details', 'username', 'user_email', 'unique_id','networking_name'
         ]
 
     def __init__(self, *args, **kwargs):
@@ -57,6 +57,7 @@ class LCOSerializer(serializers.ModelSerializer):
         phone = validated_data.pop('phone')
         address = validated_data.pop('address')
         olts = validated_data.pop('olts', [])
+        networking_name = validated_data.pop('networking_name', None)
 
         password = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
 
@@ -76,7 +77,8 @@ class LCOSerializer(serializers.ModelSerializer):
             name=name,
             address=address,
             aadhaar_number=aadhaar_number,
-            phone=phone
+            phone=phone,
+            networking_name=networking_name
         )
 
         for olt in olts:
@@ -102,6 +104,7 @@ class LCOSerializer(serializers.ModelSerializer):
         instance.address = validated_data.get('address', instance.address)
         instance.aadhaar_number = validated_data.get('aadhaar_number', instance.aadhaar_number)
         instance.phone = validated_data.get('phone', instance.phone)
+        instance.networking_name = validated_data.get('networking_name', instance.networking_name)
         instance.save()
 
         # Update user email if provided

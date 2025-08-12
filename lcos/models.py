@@ -11,6 +11,7 @@ class LCO(TimeStampedModel):
     aadhaar_number = models.CharField(max_length=12, unique=True)
     phone = models.CharField(max_length=15)
     unique_id = models.CharField(max_length=50,unique=True,null=True,blank=True)
+    networking_name = models.CharField(max_length=50,null=True, blank=True)
 
 
     def save(self, *args, **kwargs):

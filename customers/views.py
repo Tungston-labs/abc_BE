@@ -30,7 +30,7 @@ class CustomerListCreateView(TrackCreatedUpdatedUserMixin, generics.ListCreateAP
     serializer_class = CustomerSerializer
     pagination_class = StandardResultsSetPagination
     filter_backends = [filters.SearchFilter]
-    search_fields = ['full_name', 'phone']
+    search_fields = ['full_name', 'phone','username']
 
     def get_queryset(self):
         user = self.request.user
@@ -175,7 +175,8 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
         "signal": ["signal"],
         "kseb_post": ["kseb post", "post"],
         "port": ["port"],
-        "distance": ["distance"]
+        "distance": ["distance"],
+        "username": ["username", "user name", "login name", "customer username"],
     }
 
     def normalize_headers(self, df):

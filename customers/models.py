@@ -26,6 +26,7 @@ class Customer(TimeStampedModel):
     kseb_post = models.CharField(max_length=100,null=True, blank=True)
     port = models.CharField(max_length=50,null=True, blank=True)
     distance = models.FloatField(help_text="Distance in meters",null=True,blank=True)
+    username = models.CharField(max_length=50,null=True, blank=True)
 
     def __str__(self):
         return self.full_name
