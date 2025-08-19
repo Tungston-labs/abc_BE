@@ -117,7 +117,7 @@ class BulkLCOUpload(APIView):
             return Response({'error': 'No file uploaded'}, status=400)
 
         try:
-            df = pd.read_excel(file, skiprows=2)
+            df = pd.read_excel(file, skiprows=0)
             header_map = self.normalize_headers(df)
 
             success_count = 0
@@ -204,8 +204,6 @@ class BulkLCOUpload(APIView):
                                 aadhaar_number=aadhaar_number or None,
                                 phone=phone,
                                 unique_id=unique_id,
-                                created_by=request.user,
-                                updated_by=request.user,
                                 networking_name=networking_name
                             )
                             lco_updated = False
