@@ -13,6 +13,9 @@ class LCO(TimeStampedModel):
     unique_id = models.CharField(max_length=50,unique=True,null=True,blank=True)
     networking_name = models.CharField(max_length=50,null=True, blank=True)
 
+    class Meta:
+        ordering = ['id']
+
 
     def save(self, *args, **kwargs):
         if self.pk is None and not self.unique_id:  # new object only
