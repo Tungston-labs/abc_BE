@@ -8,7 +8,7 @@ from django.db import ProgrammingError, OperationalError, DatabaseError
 def get_user_from_instance(instance):
     return getattr(instance, 'updated_by', None) or getattr(instance, 'created_by', None)
 
-@receiver(post_save)
+# @receiver(post_save)
 def log_create_or_update(sender, instance, created, **kwargs):
     if sender.__name__ == "ActivityLog":
         return  # Prevent self-logging

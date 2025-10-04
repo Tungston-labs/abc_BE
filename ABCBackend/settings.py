@@ -114,13 +114,21 @@ WSGI_APPLICATION = 'ABCBackend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DB_NAME'),
-        'USER': config('DB_USER'),
-        'PASSWORD': config('DB_PASSWORD'),
-        'HOST': config('DB_HOST', default='localhost'),
-        'PORT': config('DB_PORT', default='5433'),
+        'NAME': 'aluvabroadband',
+        'USER': 'tungstonlabs',
+        'PASSWORD': 'tungstonlabs1234',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
+
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": BASE_DIR / "db.sqlite3",   # database file path
+#     }
+# }
+
 
 
 REST_FRAMEWORK = {
