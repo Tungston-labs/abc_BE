@@ -9,7 +9,7 @@ from shared.mixins import TrackCreatedUpdatedUserMixin
 
 
 class LCOCreateListView(TrackCreatedUpdatedUserMixin,generics.ListCreateAPIView):
-    queryset = LCO.objects.all()
+    queryset = LCO.objects.all().order_by('id')
     serializer_class = LCOSerializer
     permission_classes = [IsAuthenticated, IsSuperAdmin]
     pagination_class = StandardResultsSetPagination
