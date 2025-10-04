@@ -46,22 +46,27 @@ AUTH_USER_MODEL = 'accounts.User'
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
+    'django.contrib.contenttypes',  # MUST be first among Django apps
     'django.contrib.auth',
-    'django.contrib.contenttypes',
+    'django.contrib.admin',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    
+    # Your apps
     'accounts',
     'shared',
     'network',
     'lcos',
     'customers',
+
+    # Third-party apps
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
     'django_filters',
     'corsheaders',
 ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
