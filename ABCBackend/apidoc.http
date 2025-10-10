@@ -29,7 +29,7 @@ Content-Type: application/json
 
 {
   "email": "nisna@gmail.com",
-  "password": "123"
+  "password": "Password@123"
 }
 
 ### 🔁 Refresh Access Token
@@ -186,9 +186,9 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 # ----------------------------ISP---------------------------------------
 
 ### Create ISP
-POST http://localhost:8000/api/network/isp/
+POST http://178.248.112.16:8000/api/network/isp/
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxMzcyODM3LCJpYXQiOjE3NTEzNjkyMzcsImp0aSI6ImE2MjYzNDBlMjI4YzQzZTQ4M2QxM2Q1ODZmYzM4ZGNkIiwidXNlcl9pZCI6Mn0.Aml5ofyH_RScsBKkul4HaVbgA5Dz2a6Mcqf0R3mHuos
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzYwMDA2MzYxLCJpYXQiOjE3NjAwMDI3NjEsImp0aSI6IjQ3M2U5MThiYzZiYjQyYjBiMTY0ZTM4YzY5YmQ2ZmZhIiwidXNlcl9pZCI6MX0.Z_cARDnNcp0oKVaU-D92fkr2oKDNHoQ7GErTOx4k1-s
 
 {
   "name": "stampede",

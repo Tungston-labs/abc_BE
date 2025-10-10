@@ -1,5 +1,5 @@
 
-from django.db import models
+from django.db import models,transaction
 from shared.models import TimeStampedModel
 class Switch(TimeStampedModel):
     name = models.CharField(max_length=100)
@@ -63,23 +63,20 @@ class ISP(TimeStampedModel):
     address = models.TextField()
     unique_id = models.CharField(max_length=50,unique=True,null=True,blank=True)
 
-
     def save(self, *args, **kwargs):
-        if self.pk is None and not self.unique_id:  # only on create
-            last_obj = ISP.objects.order_by('-id').first()
-            if last_obj and last_obj.unique_id:
-                try:
-                    last_number = int(last_obj.unique_id.replace("OLT", ""))
-                except ValueError:
-                    last_number = 0            
-            else:
-                last_number = 0
-            self.unique_id = f"ISP{last_number + 1:03d}"
+        if self.pk is None and not self.unique_id:  # only when creating
+            with transaction.atomic():
+                # Lock the table to prevent race condition
+                last_obj = ISP.objects.select_for_update().order_by('-id').first()
+                if last_obj and last_obj.unique_id:
+                    try:
+                        last_number = int(last_obj.unique_id.replace("ISP", ""))
+                    except ValueError:
+                        last_number = 0
+                else:
+                    last_number = 0
+                self.unique_id = f"ISP{last_number + 1:03d}"
         super().save(*args, **kwargs)
-       
-
-
 
     def __str__(self):
         return self.name
-
