@@ -53,7 +53,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'accounts',
-    'shared',
+    'shared.apps.SharedConfig',
     'network',
     'lcos',
     'customers',
@@ -114,10 +114,10 @@ WSGI_APPLICATION = 'ABCBackend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'aluvabroadband',
-        'USER': 'tungstonlabs',
-        'PASSWORD': 'tungstonlabs1234',
-        'HOST': 'localhost',
+        'NAME': 'abcde_db_new',
+        'USER': 'postgres',
+        'PASSWORD': 'password@123',
+        'HOST': '178.248.112.16',
         'PORT': '5432',
     }
 }

@@ -5,4 +5,5 @@ class SharedConfig(AppConfig):
     name = 'shared'
 
     def ready(self):
-        import shared.signals  # ✅ This must be inside the class
+        import shared.signals
+        print("✅ Signals loaded for shared app")
