@@ -171,6 +171,20 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 
+# customers/views.py
+import pandas as pd
+from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from django.db import transaction
+
+from .models import Customer
+from network.models import ISP, OLT
+from lcos.models import LCO
+from shared.mixins import TrackCreatedUpdatedUserMixin
+from shared.permissions import IsSuperAdmin
+
 
 class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
     parser_classes = (MultiPartParser, FormParser)
@@ -183,7 +197,7 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
         "address": ["address", "residence", "Address", "ADDRESS", "Permanent Address"],
         "mac_id": ["mac", "mac id", "macid", "MACID", "MAC_ID"],
         "plan": ["plan", "internet plan", "Plan", "Plan Name"],
-        "lco_ref": ["lco code", "lco_ref", "LCO_REF"],
+        "lco_ref": ["lco code", "lco_ref", "LCO_REF"],  # Excel column
         "isp": ["isp id", "isp", "ISP"],
         "olt": ["olt id", "olt", "OLT IP", "OLT Name", "OLT"],
         "v_lan": ["vlan", "v lan", "v_lan", "V_LAN"],
@@ -227,7 +241,6 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
 
         for index, row in df.iterrows():
             data = {}
-
             # Map Excel columns to model fields
             for field, excel_col in header_map.items():
                 val = row.get(excel_col)
@@ -251,7 +264,7 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
             if phone:
                 data['phone'] = str(phone).split('.')[0].strip()
 
-            # ---------------- ISP ----------------
+            # ---------------- ISP lookup ----------------
             isp_val = data.get('isp')
             try:
                 if request_isp_id:
@@ -267,7 +280,7 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
                 errors.append(f"Row {index+1}: ISP '{isp_val}' not found.")
                 data['isp'] = None
 
-            # ---------------- OLT ----------------
+            # ---------------- OLT lookup ----------------
             olt_val = data.get('olt')
             try:
                 if olt_val:
@@ -281,14 +294,12 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
                 errors.append(f"Row {index+1}: OLT '{olt_val}' not found.")
                 data['olt'] = None
 
-            # ---------------- LCO ----------------
-            lco_ref_val = data.get('lco_ref')
+            # ---------------- LCO lookup ----------------
+            lco_ref_val = data.get('lco_ref')  # Excel value
             try:
                 if lco_ref_val:
-                    try:
-                        data['lco'] = LCO.objects.get(lco_ref__iexact=str(lco_ref_val).strip())
-                    except LCO.DoesNotExist:
-                        data['lco'] = LCO.objects.get(name__iexact=str(lco_ref_val).strip())
+                    # LCO lookup by lco_code
+                    data['lco'] = LCO.objects.get(lco_code__iexact=str(lco_ref_val).strip())
                 else:
                     data['lco'] = None
             except LCO.DoesNotExist:
@@ -299,25 +310,41 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
             data.pop('created_by', None)
             data.pop('updated_by', None)
 
-            # ---------------- Create or Update ----------------
+            # ---------------- Create or Update Customer ----------------
+            if not data.get('phone'):
+                errors.append(f"Row {index+1}: Missing phone number")
+                continue
+
             try:
-                if not data.get('phone'):
-                    errors.append(f"Row {index+1}: Missing phone number")
-                    continue
-
-                try:
-                    # Update existing customer
-                    customer = Customer.objects.get(phone=data['phone'])
-                    for field, value in data.items():
-                        setattr(customer, field, value)
-                    customer.save()  # mixin handles updated_by & activity log
-                    print(f"Row {index+1}: Updated customer {data['phone']}")
-                except Customer.DoesNotExist:
-                    # Create new customer
-                    Customer.objects.create(**data)  # mixin handles created_by & activity log
-                    print(f"Row {index+1}: Created customer {data['phone']}")
-
-                success_count += 1
+                with transaction.atomic():
+                    # Update existing customer if phone exists
+                    customer, created = Customer.objects.update_or_create(
+                        phone=data['phone'],
+                        defaults={
+                            'full_name': data.get('full_name'),
+                            'email': data.get('email'),
+                            'address': data.get('address'),
+                            'mac_id': data.get('mac_id'),
+                            'plan': data.get('plan'),
+                            'isp': data.get('isp'),
+                            'olt': data.get('olt'),
+                            'v_lan': data.get('v_lan'),
+                            'ont_number': data.get('ont_number'),
+                            'expiry_date': data.get('expiry_date'),
+                            'signal': data.get('signal'),
+                            'kseb_post': data.get('kseb_post'),
+                            'port': data.get('port'),
+                            'distance': data.get('distance'),
+                            'username': data.get('username'),
+                            'lco_ref': lco_ref_val,
+                            'lco': data.get('lco'),
+                        }
+                    )
+                    if created:
+                        print(f"Row {index+1}: Created customer {data['phone']}")
+                    else:
+                        print(f"Row {index+1}: Updated customer {data['phone']}")
+                    success_count += 1
             except Exception as e:
                 errors.append(f"Row {index+1}: {str(e)}")
                 print(f"Row {index+1} Error: {str(e)}")
@@ -326,8 +353,6 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
             "message": f"{success_count} customers uploaded/updated successfully",
             "errors": errors
         }, status=200)
-
-
 
 # -------------------REPORT MODULE---------------------
 
