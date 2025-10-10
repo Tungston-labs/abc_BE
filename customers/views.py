@@ -154,32 +154,41 @@ import pandas as pd
 from datetime import datetime
 
 
+from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from .models import Customer, ISP, OLT, LCO
+from shared.mixins import TrackCreatedUpdatedUserMixin
+from shared.permissions import IsSuperAdmin
+import pandas as pd
+from datetime import datetime
+
+
 class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
     parser_classes = (MultiPartParser, FormParser)
     permission_classes = [IsAuthenticated, IsSuperAdmin]
 
     HEADER_ALIASES = {
-        "full_name": ["Customer", "name", "Customer Name", "Name,", "Full Name","FULL_NAME"],
-        "phone": ["phone", "mobile", "contact number", "Mobile", "Mobile No.", "Phone", "MOBILE","PHONE"],
+        "full_name": ["Customer", "name", "Customer Name", "Name,", "Full Name", "FULL_NAME"],
+        "phone": ["phone", "mobile", "contact number", "Mobile", "Mobile No.", "Phone", "MOBILE", "PHONE"],
         "email": ["email", "e-mail", "mail", "EMAIL_ID", "Email Address", "Email", "EMAIL ID"],
         "address": ["address", "residence", "Address", "ADDRESS", "Permanent Address"],
-        "mac_id": ["mac", "mac id", "macid", "MACID","MAC_ID"],
+        "mac_id": ["mac", "mac id", "macid", "MACID", "MAC_ID"],
         "plan": ["plan", "internet plan", "Plan", "Plan Name"],
-        "lco_ref": ["lco code", "lco_ref","LCO_REF"],
+        "lco_ref": ["lco code", "lco_ref", "LCO_REF"],
         "lco": ["lco", "LCO Code"],
-        "isp": ["isp id", "isp","ISP"],
-        "olt": ["olt id", "olt", "OLT IP", "OLT Name","OLT"],
-        "v_lan": ["vlan", "v lan", "v_lan","V_LAN"],
-        "ont_number": ["ont number", "ont", "ont no","ONT_NUMBER"],
-        "expiry_date": ["expiry", "expiry date", "Expiry Date", "Validity End", "Expiry date","EXPIRY_DATE"],
-        "signal": ["signal","SIGNAL"""],
-        "kseb_post": ["kseb post", "post","KSEB_POST"],
-        "port": ["port","PORT"],
-        "distance": ["distance","DISTANCE"],
-        "username": ["username", "user name", "login name", "customer username","USERNAME"],
+        "isp": ["isp id", "isp", "ISP"],
+        "olt": ["olt id", "olt", "OLT IP", "OLT Name", "OLT"],
+        "v_lan": ["vlan", "v lan", "v_lan", "V_LAN"],
+        "ont_number": ["ont number", "ont", "ont no", "ONT_NUMBER"],
+        "expiry_date": ["expiry", "expiry date", "Expiry Date", "Validity End", "Expiry date", "EXPIRY_DATE"],
+        "signal": ["signal", "SIGNAL"],
+        "kseb_post": ["kseb post", "post", "KSEB_POST"],
+        "port": ["port", "PORT"],
+        "distance": ["distance", "DISTANCE"],
+        "username": ["username", "user name", "login name", "customer username", "USERNAME"],
     }
-
-
 
     def normalize_headers(self, df):
         header_map = {}
@@ -215,41 +224,49 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
                     data[field] = row.get(excel_col)
 
                 # Convert expiry_date from Excel serial or string
-                if isinstance(data.get('expiry_date'), (int, float)):
+                expiry_val = data.get('expiry_date')
+                if isinstance(expiry_val, (int, float)):
                     try:
-                        data['expiry_date'] = pd.to_datetime(data['expiry_date'], unit='d', origin='1899-12-30').date()
-                    except:
+                        data['expiry_date'] = pd.to_datetime(expiry_val, unit='d', origin='1899-12-30').date()
+                    except Exception:
                         data['expiry_date'] = None
-                elif isinstance(data.get('expiry_date'), str):
+                elif isinstance(expiry_val, str):
                     try:
-                        data['expiry_date'] = pd.to_datetime(data['expiry_date']).date()
-                    except:
+                        data['expiry_date'] = pd.to_datetime(expiry_val).date()
+                    except Exception:
                         data['expiry_date'] = None
 
-                # Clean up phone if numeric float
+                # Clean up phone
                 if data.get('phone'):
                     data['phone'] = str(data['phone']).split('.')[0]
 
-                # Handle ISP
-                try:
-                    if request_isp_id:
+                # ---------------- ISP Handling ----------------
+                isp_val = data.get('isp')
+                if request_isp_id:
+                    try:
                         data['isp'] = ISP.objects.get(pk=int(request_isp_id))
-                    elif data.get('isp'):
-                        data['isp'] = ISP.objects.get(pk=int(data['isp']))
-                    else:
+                    except Exception:
+                        errors.append(f"Row {index+1}: ISP with ID {request_isp_id} not found.")
                         data['isp'] = None
-                except:
+                elif isp_val:
+                    try:
+                        data['isp'] = ISP.objects.get(pk=int(isp_val))
+                    except (ValueError, ISP.DoesNotExist):
+                        try:
+                            data['isp'] = ISP.objects.get(name__iexact=str(isp_val).strip())
+                        except ISP.DoesNotExist:
+                            errors.append(f"Row {index+1}: ISP '{isp_val}' not found.")
+                            data['isp'] = None
+                else:
                     data['isp'] = None
 
-                # Handle OLT (ID or name)
+                # ---------------- OLT Handling ----------------
                 olt_val = data.get('olt')
                 if olt_val:
                     try:
-                        # Try by ID
                         data['olt'] = OLT.objects.get(pk=int(olt_val))
                     except (ValueError, OLT.DoesNotExist):
                         try:
-                            # Try by name
                             data['olt'] = OLT.objects.get(name__iexact=str(olt_val).strip())
                         except OLT.DoesNotExist:
                             errors.append(f"Row {index+1}: OLT '{olt_val}' not found.")
@@ -257,19 +274,27 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
                 else:
                     data['olt'] = None
 
-                # Handle LCO by lco_ref
-                try:
-                    data['lco'] = LCO.objects.get(lco_ref=data['lco_ref']) if data.get('lco_ref') else None
-                except:
+                # ---------------- LCO Handling ----------------
+                lco_ref_val = data.get('lco_ref')
+                if lco_ref_val:
+                    try:
+                        data['lco'] = LCO.objects.get(lco_ref__iexact=str(lco_ref_val).strip())
+                    except LCO.DoesNotExist:
+                        try:
+                            data['lco'] = LCO.objects.get(name__iexact=str(lco_ref_val).strip())
+                        except LCO.DoesNotExist:
+                            errors.append(f"Row {index+1}: LCO '{lco_ref_val}' not found.")
+                            data['lco'] = None
+                else:
                     data['lco'] = None
 
+                # ---------------- Create or Update Customer ----------------
                 try:
                     phone = data.get('phone')
                     if not phone:
                         errors.append(f"Row {index+1}: Missing phone number")
                         continue
 
-                    # UPDATE if exists, else CREATE
                     try:
                         customer = Customer.objects.get(phone=phone)
                         for field, value in data.items():
@@ -294,8 +319,6 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
 
         except Exception as e:
             return Response({'error': str(e)}, status=500)
-
-
 
 
 
