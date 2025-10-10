@@ -150,6 +150,8 @@ from rest_framework.response import Response
 from .models import Customer, ISP, OLT, LCO
 from shared.mixins import TrackCreatedUpdatedUserMixin
 from shared.permissions import IsSuperAdmin  # Make sure you import this
+
+# customers/views.py
 import pandas as pd
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -161,6 +163,14 @@ from network.models import OLT, ISP
 from lcos.models import LCO
 from shared.mixins import TrackCreatedUpdatedUserMixin
 from shared.permissions import IsSuperAdmin
+# customers/views.py
+import pandas as pd
+from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+
 
 class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
     parser_classes = (MultiPartParser, FormParser)
@@ -174,7 +184,6 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
         "mac_id": ["mac", "mac id", "macid", "MACID", "MAC_ID"],
         "plan": ["plan", "internet plan", "Plan", "Plan Name"],
         "lco_ref": ["lco code", "lco_ref", "LCO_REF"],
-        "lco": ["lco", "LCO Code"],
         "isp": ["isp id", "isp", "ISP"],
         "olt": ["olt id", "olt", "OLT IP", "OLT Name", "OLT"],
         "v_lan": ["vlan", "v lan", "v_lan", "V_LAN"],
@@ -209,118 +218,114 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
 
         try:
             df = pd.read_excel(file)
-            header_map = self.normalize_headers(df)
+        except Exception as e:
+            return Response({'error': f'Invalid Excel file: {str(e)}'}, status=400)
 
-            success_count = 0
-            errors = []
+        header_map = self.normalize_headers(df)
+        success_count = 0
+        errors = []
 
-            for index, row in df.iterrows():
-                data = {}
+        for index, row in df.iterrows():
+            data = {}
 
-                # Map Excel data to internal fields
-                for field, excel_col in header_map.items():
-                    data[field] = row.get(excel_col)
+            # Map Excel columns to model fields
+            for field, excel_col in header_map.items():
+                val = row.get(excel_col)
+                if pd.isna(val):
+                    val = None
+                data[field] = val
 
-                # ---------------- Date conversion ----------------
-                expiry_val = data.get('expiry_date')
-                if pd.notna(expiry_val):
-                    try:
-                        if isinstance(expiry_val, (int, float)):
-                            # Excel serial number
-                            data['expiry_date'] = pd.to_datetime(expiry_val, unit='d', origin='1899-12-30').date()
-                        else:
-                            data['expiry_date'] = pd.to_datetime(str(expiry_val)).date()
-                    except Exception:
-                        data['expiry_date'] = None
-                else:
+            # ---------------- Date conversion ----------------
+            expiry_val = data.get('expiry_date')
+            if expiry_val:
+                try:
+                    if isinstance(expiry_val, (int, float)):
+                        data['expiry_date'] = pd.to_datetime(expiry_val, unit='d', origin='1899-12-30').date()
+                    else:
+                        data['expiry_date'] = pd.to_datetime(str(expiry_val)).date()
+                except Exception:
                     data['expiry_date'] = None
 
-                # ---------------- Phone cleanup ----------------
-                phone = data.get('phone')
-                if phone:
-                    data['phone'] = str(phone).split('.')[0].strip()
+            # ---------------- Phone cleanup ----------------
+            phone = data.get('phone')
+            if phone:
+                data['phone'] = str(phone).split('.')[0].strip()
 
-                # ---------------- ISP ----------------
-                isp_val = data.get('isp')
-                try:
-                    if request_isp_id:
-                        data['isp'] = ISP.objects.get(pk=int(request_isp_id))
-                    elif isp_val:
-                        try:
-                            data['isp'] = ISP.objects.get(pk=int(isp_val))
-                        except (ValueError, ISP.DoesNotExist):
-                            data['isp'] = ISP.objects.get(name__iexact=str(isp_val).strip())
-                    else:
-                        data['isp'] = None
-                except ISP.DoesNotExist:
-                    errors.append(f"Row {index+1}: ISP '{isp_val}' not found.")
-                    data['isp'] = None
-
-                # ---------------- OLT ----------------
-                olt_val = data.get('olt')
-                try:
-                    if olt_val:
-                        try:
-                            data['olt'] = OLT.objects.get(pk=int(olt_val))
-                        except (ValueError, OLT.DoesNotExist):
-                            data['olt'] = OLT.objects.get(name__iexact=str(olt_val).strip())
-                    else:
-                        data['olt'] = None
-                except OLT.DoesNotExist:
-                    errors.append(f"Row {index+1}: OLT '{olt_val}' not found.")
-                    data['olt'] = None
-
-                # ---------------- LCO ----------------
-                lco_ref_val = data.get('lco_ref')
-                try:
-                    if lco_ref_val:
-                        try:
-                            data['lco'] = LCO.objects.get(lco_ref__iexact=str(lco_ref_val).strip())
-                        except LCO.DoesNotExist:
-                            data['lco'] = LCO.objects.get(name__iexact=str(lco_ref_val).strip())
-                    else:
-                        data['lco'] = None
-                except LCO.DoesNotExist:
-                    errors.append(f"Row {index+1}: LCO '{lco_ref_val}' not found.")
-                    data['lco'] = None
-
-                # Remove potential conflicting keys for mixin
-                data.pop('created_by', None)
-                data.pop('updated_by', None)
-
-                # ---------------- Create or Update ----------------
-                try:
-                    if not data.get('phone'):
-                        errors.append(f"Row {index+1}: Missing phone number")
-                        continue
-
+            # ---------------- ISP ----------------
+            isp_val = data.get('isp')
+            try:
+                if request_isp_id:
+                    data['isp'] = ISP.objects.get(pk=int(request_isp_id))
+                elif isp_val:
                     try:
-                        # Update existing customer
-                        customer = Customer.objects.get(phone=data['phone'])
-                        for field, value in data.items():
-                            setattr(customer, field, value)
-                        customer.save()  # mixin will handle updated_by and logging
-                        print(f"Row {index+1}: Updated customer {data['phone']}")
-                    except Customer.DoesNotExist:
-                        # Create new customer
-                        Customer.objects.create(**data)  # mixin handles created_by, logging
-                        print(f"Row {index+1}: Created customer {data['phone']}")
+                        data['isp'] = ISP.objects.get(pk=int(isp_val))
+                    except (ValueError, ISP.DoesNotExist):
+                        data['isp'] = ISP.objects.get(name__iexact=str(isp_val).strip())
+                else:
+                    data['isp'] = None
+            except ISP.DoesNotExist:
+                errors.append(f"Row {index+1}: ISP '{isp_val}' not found.")
+                data['isp'] = None
 
-                    success_count += 1
-                except Exception as e:
-                    errors.append(f"Row {index+1}: {str(e)}")
-                    print(f"Row {index+1} Error: {str(e)}")
+            # ---------------- OLT ----------------
+            olt_val = data.get('olt')
+            try:
+                if olt_val:
+                    try:
+                        data['olt'] = OLT.objects.get(pk=int(olt_val))
+                    except (ValueError, OLT.DoesNotExist):
+                        data['olt'] = OLT.objects.get(name__iexact=str(olt_val).strip())
+                else:
+                    data['olt'] = None
+            except OLT.DoesNotExist:
+                errors.append(f"Row {index+1}: OLT '{olt_val}' not found.")
+                data['olt'] = None
 
-            return Response({
-                "message": f"{success_count} customers uploaded/updated successfully",
-                "errors": errors
-            }, status=200)
+            # ---------------- LCO ----------------
+            lco_ref_val = data.get('lco_ref')
+            try:
+                if lco_ref_val:
+                    try:
+                        data['lco'] = LCO.objects.get(lco_ref__iexact=str(lco_ref_val).strip())
+                    except LCO.DoesNotExist:
+                        data['lco'] = LCO.objects.get(name__iexact=str(lco_ref_val).strip())
+                else:
+                    data['lco'] = None
+            except LCO.DoesNotExist:
+                errors.append(f"Row {index+1}: LCO '{lco_ref_val}' not found.")
+                data['lco'] = None
 
-        except Exception as e:
-            return Response({'error': str(e)}, status=500)
+            # ---------------- Remove conflicting keys ----------------
+            data.pop('created_by', None)
+            data.pop('updated_by', None)
 
+            # ---------------- Create or Update ----------------
+            try:
+                if not data.get('phone'):
+                    errors.append(f"Row {index+1}: Missing phone number")
+                    continue
 
+                try:
+                    # Update existing customer
+                    customer = Customer.objects.get(phone=data['phone'])
+                    for field, value in data.items():
+                        setattr(customer, field, value)
+                    customer.save()  # mixin handles updated_by & activity log
+                    print(f"Row {index+1}: Updated customer {data['phone']}")
+                except Customer.DoesNotExist:
+                    # Create new customer
+                    Customer.objects.create(**data)  # mixin handles created_by & activity log
+                    print(f"Row {index+1}: Created customer {data['phone']}")
 
+                success_count += 1
+            except Exception as e:
+                errors.append(f"Row {index+1}: {str(e)}")
+                print(f"Row {index+1} Error: {str(e)}")
+
+        return Response({
+            "message": f"{success_count} customers uploaded/updated successfully",
+            "errors": errors
+        }, status=200)
 
 
 
