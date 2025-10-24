@@ -186,6 +186,18 @@ from shared.mixins import TrackCreatedUpdatedUserMixin
 from shared.permissions import IsSuperAdmin
 
 
+from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from django.db import transaction
+import pandas as pd
+
+from customers.models import Customer
+from lcos.models import LCO
+from network.models import OLT, ISP
+
+
 class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
     parser_classes = (MultiPartParser, FormParser)
     permission_classes = [IsAuthenticated, IsSuperAdmin]
@@ -197,7 +209,8 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
         "address": ["address", "residence", "Address", "ADDRESS", "Permanent Address"],
         "mac_id": ["mac", "mac id", "macid", "MACID", "MAC_ID"],
         "plan": ["plan", "internet plan", "Plan", "Plan Name"],
-        "lco_ref": ["lco code", "lco_ref", "LCO_REF"],  # Excel column
+        "lco": ["lco", "lco_name", "LCO"],  # Excel contains LCO code
+        "lco_ref": ["lco code", "lco_ref", "LCO_REF"],  # Optional manual field
         "isp": ["isp id", "isp", "ISP"],
         "olt": ["olt id", "olt", "OLT IP", "OLT Name", "OLT"],
         "v_lan": ["vlan", "v lan", "v_lan", "V_LAN"],
@@ -214,7 +227,6 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
         """Map Excel headers to model fields based on aliases"""
         header_map = {}
         lower_cols = [col.lower().strip() for col in df.columns]
-
         for field, aliases in self.HEADER_ALIASES.items():
             for alias in aliases:
                 if alias.lower() in lower_cols:
@@ -241,7 +253,6 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
 
         for index, row in df.iterrows():
             data = {}
-            # Map Excel columns to model fields
             for field, excel_col in header_map.items():
                 val = row.get(excel_col)
                 if pd.isna(val):
@@ -294,16 +305,15 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
                 errors.append(f"Row {index+1}: OLT '{olt_val}' not found.")
                 data['olt'] = None
 
-            # ---------------- LCO lookup ----------------
-            lco_ref_val = data.get('lco_ref')  # Excel value
+            # ---------------- LCO lookup by lco_code ----------------
+            lco_code_val = data.get('lco')  # Excel contains LCO code
             try:
-                if lco_ref_val:
-                    # LCO lookup by lco_code
-                    data['lco'] = LCO.objects.get(lco_code__iexact=str(lco_ref_val).strip())
+                if lco_code_val:
+                    data['lco'] = LCO.objects.get(lco_code__iexact=str(lco_code_val).strip())
                 else:
                     data['lco'] = None
             except LCO.DoesNotExist:
-                errors.append(f"Row {index+1}: LCO '{lco_ref_val}' not found.")
+                errors.append(f"Row {index+1}: LCO with code '{lco_code_val}' not found.")
                 data['lco'] = None
 
             # ---------------- Remove conflicting keys ----------------
@@ -317,7 +327,6 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
 
             try:
                 with transaction.atomic():
-                    # Update existing customer if phone exists
                     customer, created = Customer.objects.update_or_create(
                         phone=data['phone'],
                         defaults={
@@ -336,23 +345,20 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
                             'port': data.get('port'),
                             'distance': data.get('distance'),
                             'username': data.get('username'),
-                            'lco_ref': lco_ref_val,
-                            'lco': data.get('lco'),
+                            'lco_ref': data.get('lco_ref'),  # optional manual field
+                            'lco': data.get('lco'),          # FK to LCO
                         }
                     )
-                    if created:
-                        print(f"Row {index+1}: Created customer {data['phone']}")
-                    else:
-                        print(f"Row {index+1}: Updated customer {data['phone']}")
                     success_count += 1
             except Exception as e:
                 errors.append(f"Row {index+1}: {str(e)}")
-                print(f"Row {index+1} Error: {str(e)}")
 
         return Response({
             "message": f"{success_count} customers uploaded/updated successfully",
             "errors": errors
         }, status=200)
+
+
 
 # -------------------REPORT MODULE---------------------
 

@@ -12,7 +12,7 @@ class LCO(TimeStampedModel):
     phone = models.CharField(max_length=15)
     unique_id = models.CharField(max_length=50,unique=True,null=True,blank=True)
     networking_name = models.CharField(max_length=50,null=True, blank=True)
-    lco_code = models.CharField(max_length=50,null=True, blank=True)
+    lco_code = models.CharField(max_length=50,null=True, blank=True,unique=True)
 
     class Meta:
         ordering = ['id']
