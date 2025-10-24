@@ -87,6 +87,9 @@ CORS_ALLOWED_ORIGINS = [
     "http://192.168.29.189:19000",  # Metro Bundler
     "http://192.168.29.189:19006",  # Web Preview
     "http://178.248.112.16:85",
+    "https://aluvabroadband.com",
+    
+"https://api.aluvabroadband.com"
 
 ]
 
