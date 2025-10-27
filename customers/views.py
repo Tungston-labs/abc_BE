@@ -1,7 +1,7 @@
 # customers/views.py
 from rest_framework import generics, filters
 from .models import Customer
-from .serializers import CustomerSerializer
+from customers.serializers import CustomerSerializer
 from rest_framework.pagination import PageNumberPagination
 from shared.permissions import IsSuperAdmin,IsLCO
 from rest_framework.permissions import IsAuthenticated

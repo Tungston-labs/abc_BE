@@ -1,6 +1,6 @@
 ### Register Super Admin
 
-@baseUrl = http://178.248.112.16:8000/api/auth
+@baseUrl = https://api.aluvabroadband.com/api/auth
 # @baseUrl = http://localhost:8000/api/auth
 
 POST {{baseUrl}}/register-superadmin/
@@ -19,7 +19,7 @@ POST {{baseUrl}}/login/
 Content-Type: application/json
 
 {
-  "email": "a11@gmail.com",
+  "email": "nisna@gmail.com",
   "password": "Password@123"
 }
 
@@ -254,8 +254,8 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 # ---------CUSTOMER----------
 
 ### List all customers (with search and pagination)
-GET http://localhost:8000/api/client/customer/?search=&page=1
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0NDY2MTM2LCJpYXQiOjE3NTQ0NjI1MzYsImp0aSI6IjQzNzAzYmU0NjgwMTQ1MDJiYmVkMjVkOTUxYjc2YjMyIiwidXNlcl9pZCI6Mn0.rJD3inUr2CLs_bq-HNjVz9nx0ZA-G7YJz-d_CZi-dQg
+GET https://api.aluvabroadband.com/api/client/customer/?search=&page=1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzYxNTU3Mjk5LCJpYXQiOjE3NjE1NTM2OTksImp0aSI6IjlhZDMzMDQxZjg2ZTQ4NDM4MzMwMmIxYzIxYjcyYzliIiwidXNlcl9pZCI6MX0.8RyBlIP78s3oypDKEAFJwIMSOYCcAgVOaTaZc_D0DsU
 
 
 ### Create customer
@@ -284,8 +284,8 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 }
 
 ### Get single customer
-GET http://localhost:8000/api/client/customer/13/
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMTY1MjcxLCJpYXQiOjE3NTMxNjE2NzEsImp0aSI6ImNiZGZmYTE0Mjg0NTQ3NGU4NTZhYzJkZTkxOTk2ZTY4IiwidXNlcl9pZCI6Mn0.Wms2KNfdI10Ak3bkoQ9jcy6bEkd1V-IgLWgWwlNuRA0
+GET https://api.aluvabroadband.com/api/client/customer/2705/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzYxNTU3Mjk5LCJpYXQiOjE3NjE1NTM2OTksImp0aSI6IjlhZDMzMDQxZjg2ZTQ4NDM4MzMwMmIxYzIxYjcyYzliIiwidXNlcl9pZCI6MX0.8RyBlIP78s3oypDKEAFJwIMSOYCcAgVOaTaZc_D0DsU
 
 ### Update customer
 PUT http://localhost:8000/api/client/customer/1/
