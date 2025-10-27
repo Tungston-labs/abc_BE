@@ -7,7 +7,6 @@ class StandardResultsSetPagination(PageNumberPagination):
     page_size = 15  # Default items per page
     page_size_query_param = 'page_size'
     max_page_size =5000
-
     def get_paginated_response(self, data):
         total_pages = math.ceil(self.page.paginator.count / self.get_page_size(self.request))
         return Response({

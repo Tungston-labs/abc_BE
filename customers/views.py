@@ -16,6 +16,7 @@ from network.models import OLT, ISP
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.parsers import MultiPartParser, FormParser
 from shared.mixins import TrackCreatedUpdatedUserMixin
+from shared.paginations import StandardResultsSetPagination
 
 
 class CustomerPagination(PageNumberPagination):
@@ -397,7 +398,7 @@ class CustomerSearchListView(TrackCreatedUpdatedUserMixin,generics.ListAPIView):
     queryset = Customer.objects.all().order_by('-last_updated')
     serializer_class = CustomerSerializer
     permission_classes = [IsAuthenticated, IsSuperAdmin]
-    # pagination_class = CustomerPagination
+    pagination_class = StandardResultsSetPagination
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
     search_fields = [
         'full_name', 'phone', 'email', 'mac_id', 'ont_number', 'address',
