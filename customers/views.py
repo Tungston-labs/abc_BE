@@ -184,8 +184,6 @@ from network.models import ISP, OLT
 from lcos.models import LCO
 from shared.mixins import TrackCreatedUpdatedUserMixin
 from shared.permissions import IsSuperAdmin
-
-
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
@@ -209,13 +207,13 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
         "address": ["address", "residence", "Address", "ADDRESS", "Permanent Address"],
         "mac_id": ["mac", "mac id", "macid", "MACID", "MAC_ID"],
         "plan": ["plan", "internet plan", "Plan", "Plan Name"],
-        "lco": ["lco", "lco_name", "LCO"],  # Excel contains LCO code
-        "lco_ref": ["lco code", "lco_ref", "LCO_REF"],  # Optional manual field
+        "lco": ["lco", "LCO"],  # Excel contains LCO code
+        "lco_ref": ["lco_ref", "LCO_REF"],  # Optional manual field
         "isp": ["isp id", "isp", "ISP"],
         "olt": ["olt id", "olt", "OLT IP", "OLT Name", "OLT"],
         "v_lan": ["vlan", "v lan", "v_lan", "V_LAN"],
         "ont_number": ["ont number", "ont", "ont no", "ONT_NUMBER"],
-        "expiry_date": ["expiry", "expiry date", "Expiry Date", "Validity End", "Expiry date", "EXPIRY_DATE"],
+        "expiry_date": ["expiry", "expiry date", "Expiry Date", "Validity End", "EXPIRY_DATE"],
         "signal": ["signal", "SIGNAL"],
         "kseb_post": ["kseb post", "post", "KSEB_POST"],
         "port": ["port", "PORT"],
@@ -251,6 +249,11 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
         success_count = 0
         errors = []
 
+        # ---------------- Preload lookup dictionaries ----------------
+        lco_dict = {lco.lco_code.lower(): lco for lco in LCO.objects.all()}
+        isp_dict = {str(isp.id): isp for isp in ISP.objects.all()}
+        olt_dict = {str(olt.id): olt for olt in OLT.objects.all()}
+
         for index, row in df.iterrows():
             data = {}
             for field, excel_col in header_map.items():
@@ -281,50 +284,48 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
                 if request_isp_id:
                     data['isp'] = ISP.objects.get(pk=int(request_isp_id))
                 elif isp_val:
-                    try:
-                        data['isp'] = ISP.objects.get(pk=int(isp_val))
-                    except (ValueError, ISP.DoesNotExist):
-                        data['isp'] = ISP.objects.get(name__iexact=str(isp_val).strip())
+                    data['isp'] = isp_dict.get(str(isp_val)) or ISP.objects.filter(name__iexact=str(isp_val).strip()).first()
                 else:
                     data['isp'] = None
+                if not data['isp'] and isp_val:
+                    errors.append(f"Row {index+1}: ISP '{isp_val}' not found.")
             except ISP.DoesNotExist:
-                errors.append(f"Row {index+1}: ISP '{isp_val}' not found.")
+                errors.append(f"Row {index+1}: ISP '{isp_val}' lookup failed.")
                 data['isp'] = None
 
             # ---------------- OLT lookup ----------------
             olt_val = data.get('olt')
             try:
                 if olt_val:
-                    try:
-                        data['olt'] = OLT.objects.get(pk=int(olt_val))
-                    except (ValueError, OLT.DoesNotExist):
-                        data['olt'] = OLT.objects.get(name__iexact=str(olt_val).strip())
+                    data['olt'] = olt_dict.get(str(olt_val)) or OLT.objects.filter(name__iexact=str(olt_val).strip()).first()
                 else:
                     data['olt'] = None
+                if not data['olt'] and olt_val:
+                    errors.append(f"Row {index+1}: OLT '{olt_val}' not found.")
             except OLT.DoesNotExist:
-                errors.append(f"Row {index+1}: OLT '{olt_val}' not found.")
+                errors.append(f"Row {index+1}: OLT '{olt_val}' lookup failed.")
                 data['olt'] = None
 
-            # ---------------- LCO lookup by lco_code ----------------
-            lco_code_val = data.get('lco')  # Excel contains LCO code
-            try:
-                if lco_code_val:
-                    data['lco'] = LCO.objects.get(lco_code__iexact=str(lco_code_val).strip())
-                else:
-                    data['lco'] = None
-            except LCO.DoesNotExist:
-                errors.append(f"Row {index+1}: LCO with code '{lco_code_val}' not found.")
+            # ---------------- LCO lookup ----------------
+            lco_val = data.get('lco')
+            if lco_val:
+                lco_obj = lco_dict.get(str(lco_val).strip().lower())
+                if not lco_obj:
+                    errors.append(f"Row {index+1}: LCO '{lco_val}' not found.")
+                data['lco'] = lco_obj
+            else:
                 data['lco'] = None
 
             # ---------------- Remove conflicting keys ----------------
             data.pop('created_by', None)
             data.pop('updated_by', None)
 
-            # ---------------- Create or Update Customer ----------------
+            # ---------------- Validate phone ----------------
             if not data.get('phone'):
                 errors.append(f"Row {index+1}: Missing phone number")
                 continue
 
+            # ---------------- Create or Update Customer ----------------
             try:
                 with transaction.atomic():
                     customer, created = Customer.objects.update_or_create(
@@ -345,8 +346,8 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
                             'port': data.get('port'),
                             'distance': data.get('distance'),
                             'username': data.get('username'),
-                            'lco_ref': data.get('lco_ref'),  # optional manual field
-                            'lco': data.get('lco'),          # FK to LCO
+                            'lco_ref': data.get('lco_ref'),
+                            'lco': data.get('lco'),
                         }
                     )
                     success_count += 1
@@ -357,6 +358,8 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
             "message": f"{success_count} customers uploaded/updated successfully",
             "errors": errors
         }, status=200)
+
+
 
 
 
