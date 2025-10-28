@@ -294,10 +294,13 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
                 errors.append(f"Row {index+1}: ISP '{isp_val}' lookup failed.")
                 data['isp'] = None
 
-         # ---------------- OLT lookup (by name only) ----------------
+       
+            # ---------------- OLT lookup (by name only) ----------------
             olt_val = data.get('olt')
             if olt_val:
-                olt_obj = OLT.objects.filter(name__iexact=str(olt_val).strip()).first()
+                # Convert to string and strip spaces
+                olt_name = str(olt_val).strip()
+                olt_obj = OLT.objects.filter(name__iexact=olt_name).first()
                 if olt_obj:
                     data['olt'] = olt_obj
                 else:
@@ -305,6 +308,7 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
                     data['olt'] = None
             else:
                 data['olt'] = None
+    
 
 
             # ---------------- LCO lookup ----------------
