@@ -295,20 +295,23 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
                 data['isp'] = None
 
        
-            # ---------------- OLT lookup (by name only) ----------------
-            olt_val = data.get('olt')
-            if olt_val:
-                # Convert to string and strip spaces
-                olt_name = str(olt_val).strip()
-                olt_obj = OLT.objects.filter(name__iexact=olt_name).first()
-                if olt_obj:
-                    data['olt'] = olt_obj
-                else:
-                    errors.append(f"Row {index+1}: OLT '{olt_val}' not found.")
-                    data['olt'] = None
+           # ---------------- OLT lookup (by name only) ----------------
+        olt_val = data.get('olt')
+        if olt_val:
+            # Convert numeric floats to int string (7.0 -> "7")
+            if isinstance(olt_val, (float, int)):
+                olt_name = str(int(olt_val))
             else:
+                olt_name = str(olt_val).strip()
+            
+            olt_obj = OLT.objects.filter(name__iexact=olt_name).first()
+            if olt_obj:
+                data['olt'] = olt_obj
+            else:
+                errors.append(f"Row {index+1}: OLT '{olt_val}' not found.")
                 data['olt'] = None
-    
+        else:
+            data['olt'] = None
 
 
             # ---------------- LCO lookup ----------------
