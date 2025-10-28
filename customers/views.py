@@ -1,7 +1,7 @@
 # customers/views.py
 from rest_framework import generics, filters
 from .models import Customer
-from .serializers import CustomerSerializer
+from customers.serializers import CustomerSerializer
 from rest_framework.pagination import PageNumberPagination
 from shared.permissions import IsSuperAdmin,IsLCO
 from rest_framework.permissions import IsAuthenticated
@@ -294,18 +294,18 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
                 errors.append(f"Row {index+1}: ISP '{isp_val}' lookup failed.")
                 data['isp'] = None
 
-            # ---------------- OLT lookup ----------------
+         # ---------------- OLT lookup (by name only) ----------------
             olt_val = data.get('olt')
-            try:
-                if olt_val:
-                    data['olt'] = olt_dict.get(str(olt_val)) or OLT.objects.filter(name__iexact=str(olt_val).strip()).first()
+            if olt_val:
+                olt_obj = OLT.objects.filter(name__iexact=str(olt_val).strip()).first()
+                if olt_obj:
+                    data['olt'] = olt_obj
                 else:
-                    data['olt'] = None
-                if not data['olt'] and olt_val:
                     errors.append(f"Row {index+1}: OLT '{olt_val}' not found.")
-            except OLT.DoesNotExist:
-                errors.append(f"Row {index+1}: OLT '{olt_val}' lookup failed.")
+                    data['olt'] = None
+            else:
                 data['olt'] = None
+
 
             # ---------------- LCO lookup ----------------
             lco_val = data.get('lco')
@@ -405,7 +405,7 @@ class CustomerSearchListView(TrackCreatedUpdatedUserMixin,generics.ListAPIView):
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
     search_fields = [
         'full_name', 'phone', 'email', 'mac_id', 'ont_number', 'address',
-        'v_lan', 'kseb_post', 'port', 'plan'
+        'v_lan', 'kseb_post', 'port', 'plan','username'
     ]
     filterset_fields = ['olt', 'lco', 'isp']
 
@@ -423,7 +423,7 @@ class CustomerReportView(TrackCreatedUpdatedUserMixin,APIView):
         selected_fields = request.data.get('fields', [])
 
         # Mandatory fields
-        mandatory_fields = ['full_name', 'address', 'phone']
+        mandatory_fields = ['full_name', 'address', 'phone','username']
         all_fields = list(set(mandatory_fields + selected_fields))
 
         # Validate field names
