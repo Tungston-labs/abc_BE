@@ -196,6 +196,16 @@ from customers.models import Customer
 from lcos.models import LCO
 from network.models import OLT, ISP
 
+import pandas as pd
+from django.db import transaction
+from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from .models import Customer, LCO, ISP, OLT
+from common.mixins import TrackCreatedUpdatedUserMixin
+from users.permissions import IsSuperAdmin
+
 
 class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
     parser_classes = (MultiPartParser, FormParser)
@@ -208,8 +218,8 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
         "address": ["address", "residence", "Address", "ADDRESS", "Permanent Address"],
         "mac_id": ["mac", "mac id", "macid", "MACID", "MAC_ID"],
         "plan": ["plan", "internet plan", "Plan", "Plan Name"],
-        "lco": ["lco", "LCO"],  # Excel contains LCO code
-        "lco_ref": ["lco_ref", "LCO_REF"],  # Optional manual field
+        "lco": ["lco", "LCO"],
+        "lco_ref": ["lco_ref", "LCO_REF"],
         "isp": ["isp id", "isp", "ISP"],
         "olt": ["olt id", "olt", "OLT IP", "OLT Name", "OLT"],
         "v_lan": ["vlan", "v lan", "v_lan", "V_LAN"],
@@ -253,7 +263,6 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
         # ---------------- Preload lookup dictionaries ----------------
         lco_dict = {lco.lco_code.lower(): lco for lco in LCO.objects.all()}
         isp_dict = {str(isp.id): isp for isp in ISP.objects.all()}
-        olt_dict = {str(olt.id): olt for olt in OLT.objects.all()}
 
         for index, row in df.iterrows():
             data = {}
@@ -294,25 +303,22 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
                 errors.append(f"Row {index+1}: ISP '{isp_val}' lookup failed.")
                 data['isp'] = None
 
-       
-           # ---------------- OLT lookup (by name only) ----------------
-        olt_val = data.get('olt')
-        if olt_val:
-            # Convert numeric floats to int string (7.0 -> "7")
-            if isinstance(olt_val, (float, int)):
-                olt_name = str(int(olt_val))
-            else:
-                olt_name = str(olt_val).strip()
-            
-            olt_obj = OLT.objects.filter(name__iexact=olt_name).first()
-            if olt_obj:
-                data['olt'] = olt_obj
-            else:
-                errors.append(f"Row {index+1}: OLT '{olt_val}' not found.")
-                data['olt'] = None
-        else:
-            data['olt'] = None
+            # ---------------- OLT lookup (by name only) ----------------
+            olt_val = data.get('olt')
+            if olt_val:
+                if isinstance(olt_val, (float, int)):
+                    olt_name = str(int(olt_val))
+                else:
+                    olt_name = str(olt_val).strip()
 
+                olt_obj = OLT.objects.filter(name__iexact=olt_name).first()
+                if olt_obj:
+                    data['olt'] = olt_obj
+                else:
+                    errors.append(f"Row {index+1}: OLT '{olt_val}' not found.")
+                    data['olt'] = None
+            else:
+                data['olt'] = None
 
             # ---------------- LCO lookup ----------------
             lco_val = data.get('lco')
@@ -366,8 +372,6 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
             "message": f"{success_count} customers uploaded/updated successfully",
             "errors": errors
         }, status=200)
-
-
 
 
 
