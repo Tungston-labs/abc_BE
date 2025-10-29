@@ -403,13 +403,12 @@ from rest_framework import generics, filters
 from .models import Customer
 from .serializers import CustomerSerializer
 from rest_framework.pagination import PageNumberPagination
+from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-import pandas as pd
-from django.http import HttpResponse
 
-class CustomerSearchListView(TrackCreatedUpdatedUserMixin, generics.ListAPIView):
+
+
+class CustomerSearchListView(TrackCreatedUpdatedUserMixin,generics.ListAPIView):
     queryset = Customer.objects.all().order_by('-last_updated')
     serializer_class = CustomerSerializer
     permission_classes = [IsAuthenticated, IsSuperAdmin]
@@ -421,29 +420,12 @@ class CustomerSearchListView(TrackCreatedUpdatedUserMixin, generics.ListAPIView)
     ]
     filterset_fields = ['olt', 'lco', 'isp']
 
-    def list(self, request, *args, **kwargs):
-        paginate_flag = request.query_params.get('paginate', 'true').lower() == 'true'
-        queryset = self.filter_queryset(self.get_queryset())
 
-        if paginate_flag:
-            page = self.paginate_queryset(queryset)
-            if page is not None:
-                serializer = self.get_serializer(page, many=True)
-                response = self.get_paginated_response(serializer.data)
-                response.data['paginate'] = True
-                return response
-
-        # Return all results without pagination
-        serializer = self.get_serializer(queryset, many=True)
-        return Response({
-            'paginate': False,
-            'count': queryset.count(),
-            'results': serializer.data
-        })
-
-
-
-
+import pandas as pd
+from django.http import HttpResponse
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from .models import Customer
 
 class CustomerReportView(TrackCreatedUpdatedUserMixin,APIView):
     permission_classes = [IsAuthenticated, IsSuperAdmin]
@@ -470,8 +452,6 @@ class CustomerReportView(TrackCreatedUpdatedUserMixin,APIView):
         response['Content-Disposition'] = 'attachment; filename=customer_report.xlsx'
         df.to_excel(response, index=False)
         return response
-
-
 
 
 from rest_framework.views import APIView
