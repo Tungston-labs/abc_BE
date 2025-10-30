@@ -69,7 +69,6 @@ class Migration(migrations.Migration):
                 ('lco', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='assigned_olts', to='lcos.lco')),
                 ('updated_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='%(class)s_updated', to=settings.AUTH_USER_MODEL)),
                 ('switch', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='olts', to='network.switch')),
-                ('updated_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='%(class)s_updated', to=settings.AUTH_USER_MODEL)),
             ],
             options={
                 'abstract': False,

@@ -379,19 +379,17 @@ class ISPByLCOView(TrackCreatedUpdatedUserMixin,APIView):
 
 
 from rest_framework import generics, filters
-from .models import Customer
-from .serializers import CustomerSerializer
-from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import DjangoFilterBackend
-from django.db.models import Q
+from rest_framework.permissions import IsAuthenticated
+from shared.paginations import CustomerScrollPagination
+from .serializers import CustomerSerializer
+from .models import Customer
 
-
-
-class CustomerSearchListView(TrackCreatedUpdatedUserMixin,generics.ListAPIView):
+class CustomerSearchListView(generics.ListAPIView):
     queryset = Customer.objects.all().order_by('-last_updated')
     serializer_class = CustomerSerializer
     permission_classes = [IsAuthenticated, IsSuperAdmin]
-    # pagination_class = CustomerPagination
+
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
     search_fields = [
         'full_name', 'phone', 'email', 'mac_id', 'ont_number', 'address',
@@ -399,38 +397,72 @@ class CustomerSearchListView(TrackCreatedUpdatedUserMixin,generics.ListAPIView):
     ]
     filterset_fields = ['olt', 'lco', 'isp']
 
+    pagination_class = CustomerScrollPagination  
 
-import pandas as pd
+
 from django.http import HttpResponse
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from openpyxl import Workbook
+from io import BytesIO
 from .models import Customer
+from datetime import datetime
 
-class CustomerReportView(TrackCreatedUpdatedUserMixin,APIView):
-    permission_classes = [IsAuthenticated, IsSuperAdmin]
+class CustomerReportView(APIView):
+    permission_classes = [IsAuthenticated]
+    pagination_class = None
+
+    FIELD_MAP = {
+        "olt_name": "olt__name",
+        "isp_name": "isp__name",
+        "lco_name": "lco__name",
+    }
 
     def post(self, request):
-        selected_fields = request.data.get('fields', [])
-
-        # Mandatory fields
-        mandatory_fields = ['full_name', 'address', 'phone']
+        selected_fields = request.data.get("fields", [])
+        mandatory_fields = ["full_name", "address", "phone"]
         all_fields = list(set(mandatory_fields + selected_fields))
 
-        # Validate field names
-        valid_fields = [field.name for field in Customer._meta.fields]
+        valid_fields = [f.name for f in Customer._meta.fields]
         for field in all_fields:
-            if field not in valid_fields:
+            if field not in valid_fields and field not in self.FIELD_MAP:
                 return Response({"error": f"Invalid field: {field}"}, status=400)
 
-        # Query and prepare data
-        customers = Customer.objects.all().values(*all_fields)
-        df = pd.DataFrame(list(customers))
+        filters = request.data.get("filters", {})
+        filters = {k: v for k, v in filters.items() if v not in [None, ""]}
 
-        # Return Excel file
-        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        response['Content-Disposition'] = 'attachment; filename=customer_report.xlsx'
-        df.to_excel(response, index=False)
+        # Map frontend fields to ORM fields
+        resolved_fields = [self.FIELD_MAP.get(f, f) for f in all_fields]
+
+        queryset = Customer.objects.filter(**filters).values(*resolved_fields).iterator(chunk_size=2000)
+
+        wb = Workbook(write_only=True)
+        ws = wb.create_sheet(title="Customers")
+        ws.append(all_fields)
+
+        for customer in queryset:
+            row = []
+            for field in all_fields:
+                value = customer.get(self.FIELD_MAP.get(field, field), "")
+
+                if isinstance(value, datetime) and value.tzinfo is not None:
+                    value = value.replace(tzinfo=None)
+
+                row.append(value)
+            ws.append(row)
+
+        virtual_workbook = BytesIO()
+        wb.save(virtual_workbook)
+        virtual_workbook.seek(0)
+
+        response = HttpResponse(
+            virtual_workbook.getvalue(),
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+        response["Content-Disposition"] = 'attachment; filename="customer_report.xlsx"'
         return response
+
 
 
 from rest_framework.views import APIView
