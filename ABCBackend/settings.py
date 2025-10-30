@@ -89,7 +89,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://178.248.112.16:85",
     "https://aluvabroadband.com",
     
-"https://api.aluvabroadband.com"
+    "https://api.aluvabroadband.com"
 
 ]
 
