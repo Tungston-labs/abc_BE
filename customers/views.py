@@ -1,23 +1,50 @@
 # customers/views.py
 from rest_framework import generics, filters
-from .models import Customer
 from customers.serializers import CustomerSerializer
 from rest_framework.pagination import PageNumberPagination
 from shared.permissions import IsSuperAdmin,IsLCO
 from rest_framework.permissions import IsAuthenticated
 from shared.paginations import StandardResultsSetPagination
-import pandas as pd
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Customer
 from lcos.models import LCO
-from network.models import OLT, ISP
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.parsers import MultiPartParser, FormParser
+from network.models import OLT, ISP
 from shared.mixins import TrackCreatedUpdatedUserMixin
-from shared.paginations import StandardResultsSetPagination
 
+# customers/views.py
+from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from django.db import transaction
+
+from .models import Customer
+from network.models import ISP, OLT
+from lcos.models import LCO
+from shared.mixins import TrackCreatedUpdatedUserMixin
+from shared.permissions import IsSuperAdmin
+from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from django.db import transaction
+import pandas as pd
+from customers.models import Customer
+from lcos.models import LCO
+from network.models import OLT, ISP
+from rest_framework import generics, filters
+from datetime import date, timedelta
+from .serializers import CustomerSerializer
+from django.http import HttpResponse
+from .serializers import LCODropdownSerializer,ISPDropdownSerializer
+from rest_framework.pagination import PageNumberPagination
+from django_filters.rest_framework import DjangoFilterBackend
+from django.db.models import Q
+from django.utils import timezone
 
 class CustomerPagination(PageNumberPagination):
     page_size = 10
@@ -144,67 +171,7 @@ class DropdownDataAPIView(APIView):
             "lco_ref": lco_ref
         })
 
-from rest_framework.views import APIView
-from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from .models import Customer, ISP, OLT, LCO
-from shared.mixins import TrackCreatedUpdatedUserMixin
-from shared.permissions import IsSuperAdmin  # Make sure you import this
 
-# customers/views.py
-import pandas as pd
-from rest_framework.views import APIView
-from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-
-from .models import Customer
-from network.models import OLT, ISP
-from lcos.models import LCO
-from shared.mixins import TrackCreatedUpdatedUserMixin
-from shared.permissions import IsSuperAdmin
-# customers/views.py
-import pandas as pd
-from rest_framework.views import APIView
-from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-
-
-# customers/views.py
-import pandas as pd
-from rest_framework.views import APIView
-from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from django.db import transaction
-
-from .models import Customer
-from network.models import ISP, OLT
-from lcos.models import LCO
-from shared.mixins import TrackCreatedUpdatedUserMixin
-from shared.permissions import IsSuperAdmin
-from rest_framework.views import APIView
-from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from django.db import transaction
-import pandas as pd
-
-from customers.models import Customer
-from lcos.models import LCO
-from network.models import OLT, ISP
-
-import pandas as pd
-from django.db import transaction
-from rest_framework.views import APIView
-from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from .models import Customer, LCO, ISP, OLT
-from common.mixins import TrackCreatedUpdatedUserMixin
-from users.permissions import IsSuperAdmin
 
 
 class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
@@ -378,11 +345,6 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
 # -------------------REPORT MODULE---------------------
 
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from .models import LCO,ISP
-from .serializers import LCODropdownSerializer,ISPDropdownSerializer
-
 class LCOByOLTView(TrackCreatedUpdatedUserMixin,APIView):
     permission_classes = [IsAuthenticated, IsSuperAdmin]
 
@@ -399,12 +361,6 @@ class ISPByLCOView(TrackCreatedUpdatedUserMixin,APIView):
         return Response(serializer.data)
 
 
-from rest_framework import generics, filters
-from .models import Customer
-from .serializers import CustomerSerializer
-from rest_framework.pagination import PageNumberPagination
-from django_filters.rest_framework import DjangoFilterBackend
-from django.db.models import Q
 
 
 
@@ -421,11 +377,7 @@ class CustomerSearchListView(TrackCreatedUpdatedUserMixin,generics.ListAPIView):
     filterset_fields = ['olt', 'lco', 'isp']
 
 
-import pandas as pd
-from django.http import HttpResponse
-from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
-from .models import Customer
+
 
 class CustomerReportView(TrackCreatedUpdatedUserMixin,APIView):
     permission_classes = [IsAuthenticated, IsSuperAdmin]
@@ -454,13 +406,7 @@ class CustomerReportView(TrackCreatedUpdatedUserMixin,APIView):
         return response
 
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from django.utils import timezone
-from customers.models import Customer
-from lcos.models import LCO
-from network.models import OLT, ISP
+
 
 
 class DashboardCountsView(APIView):
@@ -504,13 +450,6 @@ class LCOCustomerSearchListView(generics.ListAPIView):
 
 # customers/views.py
 
-from rest_framework import generics, filters
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from django_filters.rest_framework import DjangoFilterBackend
-from datetime import date, timedelta
-from .models import Customer
-from .serializers import CustomerSerializer
 
 class CustomersExpiringSoonFilteredView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
