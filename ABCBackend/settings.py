@@ -81,6 +81,8 @@ MIDDLEWARE = [
 ]
 CORS_ALLOWED_ORIGINS = [
     "https://aluvabroadband.com",
+    "http://localhost:5173",
+
 ]
 CORS_ALLOW_HEADERS = [
     "content-type",
