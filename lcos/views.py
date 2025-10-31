@@ -33,7 +33,26 @@ class LCORetrieveUpdateDeleteView(
             print("UPDATE ERROR:", str(e))
             traceback.print_exc()
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated
+from .models import LCO
+from .serializers import LCOSerializer
+from shared.permissions import IsSuperAdmin
+from shared.paginations import CustomerScrollPagination
 
+class LCOScrollListView(TrackCreatedUpdatedUserMixin, generics.ListAPIView):
+  
+    queryset = LCO.objects.all().order_by("id")
+    serializer_class = LCOSerializer
+    permission_classes = [IsAuthenticated, IsSuperAdmin]
+    pagination_class = CustomerScrollPagination  
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        search = self.request.query_params.get("search")
+        if search:
+            queryset = queryset.filter(name__icontains=search)
+        return queryset
 
 
 from rest_framework.views import APIView

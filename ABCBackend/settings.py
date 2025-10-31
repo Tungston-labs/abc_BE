@@ -92,6 +92,10 @@ CORS_ALLOWED_ORIGINS = [
     "https://api.aluvabroadband.com"
 
 ]
+CORS_ALLOW_HEADERS = [
+    "content-type",
+    "authorization",
+]
 
 CORS_ALLOW_CREDENTIALS = True
 

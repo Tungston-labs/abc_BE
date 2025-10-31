@@ -174,7 +174,185 @@ class DropdownDataAPIView(APIView):
 
 
 
+from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from django.db import transaction
+import pandas as pd
+
 class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
+    parser_classes = (MultiPartParser, FormParser)
+    permission_classes = [IsAuthenticated, IsSuperAdmin]
+
+    HEADER_ALIASES = {
+        "full_name": ["Customer", "name", "Customer Name", "Name,", "Full Name", "FULL_NAME"],
+        "phone": ["phone", "mobile", "contact number", "Mobile", "Mobile No.", "Phone", "MOBILE", "PHONE"],
+        "email": ["email", "e-mail", "mail", "EMAIL_ID", "Email Address", "Email", "EMAIL ID"],
+        "address": ["address", "residence", "Address", "ADDRESS", "Permanent Address"],
+        "mac_id": ["mac", "mac id", "macid", "MACID", "MAC_ID"],
+        "plan": ["plan", "internet plan", "Plan", "Plan Name"],
+        "lco": ["lco", "LCO"],
+        "lco_ref": ["lco_ref", "LCO_REF"],
+        "isp": ["isp id", "isp", "ISP"],
+        "olt": ["olt id", "olt", "OLT IP", "OLT Name", "OLT"],
+        "v_lan": ["vlan", "v lan", "v_lan", "V_LAN"],
+        "ont_number": ["ont number", "ont", "ont no", "ONT_NUMBER"],
+        "expiry_date": ["expiry", "expiry date", "Expiry Date", "Validity End", "EXPIRY_DATE"],
+        "signal": ["signal", "SIGNAL"],
+        "kseb_post": ["kseb post", "post", "KSEB_POST"],
+        "port": ["port", "PORT"],
+        "distance": ["distance", "DISTANCE"],
+        "username": ["username", "user name", "login name", "customer username", "USERNAME"],
+    }
+
+    def options(self, request, *args, **kwargs):
+        """
+        Allow unauthenticated preflight (CORS) requests.
+        """
+        return Response(status=status.HTTP_200_OK)
+
+    def normalize_headers(self, df):
+        """Map Excel headers to model fields based on aliases"""
+        header_map = {}
+        lower_cols = [col.lower().strip() for col in df.columns]
+        for field, aliases in self.HEADER_ALIASES.items():
+            for alias in aliases:
+                if alias.lower() in lower_cols:
+                    original_col = df.columns[lower_cols.index(alias.lower())]
+                    header_map[field] = original_col
+                    break
+        return header_map
+
+    def post(self, request, *args, **kwargs):
+        file = request.FILES.get('file')
+        if not file:
+            return Response({'error': 'No file uploaded'}, status=400)
+
+        request_isp_id = request.data.get("isp")
+
+        try:
+            df = pd.read_excel(file)
+        except Exception as e:
+            return Response({'error': f'Invalid Excel file: {str(e)}'}, status=400)
+
+        header_map = self.normalize_headers(df)
+        success_count = 0
+        errors = []
+
+        # ---------------- Preload lookup dictionaries ----------------
+        lco_dict = {lco.lco_code.lower(): lco for lco in LCO.objects.all()}
+        isp_dict = {str(isp.id): isp for isp in ISP.objects.all()}
+
+        for index, row in df.iterrows():
+            data = {}
+            for field, excel_col in header_map.items():
+                val = row.get(excel_col)
+                if pd.isna(val):
+                    val = None
+                data[field] = val
+
+            # ---------------- Date conversion ----------------
+            expiry_val = data.get('expiry_date')
+            if expiry_val:
+                try:
+                    if isinstance(expiry_val, (int, float)):
+                        data['expiry_date'] = pd.to_datetime(expiry_val, unit='d', origin='1899-12-30').date()
+                    else:
+                        data['expiry_date'] = pd.to_datetime(str(expiry_val)).date()
+                except Exception:
+                    data['expiry_date'] = None
+
+            # ---------------- Phone cleanup ----------------
+            phone = data.get('phone')
+            if phone:
+                data['phone'] = str(phone).split('.')[0].strip()
+
+            # ---------------- ISP lookup ----------------
+            isp_val = data.get('isp')
+            try:
+                if request_isp_id:
+                    data['isp'] = ISP.objects.get(pk=int(request_isp_id))
+                elif isp_val:
+                    data['isp'] = isp_dict.get(str(isp_val)) or ISP.objects.filter(name__iexact=str(isp_val).strip()).first()
+                else:
+                    data['isp'] = None
+                if not data['isp'] and isp_val:
+                    errors.append(f"Row {index+1}: ISP '{isp_val}' not found.")
+            except ISP.DoesNotExist:
+                errors.append(f"Row {index+1}: ISP '{isp_val}' lookup failed.")
+                data['isp'] = None
+
+            # ---------------- OLT lookup ----------------
+            olt_val = data.get('olt')
+            if olt_val:
+                if isinstance(olt_val, (float, int)):
+                    olt_name = str(int(olt_val))
+                else:
+                    olt_name = str(olt_val).strip()
+
+                olt_obj = OLT.objects.filter(name__iexact=olt_name).first()
+                if olt_obj:
+                    data['olt'] = olt_obj
+                else:
+                    errors.append(f"Row {index+1}: OLT '{olt_val}' not found.")
+                    data['olt'] = None
+            else:
+                data['olt'] = None
+
+            # ---------------- LCO lookup ----------------
+            lco_val = data.get('lco')
+            if lco_val:
+                lco_obj = lco_dict.get(str(lco_val).strip().lower())
+                if not lco_obj:
+                    errors.append(f"Row {index+1}: LCO '{lco_val}' not found.")
+                data['lco'] = lco_obj
+            else:
+                data['lco'] = None
+
+            # ---------------- Remove conflicting keys ----------------
+            data.pop('created_by', None)
+            data.pop('updated_by', None)
+
+            # ---------------- Validate phone ----------------
+            if not data.get('phone'):
+                errors.append(f"Row {index+1}: Missing phone number")
+                continue
+
+            # ---------------- Create or Update Customer ----------------
+            try:
+                with transaction.atomic():
+                    customer, created = Customer.objects.update_or_create(
+                        phone=data['phone'],
+                        defaults={
+                            'full_name': data.get('full_name'),
+                            'email': data.get('email'),
+                            'address': data.get('address'),
+                            'mac_id': data.get('mac_id'),
+                            'plan': data.get('plan'),
+                            'isp': data.get('isp'),
+                            'olt': data.get('olt'),
+                            'v_lan': data.get('v_lan'),
+                            'ont_number': data.get('ont_number'),
+                            'expiry_date': data.get('expiry_date'),
+                            'signal': data.get('signal'),
+                            'kseb_post': data.get('kseb_post'),
+                            'port': data.get('port'),
+                            'distance': data.get('distance'),
+                            'username': data.get('username'),
+                            'lco_ref': data.get('lco_ref'),
+                            'lco': data.get('lco'),
+                        }
+                    )
+                    success_count += 1
+            except Exception as e:
+                errors.append(f"Row {index+1}: {str(e)}")
+
+        return Response({
+            "message": f"{success_count} customers uploaded/updated successfully",
+            "errors": errors
+        }, status=200)
     parser_classes = (MultiPartParser, FormParser)
     permission_classes = [IsAuthenticated, IsSuperAdmin]
 
