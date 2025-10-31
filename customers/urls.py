@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import CustomerListCreateView, CustomerRetrieveUpdateDestroyView,BulkCustomerUpload,CustomerSearchListView,LCOByOLTView,ISPByLCOView,CustomerReportView,LCOCustomerSearchListView,DropdownDataAPIView,DashboardCountsView,CustomersExpiringSoonFilteredView
+from .views import CustomerListCreateView,  CustomerRetrieveUpdateDestroyView,BulkCustomerUpload,CustomerSearchListView,LCOByOLTView,ISPByLCOView,CustomerReportView,LCOCustomerSearchListView,DropdownDataAPIView,DashboardCountsView,CustomersExpiringSoonFilteredView
 from django.conf.urls.static import static
 from django.conf import settings
 
