@@ -20,3 +20,8 @@ class StandardResultsSetPagination(PageNumberPagination):
             'previous': self.get_previous_link(),
             'results': data
         })
+from rest_framework.pagination import LimitOffsetPagination
+
+class CustomerScrollPagination(LimitOffsetPagination):
+    default_limit = 50     
+    max_limit = 100000         
