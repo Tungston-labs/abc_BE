@@ -198,7 +198,7 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
         "address": ["address", "residence", "Address", "ADDRESS", "Permanent Address"],
         "mac_id": ["mac", "mac id", "macid", "MACID", "MAC_ID"],
         "plan": ["plan", "internet plan", "Plan", "Plan Name"],
-        "lco_ref": ["lco code", "lco_ref", "LCO_REF"],  # Excel column
+        "lco": ["lco", "LCO", "lco code", "LCO_CODE"],  # Excel contains LCO code
         "isp": ["isp id", "isp", "ISP"],
         "olt": ["olt id", "olt", "OLT IP", "OLT Name", "OLT"],
         "v_lan": ["vlan", "v lan", "v_lan", "V_LAN"],
@@ -212,17 +212,13 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
     }
 
     def options(self, request, *args, **kwargs):
-        """
-        Allow unauthenticated CORS preflight (OPTIONS) requests.
-        Returning 200 lets django-cors-headers add the proper CORS headers.
-        """
+        """Allow unauthenticated CORS preflight (OPTIONS) requests."""
         return Response(status=status.HTTP_200_OK)
 
     def normalize_headers(self, df):
-        """Map Excel headers to model fields based on aliases"""
+        """Map Excel headers to model fields based on aliases."""
         header_map = {}
         lower_cols = [col.lower().strip() for col in df.columns]
-
         for field, aliases in self.HEADER_ALIASES.items():
             for alias in aliases:
                 if alias.lower() in lower_cols:
@@ -261,7 +257,9 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
             if expiry_val:
                 try:
                     if isinstance(expiry_val, (int, float)):
-                        data['expiry_date'] = pd.to_datetime(expiry_val, unit='d', origin='1899-12-30').date()
+                        data['expiry_date'] = pd.to_datetime(
+                            expiry_val, unit='d', origin='1899-12-30'
+                        ).date()
                     else:
                         data['expiry_date'] = pd.to_datetime(str(expiry_val)).date()
                 except Exception:
@@ -302,17 +300,20 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
                 errors.append(f"Row {index+1}: OLT '{olt_val}' not found.")
                 data['olt'] = None
 
-            # ---------------- LCO lookup ----------------
-            lco_ref_val = data.get('lco_ref')  # Excel value
-            try:
-                if lco_ref_val:
-                    # LCO lookup by lco_code
-                    data['lco'] = LCO.objects.get(lco_code__iexact=str(lco_ref_val).strip())
-                else:
+
+            # ---------------- LCO lookup (by lco_code) ----------------
+            lco_code_val = data.get('lco')  # Excel "LCO" column has lco_code
+            if lco_code_val:
+                try:
+                    data['lco'] = LCO.objects.get(lco_code__iexact=str(lco_code_val).strip())
+                    data['lco_ref'] = str(lco_code_val).strip()
+                except LCO.DoesNotExist:
+                    errors.append(f"Row {index+1}: LCO with code '{lco_code_val}' not found.")
                     data['lco'] = None
-            except LCO.DoesNotExist:
-                errors.append(f"Row {index+1}: LCO '{lco_ref_val}' not found.")
+                    data['lco_ref'] = str(lco_code_val).strip()
+            else:
                 data['lco'] = None
+                data['lco_ref'] = None
 
             # ---------------- Remove conflicting keys ----------------
             data.pop('created_by', None)
@@ -325,7 +326,6 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
 
             try:
                 with transaction.atomic():
-                    # Update existing customer if phone exists
                     customer, created = Customer.objects.update_or_create(
                         phone=data['phone'],
                         defaults={
@@ -344,23 +344,19 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
                             'port': data.get('port'),
                             'distance': data.get('distance'),
                             'username': data.get('username'),
-                            'lco_ref': lco_ref_val,
+                            'lco_ref': data.get('lco_ref'),
                             'lco': data.get('lco'),
                         }
                     )
-                    if created:
-                        print(f"Row {index+1}: Created customer {data['phone']}")
-                    else:
-                        print(f"Row {index+1}: Updated customer {data['phone']}")
                     success_count += 1
             except Exception as e:
                 errors.append(f"Row {index+1}: {str(e)}")
-                print(f"Row {index+1} Error: {str(e)}")
 
         return Response({
             "message": f"{success_count} customers uploaded/updated successfully",
             "errors": errors
         }, status=200)
+
 
 # -------------------REPORT MODULE---------------------
 
