@@ -177,6 +177,7 @@ from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework import status
 from django.db import transaction
 
 from .models import Customer
@@ -209,6 +210,13 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
         "distance": ["distance", "DISTANCE"],
         "username": ["username", "user name", "login name", "customer username", "USERNAME"],
     }
+
+    def options(self, request, *args, **kwargs):
+        """
+        Allow unauthenticated CORS preflight (OPTIONS) requests.
+        Returning 200 lets django-cors-headers add the proper CORS headers.
+        """
+        return Response(status=status.HTTP_200_OK)
 
     def normalize_headers(self, df):
         """Map Excel headers to model fields based on aliases"""
