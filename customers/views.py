@@ -199,6 +199,7 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
         "mac_id": ["mac", "mac id", "macid", "MACID", "MAC_ID"],
         "plan": ["plan", "internet plan", "Plan", "Plan Name"],
         "lco": ["lco", "LCO", "lco code", "LCO_CODE"],  # Excel contains LCO code
+        "lco_ref": ["lco_ref", "LCO_REF", "lco reference", "LCO Reference"],  # NEW line added
         "isp": ["isp id", "isp", "ISP"],
         "olt": ["olt id", "olt", "OLT IP", "OLT Name", "OLT"],
         "v_lan": ["vlan", "v lan", "v_lan", "V_LAN"],
@@ -245,7 +246,7 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
 
         for index, row in df.iterrows():
             data = {}
-            # Map Excel columns to model fields
+            # ---------------- Map Excel columns to model fields ----------------
             for field, excel_col in header_map.items():
                 val = row.get(excel_col)
                 if pd.isna(val):
@@ -286,7 +287,7 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
                 errors.append(f"Row {index+1}: ISP '{isp_val}' not found.")
                 data['isp'] = None
 
-            # ---------------- OLT lookup ----------------
+            # ---------------- OLT lookup (by name or ID) ----------------
             olt_val = data.get('olt')
             try:
                 if olt_val:
@@ -300,20 +301,16 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
                 errors.append(f"Row {index+1}: OLT '{olt_val}' not found.")
                 data['olt'] = None
 
-
             # ---------------- LCO lookup (by lco_code) ----------------
             lco_code_val = data.get('lco')  # Excel "LCO" column has lco_code
             if lco_code_val:
                 try:
                     data['lco'] = LCO.objects.get(lco_code__iexact=str(lco_code_val).strip())
-                    data['lco_ref'] = str(lco_code_val).strip()
                 except LCO.DoesNotExist:
                     errors.append(f"Row {index+1}: LCO with code '{lco_code_val}' not found.")
                     data['lco'] = None
-                    data['lco_ref'] = str(lco_code_val).strip()
             else:
                 data['lco'] = None
-                data['lco_ref'] = None
 
             # ---------------- Remove conflicting keys ----------------
             data.pop('created_by', None)
@@ -344,7 +341,7 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
                             'port': data.get('port'),
                             'distance': data.get('distance'),
                             'username': data.get('username'),
-                            'lco_ref': data.get('lco_ref'),
+                            'lco_ref': data.get('lco_ref'),  # saved directly from Excel
                             'lco': data.get('lco'),
                         }
                     )
