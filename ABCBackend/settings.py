@@ -16,6 +16,7 @@ import os
 
 from decouple import config
 
+from corsheaders.defaults import default_headers
 
 
 # Example usage:
@@ -79,18 +80,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 CORS_ALLOWED_ORIGINS = [
-    "http://192.168.29.189:8000",
-    "http://localhost:5173",
-    "http://localhost:4173",
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-    "http://192.168.29.189:19000",  # Metro Bundler
-    "http://192.168.29.189:19006",  # Web Preview
-    "http://178.248.112.16:85",
     "https://aluvabroadband.com",
-    
-    "https://api.aluvabroadband.com"
-
 ]
 CORS_ALLOW_HEADERS = [
     "content-type",
@@ -98,6 +88,20 @@ CORS_ALLOW_HEADERS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "authorization",
+]
+
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
+
 
 
 ROOT_URLCONF = 'ABCBackend.urls'
