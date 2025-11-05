@@ -30,7 +30,7 @@ class CustomerListCreateView(TrackCreatedUpdatedUserMixin, generics.ListCreateAP
     serializer_class = CustomerSerializer
     pagination_class = StandardResultsSetPagination
     filter_backends = [filters.SearchFilter]
-    search_fields = ['full_name', 'phone','username']
+    search_fields = ['full_name', 'phone','username','ont_number']
 
     def get_queryset(self):
         user = self.request.user
