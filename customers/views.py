@@ -353,19 +353,7 @@ from shared.permissions import IsSuperAdmin
 #             "message": f"{success_count} customers uploaded/updated successfully",
 #             "errors": errors
 #         }, status=200)
-import pandas as pd
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.permissions import IsAuthenticated
-from django.db import transaction
-from django.utils import timezone
 
-from customer.models import Customer
-from lcos.models import LCO
-from network.models import ISP, OLT
-from shared.permissions import IsSuperAdmin
-from shared.mixins import TrackCreatedUpdatedUserMixin
 
 
 class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
