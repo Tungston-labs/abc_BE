@@ -7,10 +7,10 @@ POST {{baseUrl}}/register-superadmin/
 Content-Type: application/json
 
 {
-  "username": "abc3",
-  "email": "nisna@gmail.com",
-  "phone": "9999999292",
-  "password": "123"
+  "username": "ABC",
+  "email": "aluvabroadband@gmail.com",
+  "phone": "9526993744",
+  "password": "Abcpl@#2025"
 }
 
 
@@ -319,9 +319,9 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 ###
 
 ### Filter by OLT, LCO, and ISP
-GET https://api.aluvabroadband.com/api/client/search/?lco=3
+GET https://api.aluvabroadband.com/api/client/search/?isp=21&page=1&page_size=100
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzYyNzU0MDQzLCJpYXQiOjE3NjI3NTA0NDMsImp0aSI6IjQ0MTNkZmNhZGE3YzRiY2M4OThiZjg5NGVkZGFhZDdlIiwidXNlcl9pZCI6IjEifQ.hJuYImNNSr3K2PqErUNF96V5gRBt2FiS4qyBv3LqCIE
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzYyNzU3MDQ3LCJpYXQiOjE3NjI3NTM0NDcsImp0aSI6Ijk2NDA2YmFhOWJjZDQyMTVhNDU4NmEzNDQ4OTM4MzYxIiwidXNlcl9pZCI6IjEifQ.LLjEpi6NhVWxGqjN3xRzyu0AqNQ54BKxWTX15zYcpjE
 
 # report generation
 
