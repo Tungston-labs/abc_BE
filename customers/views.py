@@ -528,6 +528,7 @@ class ISPByLCOView(TrackCreatedUpdatedUserMixin,APIView):
         return Response(serializer.data)
 
 
+# customers/views.py
 from rest_framework import generics, filters
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import IsAuthenticated
@@ -538,16 +539,21 @@ from .models import Customer
 class CustomerSearchListView(generics.ListAPIView):
     queryset = Customer.objects.all().order_by('-last_updated')
     serializer_class = CustomerSerializer
-    permission_classes = [IsAuthenticated, IsSuperAdmin]
+    permission_classes = [IsAuthenticated]
 
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
     search_fields = [
         'full_name', 'phone', 'email', 'mac_id', 'ont_number', 'address',
         'v_lan', 'kseb_post', 'port', 'plan'
     ]
-    filterset_fields = ['olt', 'lco', 'isp']
+    filterset_fields = {
+        'lco': ['exact'],
+        'olt': ['exact'],
+        'isp': ['exact'],
+    }
 
-    pagination_class = CustomerScrollPagination  
+    pagination_class = CustomerScrollPagination
+
 
 
 from django.http import HttpResponse
