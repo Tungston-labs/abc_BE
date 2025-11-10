@@ -564,6 +564,8 @@ from openpyxl import Workbook
 from io import BytesIO
 from .models import Customer
 from datetime import datetime
+from django.db.models import Q
+
 
 class CustomerReportView(APIView):
     permission_classes = [IsAuthenticated]
@@ -585,14 +587,33 @@ class CustomerReportView(APIView):
             if field not in valid_fields and field not in self.FIELD_MAP:
                 return Response({"error": f"Invalid field: {field}"}, status=400)
 
+        # Filters
         filters = request.data.get("filters", {})
         filters = {k: v for k, v in filters.items() if v not in [None, ""]}
 
-        # Map frontend fields to ORM fields
+        # Search term
+        search_term = request.data.get("search", "").strip()
+
+        # Build queryset
+        queryset = Customer.objects.all()
+
+        if filters:
+            queryset = queryset.filter(**filters)
+
+        if search_term:
+            queryset = queryset.filter(
+                Q(full_name__icontains=search_term)
+                | Q(phone__icontains=search_term)
+                | Q(address__icontains=search_term)
+                | Q(username__icontains=search_term)
+            )
+
+        # ORM field resolution
         resolved_fields = [self.FIELD_MAP.get(f, f) for f in all_fields]
 
-        queryset = Customer.objects.filter(**filters).values(*resolved_fields).iterator(chunk_size=2000)
+        queryset = queryset.values(*resolved_fields).iterator(chunk_size=2000)
 
+        # Excel generation
         wb = Workbook(write_only=True)
         ws = wb.create_sheet(title="Customers")
         ws.append(all_fields)
@@ -601,10 +622,8 @@ class CustomerReportView(APIView):
             row = []
             for field in all_fields:
                 value = customer.get(self.FIELD_MAP.get(field, field), "")
-
                 if isinstance(value, datetime) and value.tzinfo is not None:
                     value = value.replace(tzinfo=None)
-
                 row.append(value)
             ws.append(row)
 
@@ -618,7 +637,6 @@ class CustomerReportView(APIView):
         )
         response["Content-Disposition"] = 'attachment; filename="customer_report.xlsx"'
         return response
-
 
 
 from rest_framework.views import APIView
