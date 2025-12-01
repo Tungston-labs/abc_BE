@@ -30,7 +30,12 @@ class CustomerListCreateView(TrackCreatedUpdatedUserMixin, generics.ListCreateAP
     serializer_class = CustomerSerializer
     pagination_class = StandardResultsSetPagination
     filter_backends = [filters.SearchFilter]
-    search_fields = ['full_name', 'phone','username','ont_number']
+
+    def get_search_fields(self, view, request):
+        # Return all Customer model field names dynamically
+        return [field.name for field in Customer._meta.get_fields() 
+                if hasattr(field, "attname")]
+
 
     def get_queryset(self):
         user = self.request.user

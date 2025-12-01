@@ -12,7 +12,7 @@ from shared.mixins import TrackCreatedUpdatedUserMixin
 class SwitchListCreateView(TrackCreatedUpdatedUserMixin,generics.ListCreateAPIView):
     queryset = Switch.objects.all()
     serializer_class = SwitchSerializer
-    permission_classes = [IsAuthenticated, IsSuperAdmin]
+    permission_classes = [IsAuthenticated]
     pagination_class = StandardResultsSetPagination
 
 class SwitchRetrieveUpdateDestroyView(TrackCreatedUpdatedUserMixin,generics.RetrieveUpdateDestroyAPIView):
@@ -131,7 +131,7 @@ from shared.permissions import IsSuperAdmin
 class OLTListCreateView(TrackCreatedUpdatedUserMixin,generics.ListCreateAPIView):
     queryset = OLT.objects.all()
     serializer_class = OLTSerializer
-    permission_classes = [IsAuthenticated, IsSuperAdmin]
+    permission_classes = [IsAuthenticated]
     pagination_class = StandardResultsSetPagination
 
 
@@ -270,7 +270,7 @@ class BulkOLTUpload(TrackCreatedUpdatedUserMixin, APIView):
 class ISPCreateListView(generics.ListCreateAPIView):
     queryset = ISP.objects.all()
     serializer_class = ISPSerializer
-    permission_classes = [IsAuthenticated, IsSuperAdmin]
+    permission_classes = [IsAuthenticated]
     pagination_class = StandardResultsSetPagination
 
 
