@@ -6,23 +6,66 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
+# class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+#     def validate(self, attrs):
+#         data = super().validate(attrs)
+
+#         user = self.user
+
+#         # Safely get LCO name if exists
+#         lco_name = ''
+#         if hasattr(user, 'lco_profile') and user.lco_profile:
+#             lco_name = user.lco_profile.name
+
+#         data['user'] = {
+#             'id': user.id,
+#             'username': user.username,
+#             'email': user.email,
+#             'phone': user.phone,
+#             'is_super_admin': user.is_super_admin,  # ✅ Add this
+#             'lco_name': lco_name,
+#         }
+
+#         return data
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from accounts.models import User
+
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+
+    @classmethod
+    def get_token(cls, user):
+        return super().get_token(user)
+
     def validate(self, attrs):
+        username = attrs.get("username")
+        password = attrs.get("password")
+
+        #  1. If email is entered, convert to username
+        if User.objects.filter(email=username).exists():
+            actual_username = User.objects.get(email=username).username
+        else:
+            actual_username = username
+
+        # Replace username in attrs (needed for JWT auth)
+        attrs["username"] = actual_username
+
+        #  2. Now call parent validate()
         data = super().validate(attrs)
 
         user = self.user
 
-        # Safely get LCO name if exists
+        #  3. LCO name safely returned
         lco_name = ''
         if hasattr(user, 'lco_profile') and user.lco_profile:
             lco_name = user.lco_profile.name
 
+        #  4. Add custom user payload
         data['user'] = {
             'id': user.id,
             'username': user.username,
             'email': user.email,
             'phone': user.phone,
-            'is_super_admin': user.is_super_admin,  # ✅ Add this
+            'is_super_admin': user.is_super_admin,
             'lco_name': lco_name,
         }
 
