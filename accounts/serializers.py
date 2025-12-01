@@ -32,44 +32,46 @@ from accounts.models import User
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
-    @classmethod
-    def get_token(cls, user):
-        return super().get_token(user)
-
     def validate(self, attrs):
-        username = attrs.get("username")
+
+        login_id = attrs.get("username")
         password = attrs.get("password")
 
-        #  1. If email is entered, convert to username
-        if User.objects.filter(email=username).exists():
-            actual_username = User.objects.get(email=username).username
-        else:
-            actual_username = username
+        user = None
 
-        # Replace username in attrs (needed for JWT auth)
-        attrs["username"] = actual_username
+        # login using email
+        try:
+            user = User.objects.get(email=login_id)
+        except User.DoesNotExist:
+            pass
 
-        #  2. Now call parent validate()
+        # login using username
+        if user is None:
+            try:
+                user = User.objects.get(username=login_id)
+            except User.DoesNotExist:
+                pass
+
+        if user:
+            attrs["username"] = user.email  # Required because USERNAME_FIELD=email
+
         data = super().validate(attrs)
 
         user = self.user
 
-        #  3. LCO name safely returned
-        lco_name = ''
-        if hasattr(user, 'lco_profile') and user.lco_profile:
-            lco_name = user.lco_profile.name
+        lco_name = getattr(getattr(user, "lco_profile", None), "name", "")
 
-        #  4. Add custom user payload
-        data['user'] = {
-            'id': user.id,
-            'username': user.username,
-            'email': user.email,
-            'phone': user.phone,
-            'is_super_admin': user.is_super_admin,
-            'lco_name': lco_name,
+        data["user"] = {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "phone": user.phone,
+            "is_super_admin": user.is_super_admin,
+            "lco_name": lco_name,
         }
 
         return data
+
 
 
 
