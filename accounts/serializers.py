@@ -30,6 +30,8 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from accounts.models import User
 
+
+
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
     def validate(self, attrs):
@@ -39,26 +41,27 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         user = None
 
-        # login using email
-        try:
+        # Try email login
+        if User.objects.filter(email=login_id).exists():
             user = User.objects.get(email=login_id)
-        except User.DoesNotExist:
-            pass
 
-        # login using username
-        if user is None:
-            try:
-                user = User.objects.get(username=login_id)
-            except User.DoesNotExist:
-                pass
+        # Try username login
+        elif User.objects.filter(username=login_id).exists():
+            user = User.objects.get(username=login_id)
 
-        if user:
-            attrs["username"] = user.email  # Required because USERNAME_FIELD=email
+        else:
+            raise serializers.ValidationError({"detail": "Invalid username/email or password"})
 
+        # REQUIRED → because USERNAME_FIELD = "email"
+        attrs["email"] = user.email
+        attrs["username"] = user.email  # JWT uses this key, must be email value
+
+        # Now call normal JWT validation
         data = super().validate(attrs)
 
         user = self.user
 
+        # Optional: LCO profile
         lco_name = getattr(getattr(user, "lco_profile", None), "name", "")
 
         data["user"] = {
@@ -71,6 +74,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         }
 
         return data
+
 
 
 
