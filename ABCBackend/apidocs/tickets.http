@@ -32,6 +32,13 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
   "customer_id": 45
 }
 
+###############################################
+# 3. LCO – LIST ALL TICKETS
+###############################################
+
+GET {{baseUrl}}list/lco/?date=2026-01-01&status=open&priority=medium&category=connection
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY3Mjg4NzMxLCJpYXQiOjE3NjcyNjcxMzEsImp0aSI6IjNhNzlkMThlY2U5MDRlMzk5YTRiY2Q2N2EyZGI4ZjNkIiwidXNlcl9pZCI6Mn0.ljNvGdD2fOWlg-UPQ5rph8CFpvWzZCZw5fnPbywLIEE
+
 
 
 ###############################################
@@ -39,7 +46,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 ###############################################
 
 GET {{baseUrl}}
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY0ODU2NDYzLCJpYXQiOjE3NjQ4MzQ4NjMsImp0aSI6IjYyMDBmYzg2ZDM0MTQ4YTM4OGQ0NmM5MWRmOTY2Njg1IiwidXNlcl9pZCI6MX0.TJln4r0Uz6IkmmO9phfdISdsH71hFNv9ACE4uznVbKg
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY3Mjg4MTE0LCJpYXQiOjE3NjcyNjY1MTQsImp0aSI6ImQxYzA3MDBkNTkwOTRlOGM5NDhlYjc4Mjc1Nzk2YzUzIiwidXNlcl9pZCI6MX0.9Z4Fr9FOXMt1q4PMataYod15MzkGWUV_yo5Bpabe_6Y
 
 
 
@@ -80,3 +87,10 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 ###
 GET {{baseUrl}}?status=open&category=topup
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY0ODU2NDYzLCJpYXQiOjE3NjQ4MzQ4NjMsImp0aSI6IjYyMDBmYzg2ZDM0MTQ4YTM4OGQ0NmM5MWRmOTY2Njg1IiwidXNlcl9pZCI6MX0.TJln4r0Uz6IkmmO9phfdISdsH71hFNv9ACE4uznVbKg
+
+
+
+# ADMIN – TICKET DASHBOARD STATS
+###
+GET {{baseUrl}}admin/dashboard/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY3Mjg5NDM4LCJpYXQiOjE3NjcyNjc4MzgsImp0aSI6ImRkZTRkNmYxNGY4ZTRhMDJhZjE3OWJhNDNmMGM0OWY5IiwidXNlcl9pZCI6MX0.sSGPQ8C8YOVQSX5zlTbnyeolTN85oqMo9QaNspaWhxs

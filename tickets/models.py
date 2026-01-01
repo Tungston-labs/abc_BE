@@ -19,6 +19,12 @@ class Ticket(TimeStampedModel):
         ("closed", "Closed"),
     )
 
+    PRIORITY_CHOICES = (
+        ("low", "Low"),
+        ("medium", "Medium"),
+        ("high", "High"),
+    )
+
     # Who created the ticket:
     created_by = models.ForeignKey(
         User,
@@ -51,6 +57,24 @@ class Ticket(TimeStampedModel):
         blank=True, null=True,
         help_text="Admin response to the ticket"
     )
+    priority = models.CharField(
+        max_length=20,
+        choices=PRIORITY_CHOICES,
+        default="medium"
+    )
 
     def __str__(self):
         return f"{self.category} - {self.status}"
+
+
+class TicketAttachment(models.Model):
+    ticket = models.ForeignKey(
+        Ticket,
+        related_name="attachments",
+        on_delete=models.CASCADE
+    )
+    file = models.FileField(upload_to="tickets/attachments/")
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Attachment for Ticket {self.ticket.id}"
