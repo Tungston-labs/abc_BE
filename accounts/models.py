@@ -39,8 +39,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_super_admin = models.BooleanField(default=False)
     is_lco = models.BooleanField(default=False)  # Not used for now
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'phone']
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = ['phone']
 
     objects = UserManager()
 

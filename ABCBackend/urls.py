@@ -10,6 +10,8 @@ urlpatterns = [
     path('api/lcos/', include('lcos.urls')),
     path('api/client/', include('customers.urls')),
     path('api/shared/', include('shared.urls')),
+    path('api/ticket/', include('tickets.urls')),
+
 
 ]
 

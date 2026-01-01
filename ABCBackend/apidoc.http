@@ -1,16 +1,16 @@
 ### Register Super Admin
 
-@baseUrl = https://api.aluvabroadband.com/api/auth
-# @baseUrl = http://localhost:8000/api/auth
+# @baseUrl = https://api.aluvabroadband.com/api/auth
+ @baseUrl = http://localhost:8000/api/auth
 
 POST {{baseUrl}}/register-superadmin/
 Content-Type: application/json
 
 {
   "username": "ABC",
-  "email": "aluvabroadband@gmail.com",
-  "phone": "9526993744",
-  "password": "Abcpl@#2025"
+  "email": "abc@gmail.com",
+  "phone": "9526990000",
+  "password": "Password@123"
 }
 
 
@@ -19,8 +19,8 @@ POST {{baseUrl}}/login/
 Content-Type: application/json
 
 {
-  "email": "nisna@gmail.com",
-  "password": "Password@123"
+  "username": "pranav97780@gmail.com",
+  "password": "umV1xjmn"
 }
 
 ### ✅ Login (Obtain Access & Refresh Tokens)---for admin
@@ -28,7 +28,7 @@ POST {{baseUrl}}/login/
 Content-Type: application/json
 
 {
-  "email": "nisna@gmail.com",
+  "username": "abc@gmail.com",
   "password": "Password@123"
 }
 
@@ -374,3 +374,6 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 ### Get customers for logged-in LCO (search by name or phone, filtered by ISP/OLT)
 GET http://localhost:8000/api/client/my-customers/search/?search=John&isp=3&olt=2
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxNTIxOTAzLCJpYXQiOjE3NTE1MTgzMDMsImp0aSI6ImMxNTEwZjk0Yjg1NjRkODA5ODM3OGQwYWI3NTg0MDA3IiwidXNlcl9pZCI6N30.j-uTqHuCnb7vwGwHSWC1AwIvHOw9333WiUr4SqJQ7xw
+
+
+

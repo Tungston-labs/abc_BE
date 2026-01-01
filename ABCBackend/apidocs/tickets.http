@@ -1,0 +1,82 @@
+ @baseUrl = http://localhost:8000/api/ticket/
+
+
+###############################################
+# 1. PUBLIC WEBSITE – CREATE TICKET (NO AUTH)
+###############################################
+
+POST {{baseUrl}}public/
+Content-Type: application/json
+
+{
+  "category": "connection",
+  "notes": "Internet disconnecting frequently.",
+  "name": "Arun Kumar",
+  "phone": "9876543210",
+  "address": "Aluva, Kochi"
+}
+
+
+
+###############################################
+# 2. LCO APP – CREATE TICKET (AUTH REQUIRED)
+###############################################
+
+POST {{baseUrl}}lco/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY0ODU2MzM3LCJpYXQiOjE3NjQ4MzQ3MzcsImp0aSI6ImY3YjM1ZGU1YTk3MjQ1MmJiNjM2ODA4OTFlOTA4Yjk4IiwidXNlcl9pZCI6Mn0.5aF_d9Tk_RGsTVTNIPSJfTsT1ArDECGq4WluYx_qt1Y
+
+{
+  "category": "topup",
+  "notes": "Customer requires urgent top-up",
+  "customer_id": 45
+}
+
+
+
+###############################################
+# 3. ADMIN – LIST ALL TICKETS
+###############################################
+
+GET {{baseUrl}}
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY0ODU2NDYzLCJpYXQiOjE3NjQ4MzQ4NjMsImp0aSI6IjYyMDBmYzg2ZDM0MTQ4YTM4OGQ0NmM5MWRmOTY2Njg1IiwidXNlcl9pZCI6MX0.TJln4r0Uz6IkmmO9phfdISdsH71hFNv9ACE4uznVbKg
+
+
+
+###############################################
+# 4. ADMIN – RETRIEVE TICKET DETAILS
+###############################################
+
+GET {{baseUrl}}1/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY0ODU2NDYzLCJpYXQiOjE3NjQ4MzQ4NjMsImp0aSI6IjYyMDBmYzg2ZDM0MTQ4YTM4OGQ0NmM5MWRmOTY2Njg1IiwidXNlcl9pZCI6MX0.TJln4r0Uz6IkmmO9phfdISdsH71hFNv9ACE4uznVbKg
+
+
+
+###############################################
+# 5. ADMIN – UPDATE TICKET (STATUS + REPLY)
+###############################################
+
+PATCH {{baseUrl}}1/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY0ODU2NDYzLCJpYXQiOjE3NjQ4MzQ4NjMsImp0aSI6IjYyMDBmYzg2ZDM0MTQ4YTM4OGQ0NmM5MWRmOTY2Njg1IiwidXNlcl9pZCI6MX0.TJln4r0Uz6IkmmO9phfdISdsH71hFNv9ACE4uznVbKg
+
+{
+  "status": "resolved",
+  "reply": "Issue fixed. Please check now."
+}
+
+
+
+###############################################
+# 6. ADMIN – DELETE TICKET
+###############################################
+
+DELETE {{baseUrl}}1/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY0ODU2NDYzLCJpYXQiOjE3NjQ4MzQ4NjMsImp0aSI6IjYyMDBmYzg2ZDM0MTQ4YTM4OGQ0NmM5MWRmOTY2Njg1IiwidXNlcl9pZCI6MX0.TJln4r0Uz6IkmmO9phfdISdsH71hFNv9ACE4uznVbKg
+
+
+
+# filter by category,status
+###
+GET {{baseUrl}}?status=open&category=topup
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY0ODU2NDYzLCJpYXQiOjE3NjQ4MzQ4NjMsImp0aSI6IjYyMDBmYzg2ZDM0MTQ4YTM4OGQ0NmM5MWRmOTY2Njg1IiwidXNlcl9pZCI6MX0.TJln4r0Uz6IkmmO9phfdISdsH71hFNv9ACE4uznVbKg

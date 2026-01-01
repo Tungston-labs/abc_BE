@@ -20,7 +20,7 @@ class Customer(TimeStampedModel):
     v_lan = models.CharField(max_length=50,null=True, blank=True)
     isp = models.ForeignKey(ISP, on_delete=models.SET_NULL,null=True, blank=True)
     expiry_date = models.DateField(null=True, blank=True)
-    ont_number = models.CharField(max_length=100,null=True, blank=True)
+    ont_number = models.CharField(max_length=100,null=True, blank=True,unique=True)
     olt = models.ForeignKey(OLT, on_delete=models.SET_NULL, null=True, blank=True)
     signal = models.CharField(max_length=50,null=True, blank=True)
     kseb_post = models.CharField(max_length=100,null=True, blank=True)
