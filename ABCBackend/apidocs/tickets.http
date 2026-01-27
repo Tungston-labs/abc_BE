@@ -23,14 +23,18 @@ Content-Type: application/json
 ###############################################
 
 POST {{baseUrl}}lco/
-Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY0ODU2MzM3LCJpYXQiOjE3NjQ4MzQ3MzcsImp0aSI6ImY3YjM1ZGU1YTk3MjQ1MmJiNjM2ODA4OTFlOTA4Yjk4IiwidXNlcl9pZCI6Mn0.5aF_d9Tk_RGsTVTNIPSJfTsT1ArDECGq4WluYx_qt1Y
+Content-Type: multipart/form-data
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY5NTE0MTAxLCJpYXQiOjE3Njk0OTI1MDEsImp0aSI6ImE2NWQ0NzIwNTIxMDQwZTlhZmI0NTY3NDU5NjYwODAwIiwidXNlcl9pZCI6Mn0.A_m4O9u_XvEXP4EnDERv2ofSQOihLF3VHpSCP-Wu89s
 
 {
   "category": "topup",
   "notes": "Customer requires urgent top-up",
-  "customer_id": 45
+  "priority": "high",
+  "name": "Rahul Kumar",
+  "phone": "9876543210",
+  "address": "Kakkanad, Kochi"
 }
+
 
 
 
@@ -39,7 +43,10 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 ###############################################
 
 GET {{baseUrl}}
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY0ODU2NDYzLCJpYXQiOjE3NjQ4MzQ4NjMsImp0aSI6IjYyMDBmYzg2ZDM0MTQ4YTM4OGQ0NmM5MWRmOTY2Njg1IiwidXNlcl9pZCI6MX0.TJln4r0Uz6IkmmO9phfdISdsH71hFNv9ACE4uznVbKg
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY5NTE5MzI0LCJpYXQiOjE3Njk0OTc3MjQsImp0aSI6IjkwMDBhYmM1ZTU2OTQ3NDg4MjYxODM4ODFkNzdiMzM5IiwidXNlcl9pZCI6MX0.kywKestPYmVpKC6AVUMHNW5olt5tBswfRMsWDZIIqVU
+###dasboard count for ticket
+GET {{baseUrl}}admin/dashboard/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY5NTE5MzI0LCJpYXQiOjE3Njk0OTc3MjQsImp0aSI6IjkwMDBhYmM1ZTU2OTQ3NDg4MjYxODM4ODFkNzdiMzM5IiwidXNlcl9pZCI6MX0.kywKestPYmVpKC6AVUMHNW5olt5tBswfRMsWDZIIqVU
 
 
 
@@ -80,3 +87,12 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 ###
 GET {{baseUrl}}?status=open&category=topup
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY0ODU2NDYzLCJpYXQiOjE3NjQ4MzQ4NjMsImp0aSI6IjYyMDBmYzg2ZDM0MTQ4YTM4OGQ0NmM5MWRmOTY2Njg1IiwidXNlcl9pZCI6MX0.TJln4r0Uz6IkmmO9phfdISdsH71hFNv9ACE4uznVbKg
+
+
+###############################################
+# 8 .Lco – LIST TICKETS CREATED BY LCO
+###############################################
+
+GET  {{baseUrl}}list/lco/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY5NTE0MTAxLCJpYXQiOjE3Njk0OTI1MDEsImp0aSI6ImE2NWQ0NzIwNTIxMDQwZTlhZmI0NTY3NDU5NjYwODAwIiwidXNlcl9pZCI6Mn0.A_m4O9u_XvEXP4EnDERv2ofSQOihLF3VHpSCP-Wu89s
+
