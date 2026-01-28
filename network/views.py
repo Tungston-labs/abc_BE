@@ -272,13 +272,16 @@ class BulkOLTUpload(TrackCreatedUpdatedUserMixin, APIView):
 
 
 
+from rest_framework.parsers import MultiPartParser, FormParser
+
 class ISPCreateListView(generics.ListCreateAPIView):
     queryset = ISP.objects.all()
     serializer_class = ISPSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = StandardResultsSetPagination
     filter_backends = [filters.SearchFilter]
-    search_fields = ['name']   
+    search_fields = ['name']
+    parser_classes = (MultiPartParser, FormParser)
 
 
 
@@ -286,6 +289,8 @@ class ISPRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = ISP.objects.all()
     serializer_class = ISPSerializer
     permission_classes = [IsAuthenticated, IsSuperAdmin]
+    parser_classes = (MultiPartParser, FormParser)
+
 
 
 from rest_framework.views import APIView
@@ -363,3 +368,13 @@ class BulkISPUpload(TrackCreatedUpdatedUserMixin, APIView):
 
         except Exception as e:
             return Response({'error': str(e)}, status=500)
+
+
+
+from rest_framework.permissions import AllowAny
+from .serializers import ISPPublicSerializer
+
+class ISPPublicListView(generics.ListAPIView):
+    queryset = ISP.objects.all()
+    serializer_class = ISPPublicSerializer
+    permission_classes = [AllowAny]

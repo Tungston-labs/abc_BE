@@ -13,6 +13,9 @@ class LCO(TimeStampedModel):
     unique_id = models.CharField(max_length=50,unique=True,null=True,blank=True)
     networking_name = models.CharField(max_length=50,null=True, blank=True)
     lco_code = models.CharField(max_length=50,null=True, blank=True,unique=True)
+    pincode = models.CharField(max_length=10,null=True, blank=True)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
 
     class Meta:
         ordering = ['id']

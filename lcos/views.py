@@ -1,7 +1,7 @@
 from rest_framework import generics,filters
 from rest_framework.permissions import IsAuthenticated
 from .models import LCO
-from .serializers import LCOSerializer
+from .serializers import LCOSerializer,PublicLCOSerializer
 from shared.permissions import IsSuperAdmin
 from shared.paginations import StandardResultsSetPagination
 from shared.mixins import TrackCreatedUpdatedUserMixin
@@ -459,3 +459,53 @@ class BulkLCOUpload(APIView):
 
 #         except Exception as e:
 #             return Response({'error': str(e)}, status=500)
+
+
+
+from rest_framework.generics import ListAPIView
+from rest_framework.permissions import AllowAny
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter
+
+class PublicLCOSearchView(ListAPIView):
+    serializer_class = PublicLCOSerializer
+    permission_classes = [AllowAny]
+    queryset = LCO.objects.all()
+    filter_backends = [SearchFilter]
+    search_fields = ['pincode', 'address', 'name']
+from math import radians, cos, sin, asin, sqrt
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
+
+def haversine(lat1, lon1, lat2, lon2):
+    R = 6371  # Earth radius in KM
+    dlat = radians(lat2 - lat1)
+    dlon = radians(lon2 - lon1)
+    a = sin(dlat/2)**2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon/2)**2
+    c = 2 * asin(sqrt(a))
+    return R * c
+
+
+class NearbyLCOView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        lat = request.GET.get('lat')
+        lon = request.GET.get('lon')
+        radius = float(request.GET.get('radius', 10))  # km
+
+        if not lat or not lon:
+            return Response({"error": "lat and lon required"}, status=400)
+
+        lat = float(lat)
+        lon = float(lon)
+
+        results = []
+        for lco in LCO.objects.exclude(latitude=None, longitude=None):
+            distance = haversine(lat, lon, float(lco.latitude), float(lco.longitude))
+            if distance <= radius:
+                results.append(lco)
+
+        serializer = PublicLCOSerializer(results, many=True)
+        return Response(serializer.data)

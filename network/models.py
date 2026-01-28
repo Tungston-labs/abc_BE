@@ -58,15 +58,24 @@ class OLT(TimeStampedModel):
 
 
 
+from django.db import models, transaction
+from django.core.validators import FileExtensionValidator
+
 class ISP(TimeStampedModel):
     name = models.CharField(max_length=255)
     address = models.TextField()
-    unique_id = models.CharField(max_length=50,unique=True,null=True,blank=True)
+    unique_id = models.CharField(max_length=50, unique=True, null=True, blank=True)
+
+    logo = models.FileField(
+        upload_to="isp_logos/",
+        null=True,
+        blank=True,
+        validators=[FileExtensionValidator(['png', 'jpg', 'jpeg', 'svg'])]
+    )
 
     def save(self, *args, **kwargs):
-        if self.pk is None and not self.unique_id:  # only when creating
+        if self.pk is None and not self.unique_id:
             with transaction.atomic():
-                # Lock the table to prevent race condition
                 last_obj = ISP.objects.select_for_update().order_by('-id').first()
                 if last_obj and last_obj.unique_id:
                     try:
