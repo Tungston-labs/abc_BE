@@ -110,7 +110,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 
 ### List Switches
 GET http://localhost:8000/api/network/switches/?page=1&page_size=2
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMDM2MjM2LCJpYXQiOjE3NTMwMzI2MzYsImp0aSI6IjVlNDlkNzFjOTNjZDRlYTViMzBkOTUwZGZiMGNiZTQ1IiwidXNlcl9pZCI6Mn0.QSNlS_vB6_83EPK1GkFgjPdHRcHHvCB0uBP0x1hfsF4
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY5NTkzMTU2LCJpYXQiOjE3Njk1NzE1NTYsImp0aSI6IjgwZTgyYzdlY2ZkNDRhMjI4ZTA1ZWRhOTE1ZDFjNmUwIiwidXNlcl9pZCI6MX0.oL2CpySHRezTXyJ-qCwzaqBHuiTYCZUitWndESvGjCQ
 ### Retrieve Switch
 GET http://localhost:8000/api/network/switches/1/
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxMzU5MzIyLCJpYXQiOjE3NTEzNTU3MjIsImp0aSI6Ijg3NmRlMDhjZTg4ZDQ0MGQ5MzExZmVhZjc4MTlkMzhlIiwidXNlcl9pZCI6Mn0.5d95FKrV8IJWbrPspYTOFSYvhf5d1ZJGCm7z2649ZPA
@@ -152,8 +152,8 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 }
 
 ### List OLTs
-GET https://api.aluvabroadband.com/api/network/olts/
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzYyNzUwMzc1LCJpYXQiOjE3NjI3NDY3NzUsImp0aSI6ImYyMmZjMWIxZGY3MDQwMmVhMzc5MjhkMjViZTNlOWVjIiwidXNlcl9pZCI6IjEifQ._2iesMlLWgJl_neHvnFKDHc8ADXTGQOoIxo_j85NtrQ
+GET http://localhost:8000/api/network/olts/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY5NTkzMTU2LCJpYXQiOjE3Njk1NzE1NTYsImp0aSI6IjgwZTgyYzdlY2ZkNDRhMjI4ZTA1ZWRhOTE1ZDFjNmUwIiwidXNlcl9pZCI6MX0.oL2CpySHRezTXyJ-qCwzaqBHuiTYCZUitWndESvGjCQ
 
 ### Retrieve OLT
 GET http://localhost:8000/api/network/olts/1/
@@ -197,7 +197,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 
 ### List All ISPs
 GET http://localhost:8000/api/network/isp/
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxMzcyODM3LCJpYXQiOjE3NTEzNjkyMzcsImp0aSI6ImE2MjYzNDBlMjI4YzQzZTQ4M2QxM2Q1ODZmYzM4ZGNkIiwidXNlcl9pZCI6Mn0.Aml5ofyH_RScsBKkul4HaVbgA5Dz2a6Mcqf0R3mHuos
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY5NTkzMTU2LCJpYXQiOjE3Njk1NzE1NTYsImp0aSI6IjgwZTgyYzdlY2ZkNDRhMjI4ZTA1ZWRhOTE1ZDFjNmUwIiwidXNlcl9pZCI6MX0.oL2CpySHRezTXyJ-qCwzaqBHuiTYCZUitWndESvGjCQ
 
 ### Retrieve ISP
 GET http://localhost:8000/api/network/isp/1/
@@ -236,7 +236,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 
 ### List LCOs (GET)
 GET http://localhost:8000/api/lcos/lco/
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMDMyNTY2LCJpYXQiOjE3NTMwMjg5NjYsImp0aSI6IjZkZGMzMThiZWU4MDQ2YzJhY2ZjNDQ4MjdlZjY0ZmJiIiwidXNlcl9pZCI6Mn0.DAxnKN1zQX5wJt-Goi5a3SCxxKZmxc8wTnXU3TiWOu8
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY5NTM1MjkzLCJpYXQiOjE3Njk1MTM2OTMsImp0aSI6ImEyY2QxNTY5MTcwMTRkZTQ4OTc3NDhjYjE5N2E5MmFjIiwidXNlcl9pZCI6MX0.9v2yBHiFnu3-DtJqDCtJVFTCdz1T50I0Xdxhllqlldo
 
 ### Retrieve LCO (GET, PUT, DELETE)
 GET http://localhost:8000/api/lcos/lco/1/
@@ -254,8 +254,8 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 # ---------CUSTOMER----------
 
 ### List all customers (with search and pagination)
-GET https://api.aluvabroadband.com/api/client/customer/?search=&page=1
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzYxNTU3Mjk5LCJpYXQiOjE3NjE1NTM2OTksImp0aSI6IjlhZDMzMDQxZjg2ZTQ4NDM4MzMwMmIxYzIxYjcyYzliIiwidXNlcl9pZCI6MX0.8RyBlIP78s3oypDKEAFJwIMSOYCcAgVOaTaZc_D0DsU
+GET http://localhost:8000/api/client/customer/?search=&page=1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY5NTkzMTU2LCJpYXQiOjE3Njk1NzE1NTYsImp0aSI6IjgwZTgyYzdlY2ZkNDRhMjI4ZTA1ZWRhOTE1ZDFjNmUwIiwidXNlcl9pZCI6MX0.oL2CpySHRezTXyJ-qCwzaqBHuiTYCZUitWndESvGjCQ
 
 
 ### Create customer
@@ -303,7 +303,7 @@ DELETE http://localhost:8000/api/client/customer/1/
 
 ### plan expiring soon customer 
 GET http://localhost:8000/api/client/expiring-soon/
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0NDgwNjkwLCJpYXQiOjE3NTQ0NzcwOTAsImp0aSI6Ijg2NjJlZWMwNWJlZjQ1MWRiZWY1MTE0ZjdiOWJiM2RhIiwidXNlcl9pZCI6MX0.PKqt4Orn1t1HKPzsBIVuM0CEV8qiW_I-nywB3VpU1H0
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY5NTk2OTAyLCJpYXQiOjE3Njk1NzUzMDIsImp0aSI6IjdhNjQ1Yzk3MTVlYTQ1MGVhZWQ1OTg5NzZkZjQxZDdmIiwidXNlcl9pZCI6MX0.cLTMf79dWozbjOsfTkmznsFPXku7-EhFODuuxh6ln5c
 
 
 
@@ -338,7 +338,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 ###dashboard
 GET http://localhost:8000/api/client/counts/
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMjQ1NTY4LCJpYXQiOjE3NTMyNDE5NjgsImp0aSI6IjJkODQwMGFkYTAxZTQ2ZjE4MzQ4YTc5YWYzZTJmMzRkIiwidXNlcl9pZCI6Mn0.RH87zzyeI72PXi135gdRQGdIA9cMZwCKp6659uk_o_4
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY5NTMxNDI1LCJpYXQiOjE3Njk1MDk4MjUsImp0aSI6Ijk0ZDE0MzQwYzJjMTQzY2M5NjIxYWQ4ZmZjMGMxM2MwIiwidXNlcl9pZCI6MX0.l1NZCOjZkzJQmE122PPTMojK2h413cmM1JtU-ig9huc
 
 
 

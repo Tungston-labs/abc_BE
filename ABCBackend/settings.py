@@ -84,6 +84,8 @@ CORS_ALLOWED_ORIGINS = [
     "https://aluvabroadband.com",
     "http://localhost:5173",
     "http://localhost:5174",
+    "http://192.168.0.241:8000",
+
 
 ]
 CORS_ALLOW_HEADERS = [
@@ -131,23 +133,23 @@ WSGI_APPLICATION = 'ABCBackend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'abcde_db_new',
-#         'USER': 'postgres',
-#         'PASSWORD': 'password@123',
-#         'HOST': '178.248.112.16',
-#         'PORT': '5432',
-#     }
-# }
-
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",   # database file path
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'abcde_db_new',
+        'USER': 'postgres',
+        'PASSWORD': 'password@123',
+        'HOST': '178.248.112.16',
+        'PORT': '5432',
     }
 }
+
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": BASE_DIR / "db.sqlite3",   # database file path
+#     }
+# }
 
 
 

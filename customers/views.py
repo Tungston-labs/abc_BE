@@ -482,7 +482,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
 from customers.models import Customer
 from lcos.models import LCO
-from network.models import OLT, ISP
+from network.models import OLT, ISP,Switch
 
 
 class DashboardCountsView(APIView):
@@ -490,13 +490,17 @@ class DashboardCountsView(APIView):
 
     def get(self, request):
         today = timezone.now().date()
+        five_days_from_now = today + timedelta(days=5)
 
         data = {
             "total_customers": Customer.objects.count(),
-            "expired_plan_customers": Customer.objects.filter(expiry_date__lt=today).count(),
+            "expired_plan_customers": Customer.objects.filter(
+            expiry_date__range=(today, five_days_from_now)
+        ).order_by('expiry_date').count(),
             "total_lcos": LCO.objects.count(),
             "total_olts": OLT.objects.count(),
             "total_isps": ISP.objects.count(),
+            "total_switches":Switch.objects.count(),  # Placeholder, update if Switch model exists
         }
 
         return Response(data)

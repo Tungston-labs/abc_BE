@@ -1,4 +1,4 @@
-from rest_framework import generics
+from rest_framework import generics,filters
 from rest_framework.permissions import IsAuthenticated
 from .models import Switch,ISP
 from .serializers import SwitchSerializer,ISPSerializer
@@ -14,6 +14,9 @@ class SwitchListCreateView(TrackCreatedUpdatedUserMixin,generics.ListCreateAPIVi
     serializer_class = SwitchSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = StandardResultsSetPagination
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['name']   
+
 
 class SwitchRetrieveUpdateDestroyView(TrackCreatedUpdatedUserMixin,generics.RetrieveUpdateDestroyAPIView):
     queryset = Switch.objects.all()
@@ -133,6 +136,8 @@ class OLTListCreateView(TrackCreatedUpdatedUserMixin,generics.ListCreateAPIView)
     serializer_class = OLTSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = StandardResultsSetPagination
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['name', 'uid']
 
 
 class OLTRetrieveUpdateDestroyView(TrackCreatedUpdatedUserMixin,generics.RetrieveUpdateDestroyAPIView):
@@ -272,6 +277,9 @@ class ISPCreateListView(generics.ListCreateAPIView):
     serializer_class = ISPSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = StandardResultsSetPagination
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['name']   
+
 
 
 class ISPRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):

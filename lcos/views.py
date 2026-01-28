@@ -1,4 +1,4 @@
-from rest_framework import generics
+from rest_framework import generics,filters
 from rest_framework.permissions import IsAuthenticated
 from .models import LCO
 from .serializers import LCOSerializer
@@ -7,12 +7,17 @@ from shared.paginations import StandardResultsSetPagination
 from shared.mixins import TrackCreatedUpdatedUserMixin
 
 
-
-class LCOCreateListView(TrackCreatedUpdatedUserMixin,generics.ListCreateAPIView):
+class LCOCreateListView(
+    TrackCreatedUpdatedUserMixin,
+    generics.ListCreateAPIView
+):
     queryset = LCO.objects.all().order_by('id')
     serializer_class = LCOSerializer
     permission_classes = [IsAuthenticated, IsSuperAdmin]
     pagination_class = StandardResultsSetPagination
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['name']   
+
 
 from rest_framework.response import Response
 from rest_framework import status
