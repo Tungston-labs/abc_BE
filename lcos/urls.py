@@ -8,8 +8,8 @@ urlpatterns = [
     path('lco/<int:pk>/', LCORetrieveUpdateDeleteView.as_view(), name='lco-detail'),
     path("scroll/", LCOScrollListView.as_view(), name="lco-scroll-list"),
     path('bulk-upload/lco/', BulkLCOUpload.as_view(), name='bulk-upload-lco'),
-    path('public/lcos/', PublicLCOSearchView.as_view()),
-    path('public/lcos/nearby/', NearbyLCOView.as_view())
+    path('public/', PublicLCOSearchView.as_view()),
+    path('public/nearby/', NearbyLCOView.as_view())
 
 
 ]

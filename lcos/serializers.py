@@ -27,6 +27,11 @@ class LCOSerializer(serializers.ModelSerializer):
     phone = serializers.CharField()
     address = serializers.CharField()
 
+    # ✅ NEW FIELDS
+    pincode = serializers.CharField()
+    latitude = serializers.DecimalField(max_digits=9, decimal_places=6)
+    longitude = serializers.DecimalField(max_digits=9, decimal_places=6)
+
     olt_details = OLTSerializer(source='assigned_olts', many=True, read_only=True)
     username = serializers.CharField(source='user.username', read_only=True)
     user_email = serializers.EmailField(source='user.email', read_only=True)
@@ -35,9 +40,22 @@ class LCOSerializer(serializers.ModelSerializer):
     class Meta:
         model = LCO
         fields = [
-            'id', 'name', 'address', 'aadhaar_number', 'phone',
-            'email', 'olts', 'olt_details', 'username', 'user_email',
-            'unique_id', 'networking_name', 'lco_code'
+            'id',
+            'name',
+            'address',
+            'pincode',          # ✅
+            'latitude',         # ✅
+            'longitude',        # ✅
+            'aadhaar_number',
+            'phone',
+            'email',
+            'olts',
+            'olt_details',
+            'username',
+            'user_email',
+            'unique_id',
+            'networking_name',
+            'lco_code',
         ]
 
     def __init__(self, *args, **kwargs):
@@ -52,9 +70,7 @@ class LCOSerializer(serializers.ModelSerializer):
 
     # ----------------------- CUSTOM USERNAME GENERATOR ------------------------
     def generate_username(self, name):
-        """Generate username in the format ABC-name, ensuring uniqueness."""
-
-        base = f"ABC-{slugify(name)}"   # ABC-santhosh-kv
+        base = f"ABC-{slugify(name)}"
         username = base
         counter = 1
 
@@ -71,14 +87,17 @@ class LCOSerializer(serializers.ModelSerializer):
         aadhaar_number = validated_data.pop('aadhaar_number')
         phone = validated_data.pop('phone')
         address = validated_data.pop('address')
+
+        # ✅ NEW
+        pincode = validated_data.pop('pincode')
+        latitude = validated_data.pop('latitude')
+        longitude = validated_data.pop('longitude')
+
         olts = validated_data.pop('olts', [])
         networking_name = validated_data.pop('networking_name', None)
         lco_code = validated_data.pop('lco_code', None)
 
-        # Generate password
         password = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
-
-        # Generate custom username
         username = self.generate_username(name)
 
         try:
@@ -96,18 +115,19 @@ class LCOSerializer(serializers.ModelSerializer):
             user=user,
             name=name,
             address=address,
+            pincode=pincode,        # ✅
+            latitude=latitude,      # ✅
+            longitude=longitude,    # ✅
             aadhaar_number=aadhaar_number,
             phone=phone,
             networking_name=networking_name,
             lco_code=lco_code
         )
 
-        # Assign OLTs
         for olt in olts:
             olt.lco = lco
             olt.save()
 
-        # Send credentials
         send_mail(
             subject="LCO Account Created",
             message=(
@@ -128,6 +148,9 @@ class LCOSerializer(serializers.ModelSerializer):
 
         instance.name = validated_data.get('name', instance.name)
         instance.address = validated_data.get('address', instance.address)
+        instance.pincode = validated_data.get('pincode', instance.pincode)      # ✅
+        instance.latitude = validated_data.get('latitude', instance.latitude)  # ✅
+        instance.longitude = validated_data.get('longitude', instance.longitude)# ✅
         instance.aadhaar_number = validated_data.get('aadhaar_number', instance.aadhaar_number)
         instance.phone = validated_data.get('phone', instance.phone)
         instance.networking_name = validated_data.get('networking_name', instance.networking_name)
@@ -152,6 +175,7 @@ from rest_framework import serializers
 from .models import LCO
 
 class PublicLCOSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(source='user.email', read_only=True)
     class Meta:
         model = LCO
         fields = [
@@ -162,4 +186,6 @@ class PublicLCOSerializer(serializers.ModelSerializer):
             'pincode',
             'latitude',
             'longitude',
+            'email',
+            
         ]

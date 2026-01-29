@@ -378,5 +378,15 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 
 
 # website
-###
+###grtting public isps
 GET http://localhost:8000/api/network/public/isps
+
+
+### Search LCO by address
+GET http://127.0.0.1:8000/api/lcos/public/?search=682030
+Accept: application/json
+
+###nearby lcos
+### Nearby LCOs within 5 KM
+GET http://127.0.0.1:8000/api/lcos/public/nearby/?lat=10.0159&lon=76.3419&radius=5
+Accept: application/json

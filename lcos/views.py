@@ -487,6 +487,12 @@ def haversine(lat1, lon1, lat2, lon2):
     return R * c
 
 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
+from django.core.paginator import Paginator
+from math import radians, cos, sin, asin, sqrt
+
 class NearbyLCOView(APIView):
     permission_classes = [AllowAny]
 
@@ -494,6 +500,8 @@ class NearbyLCOView(APIView):
         lat = request.GET.get('lat')
         lon = request.GET.get('lon')
         radius = float(request.GET.get('radius', 10))  # km
+        page_number = int(request.GET.get('page', 1))
+        page_size = int(request.GET.get('page_size', 10))
 
         if not lat or not lon:
             return Response({"error": "lat and lon required"}, status=400)
@@ -501,11 +509,26 @@ class NearbyLCOView(APIView):
         lat = float(lat)
         lon = float(lon)
 
-        results = []
+        nearby_lcos = []
         for lco in LCO.objects.exclude(latitude=None, longitude=None):
-            distance = haversine(lat, lon, float(lco.latitude), float(lco.longitude))
+            distance = haversine(
+                lat, lon,
+                float(lco.latitude),
+                float(lco.longitude)
+            )
             if distance <= radius:
-                results.append(lco)
+                nearby_lcos.append(lco)
 
-        serializer = PublicLCOSerializer(results, many=True)
-        return Response(serializer.data)
+        paginator = Paginator(nearby_lcos, page_size)
+        page = paginator.get_page(page_number)
+
+        serializer = PublicLCOSerializer(page.object_list, many=True)
+
+        return Response({
+            "count": paginator.count,
+            "total_pages": paginator.num_pages,
+            "current_page": page.number,
+            "next": page.next_page_number() if page.has_next() else None,
+            "previous": page.previous_page_number() if page.has_previous() else None,
+            "results": serializer.data
+        })
