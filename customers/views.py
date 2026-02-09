@@ -483,6 +483,7 @@ from django.utils import timezone
 from customers.models import Customer
 from lcos.models import LCO
 from network.models import OLT, ISP,Switch
+from tickets.models import Ticket
 
 
 class DashboardCountsView(APIView):
@@ -500,7 +501,9 @@ class DashboardCountsView(APIView):
             "total_lcos": LCO.objects.count(),
             "total_olts": OLT.objects.count(),
             "total_isps": ISP.objects.count(),
-            "total_switches":Switch.objects.count(),  # Placeholder, update if Switch model exists
+            "total_switches":Switch.objects.count(), 
+            "total_tickets": Ticket.objects.filter(status="open").count(),
+
         }
 
         return Response(data)
