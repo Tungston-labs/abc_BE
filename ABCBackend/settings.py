@@ -80,12 +80,13 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
 CORS_ALLOWED_ORIGINS = [
     "https://aluvabroadband.com",
+    "https://api.aluvabroadband.com",
     "http://localhost:5173",
     "http://localhost:5174",
     "http://192.168.0.241:8000",
-
 
 ]
 CORS_ALLOW_HEADERS = [
