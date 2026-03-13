@@ -238,9 +238,3 @@ TWILIO_WHATSAPP_NUMBER = config("TWILIO_WHATSAPP_NUMBER")
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-CORS_ALLOWED_ORIGINS = [
-    "https://aluvabroadband.com",
-    "https://api.aluvabroadband.com",
-    "http://localhost:5173",
-    "http://localhost:5174",
-]
