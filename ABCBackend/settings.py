@@ -89,11 +89,10 @@ CORS_ALLOWED_ORIGINS = [
     "http://192.168.0.241:8000",
 
 ]
-CORS_ALLOW_HEADERS = [
-    "content-type",
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
     "authorization",
 ]
-
 CORS_ALLOW_CREDENTIALS = True
 
 
