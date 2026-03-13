@@ -71,7 +71,6 @@ class LCOTicketListAPIView(generics.ListAPIView):
                 Q(name__icontains=search)
             )
 
-        # 📅 Date filter
         date = self.request.query_params.get("date")
         if date:
             parsed_date = parse_date(date)
