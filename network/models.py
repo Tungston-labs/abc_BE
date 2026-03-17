@@ -32,6 +32,7 @@ class OLT(TimeStampedModel):
     uid = models.CharField(max_length=100, unique=True)
     make = models.CharField(max_length=100)
     model_number = models.CharField(max_length=100)
+    config_name = models.CharField(max_length=200,null=True,blank=True)
     serial_number = models.CharField(max_length=100)
     package_date = models.DateField()
     switch = models.ForeignKey('network.Switch', on_delete=models.CASCADE, related_name='olts')
