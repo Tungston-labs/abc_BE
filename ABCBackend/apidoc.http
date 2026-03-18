@@ -394,7 +394,7 @@ Accept: application/json
 
 
 ### get onu,customer details for a given olt  
-GET https://api.aluvabroadband.com/api//network/olt/1/customers/
+GET https://api.aluvabroadband.com/api/network/olt/2/customers/
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzczODMxOTYxLCJpYXQiOjE3NzM4MTAzNjIsImp0aSI6Ijk1MzIwMjM1MTFjNTRhYzE5NjQ0ZGUwMjRkODZlNzEyIiwidXNlcl9pZCI6IjMwIn0.cnqEyrnMlxXK94ZS7lnlWvN3SYzt_IQ0qu3Fphzypus
 
 

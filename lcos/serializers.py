@@ -25,10 +25,11 @@ class LCOSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
     aadhaar_number = serializers.CharField()
     phone = serializers.CharField()
+    phone2 = serializers.CharField(required=False, allow_blank=True)
     address = serializers.CharField()
-
-    # ✅ NEW FIELDS
     pincode = serializers.CharField()
+    pincode2 = serializers.CharField(required=False, allow_blank=True)
+
     latitude = serializers.DecimalField(max_digits=9, decimal_places=6)
     longitude = serializers.DecimalField(max_digits=9, decimal_places=6)
 
@@ -56,6 +57,8 @@ class LCOSerializer(serializers.ModelSerializer):
             'unique_id',
             'networking_name',
             'lco_code',
+            'phone2',
+            'pincode2', 
         ]
 
     def __init__(self, *args, **kwargs):
@@ -87,6 +90,8 @@ class LCOSerializer(serializers.ModelSerializer):
         aadhaar_number = validated_data.pop('aadhaar_number')
         phone = validated_data.pop('phone')
         address = validated_data.pop('address')
+        phone2 = validated_data.pop('phone2', None)
+        pincode2 = validated_data.pop('pincode2', None) 
 
         # ✅ NEW
         pincode = validated_data.pop('pincode')
@@ -115,9 +120,11 @@ class LCOSerializer(serializers.ModelSerializer):
             user=user,
             name=name,
             address=address,
-            pincode=pincode,        # ✅
-            latitude=latitude,      # ✅
-            longitude=longitude,    # ✅
+            pincode=pincode,        
+            latitude=latitude,      
+            longitude=longitude,    
+            pincode2=pincode2,     
+            phone2=phone2,         
             aadhaar_number=aadhaar_number,
             phone=phone,
             networking_name=networking_name,
@@ -155,6 +162,8 @@ class LCOSerializer(serializers.ModelSerializer):
         instance.phone = validated_data.get('phone', instance.phone)
         instance.networking_name = validated_data.get('networking_name', instance.networking_name)
         instance.lco_code = validated_data.get('lco_code', instance.lco_code)
+        instance.phone2 = validated_data.get('phone2', instance.phone2)
+        instance.pincode2 = validated_data.get('pincode2', instance.pincode2)   
         instance.save()
 
         if email:
@@ -187,5 +196,7 @@ class PublicLCOSerializer(serializers.ModelSerializer):
             'latitude',
             'longitude',
             'email',
+            'networking_name',
+            'phone2',
             
         ]

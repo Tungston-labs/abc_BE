@@ -10,10 +10,12 @@ class LCO(TimeStampedModel):
     address = models.TextField()
     aadhaar_number = models.CharField(max_length=12, unique=True)
     phone = models.CharField(max_length=15)
+    phone2 = models.CharField(max_length=15,null=True, blank=True)
     unique_id = models.CharField(max_length=50,unique=True,null=True,blank=True)
     networking_name = models.CharField(max_length=50,null=True, blank=True)
     lco_code = models.CharField(max_length=50,null=True, blank=True,unique=True)
     pincode = models.CharField(max_length=10,null=True, blank=True)
+    pincode2 = models.CharField(max_length=10,null=True, blank=True)
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
 
