@@ -380,10 +380,8 @@ class ISPPublicListView(generics.ListAPIView):
     permission_classes = [AllowAny]
 
 
-
-from django.db.models import IntegerField
+from django.db.models import IntegerField, FloatField, Q
 from django.db.models.functions import Cast
-from django.db.models import Q
 from customers.models import Customer
 from customers.serializers import CustomerSerializer
 
@@ -395,23 +393,31 @@ class OltCustomerListView(APIView):
 
         port = request.query_params.get("port")
 
+        # ✅ Base queryset
         customers = Customer.objects.filter(
             olt_id=olt_id
         ).select_related('lco', 'isp', 'olt')
 
-        # ✅ Filter by port (handle 1 and 1.0 same)
+        # ✅ Filter valid numeric ports only (avoid crash)
+        customers = customers.filter(
+            Q(port__regex=r'^\d+(\.\d+)?$') | Q(port__isnull=True) | Q(port="")
+        )
+
+        # ✅ Filter by port (1 == 1.0)
         if port:
             customers = customers.annotate(
-                port_int=Cast('port', IntegerField())
+                port_float=Cast('port', FloatField()),
+                port_int=Cast('port_float', IntegerField())
             ).filter(port_int=int(float(port)))
 
-        # ✅ Unique ports used (ignore duplicates, 1 = 1.0)
+        # ✅ Unique ports used (ignore duplicates, 1 == 1.0)
         unique_ports = Customer.objects.filter(
             olt_id=olt_id
         ).filter(
-            Q(port__isnull=False) & ~Q(port="")
+            Q(port__regex=r'^\d+(\.\d+)?$')  # only numeric
         ).annotate(
-            port_int=Cast('port', IntegerField())
+            port_float=Cast('port', FloatField()),
+            port_int=Cast('port_float', IntegerField())
         ).values('port_int').distinct()
 
         total_ports_used = unique_ports.count()
