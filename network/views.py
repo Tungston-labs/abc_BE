@@ -383,26 +383,42 @@ class ISPPublicListView(generics.ListAPIView):
 
 # olt detail view with port and onu details
 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.db.models import Q
 from customers.models import Customer
 from customers.serializers import CustomerSerializer
 
 class OltCustomerListView(APIView):
     def get(self, request, olt_id):
 
+        port = request.query_params.get("port")  
+
         customers = Customer.objects.filter(
             olt_id=olt_id
         ).select_related('lco', 'isp', 'olt')
 
-        # ✅ Total ports used
+        # ✅ Apply port filter (if provided)
+        if port:
+            customers = customers.filter(port=port)
+
+        # ✅ Total ports used (based on filtered or full set? choose below 👇)
+
+        # 👉 Option 1: based on filtered result
         total_ports_used = customers.filter(
             port__isnull=False
         ).exclude(port="").count()
 
-        # ✅ Serialize full data
+        # 👉 Option 2 (recommended): based on full OLT (ignore filter)
+        total_ports_used_all = Customer.objects.filter(
+            olt_id=olt_id,
+            port__isnull=False
+        ).exclude(port="").count()
+
         serializer = CustomerSerializer(customers, many=True)
 
         return Response({
             "total_customers": customers.count(),
-            "total_ports_used": total_ports_used,
+            "total_ports_used": total_ports_used_all,  # 👈 use this
             "customers": serializer.data
         })
