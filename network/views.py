@@ -380,6 +380,7 @@ class ISPPublicListView(generics.ListAPIView):
     permission_classes = [AllowAny]
 
 
+from rest_framework.views import APIView
 from django.db.models import IntegerField, FloatField, Q
 from django.db.models.functions import Cast
 from customers.models import Customer
@@ -410,17 +411,20 @@ class OltCustomerListView(APIView):
                 port_int=Cast('port_float', IntegerField())
             ).filter(port_int=int(float(port)))
 
-        # ✅ Unique ports used (ignore duplicates, 1 == 1.0)
-        unique_ports = Customer.objects.filter(
+        # ✅ Unique ports used (ignore duplicates like 1 & 1.0)
+        unique_ports_qs = Customer.objects.filter(
             olt_id=olt_id
         ).filter(
-            Q(port__regex=r'^\d+(\.\d+)?$')  # only numeric
+            Q(port__regex=r'^\d+(\.\d+)?$')
         ).annotate(
             port_float=Cast('port', FloatField()),
             port_int=Cast('port_float', IntegerField())
-        ).values('port_int').distinct()
+        ).values_list('port_int', flat=True).distinct()
 
-        total_ports_used = unique_ports.count()
+        # ✅ Convert queryset to sorted list
+        used_ports = sorted(list(unique_ports_qs))
+
+        total_ports_used = len(used_ports)
 
         # ✅ Pagination
         paginator = self.pagination_class()
@@ -431,5 +435,6 @@ class OltCustomerListView(APIView):
         return paginator.get_paginated_response({
             "total_customers": customers.count(),
             "total_ports_used": total_ports_used,
+            "used_ports": used_ports,   
             "customers": serializer.data
         })
