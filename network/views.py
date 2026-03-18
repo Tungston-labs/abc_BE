@@ -381,44 +381,49 @@ class ISPPublicListView(generics.ListAPIView):
 
 
 
-# olt detail view with port and onu details
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
+from django.db.models import IntegerField
+from django.db.models.functions import Cast
 from django.db.models import Q
 from customers.models import Customer
 from customers.serializers import CustomerSerializer
 
+
 class OltCustomerListView(APIView):
+    pagination_class = StandardResultsSetPagination
+
     def get(self, request, olt_id):
 
-        port = request.query_params.get("port")  
+        port = request.query_params.get("port")
 
         customers = Customer.objects.filter(
             olt_id=olt_id
         ).select_related('lco', 'isp', 'olt')
 
-        # ✅ Apply port filter (if provided)
+        # ✅ Filter by port (handle 1 and 1.0 same)
         if port:
-            customers = customers.filter(port=port)
+            customers = customers.annotate(
+                port_int=Cast('port', IntegerField())
+            ).filter(port_int=int(float(port)))
 
-        # ✅ Total ports used (based on filtered or full set? choose below 👇)
+        # ✅ Unique ports used (ignore duplicates, 1 = 1.0)
+        unique_ports = Customer.objects.filter(
+            olt_id=olt_id
+        ).filter(
+            Q(port__isnull=False) & ~Q(port="")
+        ).annotate(
+            port_int=Cast('port', IntegerField())
+        ).values('port_int').distinct()
 
-        # 👉 Option 1: based on filtered result
-        total_ports_used = customers.filter(
-            port__isnull=False
-        ).exclude(port="").count()
+        total_ports_used = unique_ports.count()
 
-        # 👉 Option 2 (recommended): based on full OLT (ignore filter)
-        total_ports_used_all = Customer.objects.filter(
-            olt_id=olt_id,
-            port__isnull=False
-        ).exclude(port="").count()
+        # ✅ Pagination
+        paginator = self.pagination_class()
+        paginated_queryset = paginator.paginate_queryset(customers, request)
 
-        serializer = CustomerSerializer(customers, many=True)
+        serializer = CustomerSerializer(paginated_queryset, many=True)
 
-        return Response({
+        return paginator.get_paginated_response({
             "total_customers": customers.count(),
-            "total_ports_used": total_ports_used_all,  # 👈 use this
+            "total_ports_used": total_ports_used,
             "customers": serializer.data
         })
