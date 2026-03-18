@@ -390,3 +390,11 @@ Accept: application/json
 ### Nearby LCOs within 5 KM
 GET http://127.0.0.1:8000/api/lcos/public/nearby/?lat=10.0159&lon=76.3419&radius=5
 Accept: application/json
+
+
+
+### get onu,customer details for a given olt  
+GET http://localhost:8000/api/network/olt/<int:olt_id>/customers/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxNTIxOTAzLCJpYXQiOjE3NTE1MTgzMDMsImp0aSI6ImMxNTEwZjk0Yjg1NjRkODA5ODM3OGQwYWI3NTg0MDA3IiwidXNlcl9pZCI6N30.j-uTqHuCnb7vwGwHSWC1AwIvHOw9333WiUr4SqJQ7xw
+
+

@@ -378,3 +378,31 @@ class ISPPublicListView(generics.ListAPIView):
     queryset = ISP.objects.all()
     serializer_class = ISPPublicSerializer
     permission_classes = [AllowAny]
+
+
+
+# olt detail view with port and onu details
+
+from customers.models import Customer
+from customers.serializers import CustomerSerializer
+
+class OltCustomerListView(APIView):
+    def get(self, request, olt_id):
+
+        customers = Customer.objects.filter(
+            olt_id=olt_id
+        ).select_related('lco', 'isp', 'olt')
+
+        # ✅ Total ports used
+        total_ports_used = customers.filter(
+            port__isnull=False
+        ).exclude(port="").count()
+
+        # ✅ Serialize full data
+        serializer = CustomerSerializer(customers, many=True)
+
+        return Response({
+            "total_customers": customers.count(),
+            "total_ports_used": total_ports_used,
+            "customers": serializer.data
+        })

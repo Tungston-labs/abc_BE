@@ -1,6 +1,6 @@
 
 from django.urls import path
-from .views import SwitchListCreateView, SwitchRetrieveUpdateDestroyView,OLTListCreateView,OLTRetrieveUpdateDestroyView,ISPCreateListView,ISPRetrieveUpdateDeleteView,UnassignedOLTListView,SwitchDropdownListView,BulkSwitchUpload,BulkISPUpload,BulkOLTUpload,ISPPublicListView
+from .views import SwitchListCreateView, SwitchRetrieveUpdateDestroyView,OLTListCreateView,OLTRetrieveUpdateDestroyView,ISPCreateListView,ISPRetrieveUpdateDeleteView,UnassignedOLTListView,SwitchDropdownListView,BulkSwitchUpload,BulkISPUpload,BulkOLTUpload,ISPPublicListView,OltCustomerListView
 
 urlpatterns = [
     path('switches/', SwitchListCreateView.as_view(), name='switch-list-create'),
@@ -19,4 +19,5 @@ urlpatterns = [
     path('bulk-upload/isp/', BulkISPUpload.as_view(), name='bulk-upload-isp'),
     path("bulk-upload/olt/", BulkOLTUpload.as_view(), name="bulk-upload-olt"),
     path("public/isps/", ISPPublicListView.as_view(), name="public-isps"),
+    path("olt/<int:olt_id>/customers/", OltCustomerListView.as_view(), name="olt-customers"),
 ]
