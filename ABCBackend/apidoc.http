@@ -1,7 +1,7 @@
 ### Register Super Admin
 
-# @baseUrl = https://api.aluvabroadband.com/api/auth
- @baseUrl = http://localhost:8000/api/auth
+ @baseUrl = https://api.aluvabroadband.com/api/auth
+#  @baseUrl = http://localhost:8000/api/auth
 
 POST {{baseUrl}}/register-superadmin/
 Content-Type: application/json
@@ -19,8 +19,8 @@ POST {{baseUrl}}/login/
 Content-Type: application/json
 
 {
-  "username": "pranav97780@gmail.com",
-  "password": "umV1xjmn"
+  "username": "aluvabroadband@gmail.com",
+  "password": "Abcpl@#2025"
 }
 
 ### ✅ Login (Obtain Access & Refresh Tokens)---for admin
