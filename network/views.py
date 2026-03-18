@@ -375,7 +375,7 @@ from rest_framework.permissions import AllowAny
 from .serializers import ISPPublicSerializer
 
 class ISPPublicListView(generics.ListAPIView):
-    queryset = ISP.objects.all()
+    queryset = ISP.objects.all().order_by('name')
     serializer_class = ISPPublicSerializer
     permission_classes = [AllowAny]
 
