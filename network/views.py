@@ -123,7 +123,7 @@ class BulkSwitchUpload(TrackCreatedUpdatedUserMixin, APIView):
 
 
 
-# network/views.py
+
 
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
@@ -394,24 +394,21 @@ class OltCustomerListView(APIView):
 
         port = request.query_params.get("port")
 
-        # ✅ Base queryset
         customers = Customer.objects.filter(
             olt_id=olt_id
         ).select_related('lco', 'isp', 'olt')
 
-        # ✅ Filter valid numeric ports only (avoid crash)
         customers = customers.filter(
             Q(port__regex=r'^\d+(\.\d+)?$') | Q(port__isnull=True) | Q(port="")
         )
 
-        # ✅ Filter by port (1 == 1.0)
         if port:
             customers = customers.annotate(
                 port_float=Cast('port', FloatField()),
                 port_int=Cast('port_float', IntegerField())
             ).filter(port_int=int(float(port)))
 
-        # ✅ Unique ports used (ignore duplicates like 1 & 1.0)
+        
         unique_ports_qs = Customer.objects.filter(
             olt_id=olt_id
         ).filter(
@@ -421,12 +418,12 @@ class OltCustomerListView(APIView):
             port_int=Cast('port_float', IntegerField())
         ).values_list('port_int', flat=True).distinct()
 
-        # ✅ Convert queryset to sorted list
+        #  Convert queryset to sorted list
         used_ports = sorted(list(unique_ports_qs))
 
         total_ports_used = len(used_ports)
 
-        # ✅ Pagination
+        #  Pagination
         paginator = self.pagination_class()
         paginated_queryset = paginator.paginate_queryset(customers, request)
 

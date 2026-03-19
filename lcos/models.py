@@ -16,6 +16,7 @@ class LCO(TimeStampedModel):
     lco_code = models.CharField(max_length=50,null=True, blank=True,unique=True)
     pincode = models.CharField(max_length=10,null=True, blank=True)
     pincode2 = models.CharField(max_length=10,null=True, blank=True)
+    pincode3 = models.CharField(max_length=10,null=True, blank=True)
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
 

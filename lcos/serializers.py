@@ -29,6 +29,7 @@ class LCOSerializer(serializers.ModelSerializer):
     address = serializers.CharField()
     pincode = serializers.CharField()
     pincode2 = serializers.CharField(required=False, allow_blank=True)
+    pincode3 = serializers.CharField(required=False, allow_blank=True)
 
     latitude = serializers.DecimalField(max_digits=9, decimal_places=6)
     longitude = serializers.DecimalField(max_digits=9, decimal_places=6)
@@ -59,6 +60,7 @@ class LCOSerializer(serializers.ModelSerializer):
             'lco_code',
             'phone2',
             'pincode2', 
+            'pincode3',
         ]
 
     def __init__(self, *args, **kwargs):
@@ -91,7 +93,8 @@ class LCOSerializer(serializers.ModelSerializer):
         phone = validated_data.pop('phone')
         address = validated_data.pop('address')
         phone2 = validated_data.pop('phone2', None)
-        pincode2 = validated_data.pop('pincode2', None) 
+        pincode2 = validated_data.pop('pincode2', None)
+        pincode3 = validated_data.pop('pincode3', None)
 
         # ✅ NEW
         pincode = validated_data.pop('pincode')
@@ -124,6 +127,7 @@ class LCOSerializer(serializers.ModelSerializer):
             latitude=latitude,      
             longitude=longitude,    
             pincode2=pincode2,     
+            pincode3=pincode3,
             phone2=phone2,         
             aadhaar_number=aadhaar_number,
             phone=phone,
@@ -155,15 +159,16 @@ class LCOSerializer(serializers.ModelSerializer):
 
         instance.name = validated_data.get('name', instance.name)
         instance.address = validated_data.get('address', instance.address)
-        instance.pincode = validated_data.get('pincode', instance.pincode)      # ✅
-        instance.latitude = validated_data.get('latitude', instance.latitude)  # ✅
-        instance.longitude = validated_data.get('longitude', instance.longitude)# ✅
+        instance.pincode = validated_data.get('pincode', instance.pincode)      
+        instance.latitude = validated_data.get('latitude', instance.latitude)  
+        instance.longitude = validated_data.get('longitude', instance.longitude)
         instance.aadhaar_number = validated_data.get('aadhaar_number', instance.aadhaar_number)
         instance.phone = validated_data.get('phone', instance.phone)
         instance.networking_name = validated_data.get('networking_name', instance.networking_name)
         instance.lco_code = validated_data.get('lco_code', instance.lco_code)
         instance.phone2 = validated_data.get('phone2', instance.phone2)
-        instance.pincode2 = validated_data.get('pincode2', instance.pincode2)   
+        instance.pincode2 = validated_data.get('pincode2', instance.pincode2) 
+        instance.pincode3 = validated_data.get('pincode3', instance.pincode3)  
         instance.save()
 
         if email:
