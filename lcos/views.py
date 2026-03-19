@@ -472,7 +472,7 @@ class PublicLCOSearchView(ListAPIView):
     permission_classes = [AllowAny]
     queryset = LCO.objects.all()
     filter_backends = [SearchFilter]
-    search_fields = ['pincode', 'address', 'name','pincode2']
+    search_fields = ['pincode', 'address', 'name','pincode2','pincode3']
 from math import radians, cos, sin, asin, sqrt
 from rest_framework.views import APIView
 from rest_framework.response import Response
