@@ -1,1 +1,130 @@
- @baseUrl = http://localhost:8000/api/auth
+
+ @baseUrl = https://api.aluvabroadband.com/api/auth
+#  @baseUrl = http://localhost:8000/api/auth
+
+
+# -------------------SWITCH---------------------------------
+
+
+### Create a Switch
+POST http://localhost:8000/api/network/switches/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxMzY4MjAzLCJpYXQiOjE3NTEzNjQ2MDMsImp0aSI6IjgxNjVkNmMwZTk2MzRhZmM5YTAwNjU0NmVlYjUwYmRjIiwidXNlcl9pZCI6Mn0.-zf10_MszPPnhUEEoWIegKepyqw2XjSGYStyMusxWjE
+
+{
+  "name": "Main Switch02",
+  "uid": "SW002",
+  "make": "Cisco",
+  "model_number": "X500",
+  "serial_number": "SN123456",
+  "package_date": "2025-07-02"
+}
+
+### List Switches
+GET http://localhost:8000/api/network/switches/?page=1&page_size=2
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY5NTkzMTU2LCJpYXQiOjE3Njk1NzE1NTYsImp0aSI6IjgwZTgyYzdlY2ZkNDRhMjI4ZTA1ZWRhOTE1ZDFjNmUwIiwidXNlcl9pZCI6MX0.oL2CpySHRezTXyJ-qCwzaqBHuiTYCZUitWndESvGjCQ
+### Retrieve Switch
+GET http://localhost:8000/api/network/switches/1/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxMzU5MzIyLCJpYXQiOjE3NTEzNTU3MjIsImp0aSI6Ijg3NmRlMDhjZTg4ZDQ0MGQ5MzExZmVhZjc4MTlkMzhlIiwidXNlcl9pZCI6Mn0.5d95FKrV8IJWbrPspYTOFSYvhf5d1ZJGCm7z2649ZPA
+
+### Update Switch
+PUT http://localhost:8000/api/network/switches/1/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxMzU5MzIyLCJpYXQiOjE3NTEzNTU3MjIsImp0aSI6Ijg3NmRlMDhjZTg4ZDQ0MGQ5MzExZmVhZjc4MTlkMzhlIiwidXNlcl9pZCI6Mn0.5d95FKrV8IJWbrPspYTOFSYvhf5d1ZJGCm7z2649ZPA
+
+{
+  "name": "Main Switch Updated",
+  "uid": "SW001",
+  "make": "Cisco",
+  "model_number": "X600",
+  "serial_number": "SN654321",
+  "package_date": "2025-07-01"
+}
+
+### Delete Switch
+DELETE http://localhost:8000/api/network/switches/3/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxMzU5MzIyLCJpYXQiOjE3NTEzNTU3MjIsImp0aSI6Ijg3NmRlMDhjZTg4ZDQ0MGQ5MzExZmVhZjc4MTlkMzhlIiwidXNlcl9pZCI6Mn0.5d95FKrV8IJWbrPspYTOFSYvhf5d1ZJGCm7z2649ZPA
+
+
+# -------------OLT----------------
+
+### Create OLT
+POST http://localhost:8000/api/network/olts/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxMzY4MjAzLCJpYXQiOjE3NTEzNjQ2MDMsImp0aSI6IjgxNjVkNmMwZTk2MzRhZmM5YTAwNjU0NmVlYjUwYmRjIiwidXNlcl9pZCI6Mn0.-zf10_MszPPnhUEEoWIegKepyqw2XjSGYStyMusxWjE
+
+{
+  "name": "OLT 3",
+  "uid": "OLT003",
+  "make": "Huawei",
+  "model_number": "HUA-OLT-1000",
+  "serial_number": "SN1234567890",
+  "package_date": "2025-07-01",
+  "switch": 2   
+}
+
+### List OLTs
+GET http://localhost:8000/api/network/olts/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY5NTkzMTU2LCJpYXQiOjE3Njk1NzE1NTYsImp0aSI6IjgwZTgyYzdlY2ZkNDRhMjI4ZTA1ZWRhOTE1ZDFjNmUwIiwidXNlcl9pZCI6MX0.oL2CpySHRezTXyJ-qCwzaqBHuiTYCZUitWndESvGjCQ
+
+### Retrieve OLT
+GET http://localhost:8000/api/network/olts/1/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxMzY4MjAzLCJpYXQiOjE3NTEzNjQ2MDMsImp0aSI6IjgxNjVkNmMwZTk2MzRhZmM5YTAwNjU0NmVlYjUwYmRjIiwidXNlcl9pZCI6Mn0.-zf10_MszPPnhUEEoWIegKepyqw2XjSGYStyMusxWjE
+
+### Update OLT
+PUT http://localhost:8000/api/network/olts/1/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxMzY4MjAzLCJpYXQiOjE3NTEzNjQ2MDMsImp0aSI6IjgxNjVkNmMwZTk2MzRhZmM5YTAwNjU0NmVlYjUwYmRjIiwidXNlcl9pZCI6Mn0.-zf10_MszPPnhUEEoWIegKepyqw2XjSGYStyMusxWjE
+
+{
+  "name": "OLT 1 Updated",
+  "uid": "OLT001",
+  "make": "Huawei",
+  "model_number": "HUA-OLT-2000",
+  "serial_number": "SN9876543210",
+  "package_date": "2025-07-01",
+  "switch": 1
+}
+
+### Delete OLT
+DELETE http://localhost:8000/api/network/olts/1/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxMzY4MjAzLCJpYXQiOjE3NTEzNjQ2MDMsImp0aSI6IjgxNjVkNmMwZTk2MzRhZmM5YTAwNjU0NmVlYjUwYmRjIiwidXNlcl9pZCI6Mn0.-zf10_MszPPnhUEEoWIegKepyqw2XjSGYStyMusxWjE
+
+###un assigned olt
+GET http://localhost:8000/api/network/unassigned-olts/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMDMyNTY2LCJpYXQiOjE3NTMwMjg5NjYsImp0aSI6IjZkZGMzMThiZWU4MDQ2YzJhY2ZjNDQ4MjdlZjY0ZmJiIiwidXNlcl9pZCI6Mn0.DAxnKN1zQX5wJt-Goi5a3SCxxKZmxc8wTnXU3TiWOu8
+
+
+# ----------------------------ISP---------------------------------------
+
+### Create ISP
+POST http://178.248.112.16:8000/api/network/isp/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzYwMDA2MzYxLCJpYXQiOjE3NjAwMDI3NjEsImp0aSI6IjQ3M2U5MThiYzZiYjQyYjBiMTY0ZTM4YzY5YmQ2ZmZhIiwidXNlcl9pZCI6MX0.Z_cARDnNcp0oKVaU-D92fkr2oKDNHoQ7GErTOx4k1-s
+
+{
+  "name": "stampede",
+  "address": "123 Fiber Road, Kochi"
+}
+
+### List All ISPs
+GET http://localhost:8000/api/network/isp/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY5NTkzMTU2LCJpYXQiOjE3Njk1NzE1NTYsImp0aSI6IjgwZTgyYzdlY2ZkNDRhMjI4ZTA1ZWRhOTE1ZDFjNmUwIiwidXNlcl9pZCI6MX0.oL2CpySHRezTXyJ-qCwzaqBHuiTYCZUitWndESvGjCQ
+
+### Retrieve ISP
+GET http://localhost:8000/api/network/isp/1/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxMzcyODM3LCJpYXQiOjE3NTEzNjkyMzcsImp0aSI6ImE2MjYzNDBlMjI4YzQzZTQ4M2QxM2Q1ODZmYzM4ZGNkIiwidXNlcl9pZCI6Mn0.Aml5ofyH_RScsBKkul4HaVbgA5Dz2a6Mcqf0R3mHuos
+
+### Update ISP
+PUT http://localhost:8000/api/network/isp/1/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxMzcyODM3LCJpYXQiOjE3NTEzNjkyMzcsImp0aSI6ImE2MjYzNDBlMjI4YzQzZTQ4M2QxM2Q1ODZmYzM4ZGNkIiwidXNlcl9pZCI6Mn0.Aml5ofyH_RScsBKkul4HaVbgA5Dz2a6Mcqf0R3mHuos
+
+{
+  "name": "Updated ISP Name",
+  "address": "Updated ISP Address"
+}
+
+### Delete ISP
+DELETE http://localhost:8000/api/network/isp/1/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxMzcyODM3LCJpYXQiOjE3NTEzNjkyMzcsImp0aSI6ImE2MjYzNDBlMjI4YzQzZTQ4M2QxM2Q1ODZmYzM4ZGNkIiwidXNlcl9pZCI6Mn0.Aml5ofyH_RScsBKkul4HaVbgA5Dz2a6Mcqf0R3mHuos

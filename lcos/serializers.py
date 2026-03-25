@@ -45,9 +45,9 @@ class LCOSerializer(serializers.ModelSerializer):
             'id',
             'name',
             'address',
-            'pincode',          # ✅
-            'latitude',         # ✅
-            'longitude',        # ✅
+            'pincode',          
+            'latitude',         
+            'longitude',        
             'aadhaar_number',
             'phone',
             'email',

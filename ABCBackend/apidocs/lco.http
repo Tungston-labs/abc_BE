@@ -1,1 +1,36 @@
- @baseUrl = http://localhost:8000/api/auth
+
+ @baseUrl = https://api.aluvabroadband.com/api/auth
+#  @baseUrl = http://localhost:8000/api/auth
+
+
+# --------------LCO---------------------------------
+
+### Create LCO (POST)
+POST http://localhost:8000/api/lcos/lco/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMDk1NTQ2LCJpYXQiOjE3NTMwOTE5NDYsImp0aSI6IjE0YTczMzhiNTg4YTQ2ZmZiMDU0OGQ0NzVhMGU3ZjU2IiwidXNlcl9pZCI6Mn0.4IeNaE-_42EJk41lzLIbngaU-y97hF1eujwPM1RMQGU
+
+{
+  "name": "jesna LCO",
+  "address": "123 Main Street, Kerala",
+  "aadhaar_number": "900772789012",
+  "phone": "9876543225",
+  "email": "abcd@gmail.com",
+  "olts": [4]
+}
+
+### List LCOs (GET)
+GET http://localhost:8000/api/lcos/lco/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY5NTM1MjkzLCJpYXQiOjE3Njk1MTM2OTMsImp0aSI6ImEyY2QxNTY5MTcwMTRkZTQ4OTc3NDhjYjE5N2E5MmFjIiwidXNlcl9pZCI6MX0.9v2yBHiFnu3-DtJqDCtJVFTCdz1T50I0Xdxhllqlldo
+
+### Retrieve LCO (GET, PUT, DELETE)
+GET http://localhost:8000/api/lcos/lco/1/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxNDQwNjQ0LCJpYXQiOjE3NTE0MzcwNDQsImp0aSI6IjgxMDRhZDhiMzYzMzQzNTNiZGUzMmMxNzhmMDM4ODE5IiwidXNlcl9pZCI6Mn0.pnkgsiJjaMCwaX99MWwJDNq95cU-PP-YfL1FOuuAlC4
+
+### Update LCO (GET, PUT, DELETE)
+GET http://localhost:8000/api/lcos/lco/1/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxNDQwNjQ0LCJpYXQiOjE3NTE0MzcwNDQsImp0aSI6IjgxMDRhZDhiMzYzMzQzNTNiZGUzMmMxNzhmMDM4ODE5IiwidXNlcl9pZCI6Mn0.pnkgsiJjaMCwaX99MWwJDNq95cU-PP-YfL1FOuuAlC4
+
+### Delete LCO (GET, PUT, DELETE)
+GET http://localhost:8000/api/lcos/lco/1/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxNDQwNjQ0LCJpYXQiOjE3NTE0MzcwNDQsImp0aSI6IjgxMDRhZDhiMzYzMzQzNTNiZGUzMmMxNzhmMDM4ODE5IiwidXNlcl9pZCI6Mn0.pnkgsiJjaMCwaX99MWwJDNq95cU-PP-YfL1FOuuAlC4

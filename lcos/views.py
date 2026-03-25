@@ -459,7 +459,46 @@ class BulkLCOUpload(APIView):
 
 #         except Exception as e:
 #             return Response({'error': str(e)}, status=500)
+# dashboard/views.py
 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+
+from customers.models import Customer
+from tickets.models import Ticket
+from lcos.models import LCO
+from django.db import models
+
+
+class DashboardCountView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+
+        # Get LCO instance for logged-in user
+        try:
+            lco = LCO.objects.get(user=user)
+        except LCO.DoesNotExist:
+            return Response({
+                "error": "LCO not found for this user"
+            }, status=400)
+
+        # Customer count
+        customer_count = Customer.objects.filter(lco=lco).count()
+
+        # Ticket count
+        ticket_count = Ticket.objects.filter(lco=user).count()
+
+        # Optional: status-wise ticket counts
+        ticket_status_counts = Ticket.objects.filter(lco=user).values('status').annotate(count=models.Count('id'))
+
+        return Response({
+            "customer_count": customer_count,
+            "ticket_count": ticket_count,
+            "ticket_status_counts": ticket_status_counts
+        })
 
 
 from rest_framework.generics import ListAPIView

@@ -1,0 +1,36 @@
+
+ @baseUrl = https://api.aluvabroadband.com/api/auth
+#  @baseUrl = http://localhost:8000/api/auth
+
+# ====================MOBILE APPLICATION-----------------------------
+
+### ✅ Login LCO
+POST {{baseUrl}}/login/
+Content-Type: application/json
+
+{
+  "email": "abcd@gmail.com",
+  "password": "b2cCFwSV"
+}
+
+
+### change password
+POST http://localhost:8000/api/auth/change-password/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxNTIxOTAzLCJpYXQiOjE3NTE1MTgzMDMsImp0aSI6ImMxNTEwZjk0Yjg1NjRkODA5ODM3OGQwYWI3NTg0MDA3IiwidXNlcl9pZCI6N30.j-uTqHuCnb7vwGwHSWC1AwIvHOw9333WiUr4SqJQ7xw
+
+{
+  "old_password": "ZKqkNIdE",
+  "new_password": "123",
+  "confirm_password": "123"
+}
+
+
+# LCO customer list 
+
+### Get customers for logged-in LCO (search by name or phone, filtered by ISP/OLT)
+GET http://localhost:8000/api/client/my-customers/search/?search=John&isp=3&olt=2
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxNTIxOTAzLCJpYXQiOjE3NTE1MTgzMDMsImp0aSI6ImMxNTEwZjk0Yjg1NjRkODA5ODM3OGQwYWI3NTg0MDA3IiwidXNlcl9pZCI6N30.j-uTqHuCnb7vwGwHSWC1AwIvHOw9333WiUr4SqJQ7xw
+
+
+

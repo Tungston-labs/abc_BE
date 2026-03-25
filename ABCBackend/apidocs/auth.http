@@ -1,1 +1,91 @@
  @baseUrl = http://localhost:8000/api/auth
+### Register Super Admin
+
+ @baseUrl = https://api.aluvabroadband.com/api/auth
+#  @baseUrl = http://localhost:8000/api/auth
+
+POST {{baseUrl}}/register-superadmin/
+Content-Type: application/json
+
+{
+  "username": "ABC",
+  "email": "abc@gmail.com",
+  "phone": "9526990000",
+  "password": "Password@123"
+}
+
+
+### ✅ Login (Obtain Access & Refresh Tokens)---for lco
+POST {{baseUrl}}/login/
+Content-Type: application/json
+
+{
+  "username": "aluvabroadband@gmail.com",
+  "password": "Abcpl@#2025"
+}
+
+### ✅ Login (Obtain Access & Refresh Tokens)---for admin
+POST {{baseUrl}}/login/
+Content-Type: application/json
+
+{
+  "username": "abc@gmail.com",
+  "password": "Password@123"
+}
+
+### 🔁 Refresh Access Token
+POST {{baseUrl}}/token/refresh/
+Content-Type: application/json
+
+{
+  "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MzQxNDk3MCwiaWF0IjoxNzUzMzI4NTcwLCJqdGkiOiI4YjMyYTJjNDdlNmY0NTM1YWRjNzRmNjVkNmM2ODFmZiIsInVzZXJfaWQiOjF9.sVvTOsc8yXjpoYdIv-KcK5qWvw_4Vb0U7qGI1kUeCGQ"
+}
+
+### 🚪 Logout (Blacklist Refresh Token)
+POST {{baseUrl}}/logout/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzNDIxNDkxLCJpYXQiOjE3NTM0MTc4OTEsImp0aSI6IjllYTVkNTgxZDkxMDQyOWQ5YzkzNGE2N2Y0M2YwYmVhIiwidXNlcl9pZCI6MX0.OsMdtD7wfmguvOqVJqmBQS8g7P0_tN0lhF9t964yct8
+Content-Type: application/json
+
+{
+    "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1MzUwNDI5MSwiaWF0IjoxNzUzNDE3ODkxLCJqdGkiOiJjNmI4NTFmYmJjNzQ0ZjVkYjQxMzg2MThmNDg2ODUxNyIsInVzZXJfaWQiOjF9.utZwUQU8rCQ4fAh2Uf9agGZ80XYNY63xa6PNDo_NXiY"
+
+}
+
+
+
+
+
+
+
+
+
+# --------------------FORGOT PASSWORD--------------
+
+
+
+### Send OTP
+POST {{baseUrl}}/forgot-password/send-otp/
+Content-Type: application/json
+
+{
+  "email": "abcd@gmail.com"
+}
+
+### Verify OTP
+POST {{baseUrl}}/forgot-password/verify-otp/
+Content-Type: application/json
+
+{
+  "email": "abcd@gmail.com",
+  "otp": "477360"
+}
+
+### Reset Password
+POST {{baseUrl}}/forgot-password/reset-password/
+Content-Type: application/json
+
+{
+  "email": "abcd@gmail.com",
+  "new_password": "123",
+  "confirm_password": "123"
+}
