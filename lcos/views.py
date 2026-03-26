@@ -571,3 +571,94 @@ class NearbyLCOView(APIView):
             "previous": page.previous_page_number() if page.has_previous() else None,
             "results": serializer.data
         })
+
+
+
+from django.http import HttpResponse
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from openpyxl import Workbook
+from io import BytesIO
+from .models import Customer
+from datetime import datetime
+from django.db.models import Q
+
+
+class LCOCustomerReportView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    FIELD_MAP = {
+        "olt_name": "olt__name",
+        "isp_name": "isp__name",
+        "lco_name": "lco__name",
+    }
+
+    def post(self, request):
+        user = request.user
+
+        # ❌ Block non-LCO users
+        if not hasattr(user, "lco_profile"):
+            return Response({"error": "Only LCO users allowed"}, status=403)
+
+        lco = user.lco_profile
+
+        selected_fields = request.data.get("fields", [])
+        mandatory_fields = ["full_name", "address", "phone"]
+        all_fields = list(set(mandatory_fields + selected_fields))
+
+        valid_fields = [f.name for f in Customer._meta.fields]
+        for field in all_fields:
+            if field not in valid_fields and field not in self.FIELD_MAP:
+                return Response({"error": f"Invalid field: {field}"}, status=400)
+
+        filters = request.data.get("filters", {})
+        filters = {k: v for k, v in filters.items() if v not in [None, ""]}
+
+        search_term = request.data.get("search", "").strip()
+
+        # ✅ FORCE LCO FILTER (IMPORTANT 🔥)
+        queryset = Customer.objects.filter(lco=lco)
+
+        # Apply filters (but NEVER override lco)
+        if filters:
+            filters.pop("lco", None)  # prevent misuse
+            queryset = queryset.filter(**filters)
+
+        # Apply search
+        if search_term:
+            queryset = queryset.filter(
+                Q(full_name__icontains=search_term)
+                | Q(phone__icontains=search_term)
+                | Q(address__icontains=search_term)
+                | Q(username__icontains=search_term)
+            )
+
+        resolved_fields = [self.FIELD_MAP.get(f, f) for f in all_fields]
+
+        queryset = queryset.values(*resolved_fields).iterator(chunk_size=2000)
+
+        # 📊 Excel generation
+        wb = Workbook(write_only=True)
+        ws = wb.create_sheet(title="Customers")
+        ws.append(all_fields)
+
+        for customer in queryset:
+            row = []
+            for field in all_fields:
+                value = customer.get(self.FIELD_MAP.get(field, field), "")
+                if isinstance(value, datetime) and value.tzinfo is not None:
+                    value = value.replace(tzinfo=None)
+                row.append(value)
+            ws.append(row)
+
+        virtual_workbook = BytesIO()
+        wb.save(virtual_workbook)
+        virtual_workbook.seek(0)
+
+        response = HttpResponse(
+            virtual_workbook.getvalue(),
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+        response["Content-Disposition"] = 'attachment; filename="lco_customer_report.xlsx"'
+        return response
