@@ -10,19 +10,11 @@ class TicketAttachmentSerializer(serializers.ModelSerializer):
 
 class TicketSerializer(serializers.ModelSerializer):
     attachments = TicketAttachmentSerializer(many=True, read_only=True)
-    lco_name = serializers.CharField(source="lco.name", read_only=True)
+    lco_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Ticket
-        fields = [
-            "id",
-            "name",
-            "notes",
-            "status",
-            "priority",
-            "category",
-            "created_at",
-            "lco",
-            "lco_name",  
-            "attachments",
-        ]
+        fields = "__all__"
+
+    def get_lco_name(self, obj):
+        return obj.lco.name if obj.lco else None
