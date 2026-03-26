@@ -11,5 +11,5 @@ urlpatterns = [
     path('public/', PublicLCOSearchView.as_view()),
     path('public/nearby/', NearbyLCOView.as_view()),
     path('dashboard/count/', DashboardCountView.as_view(), name='dashboard-count'),
-    path('client/report', LCOCustomerReportView.as_view()),
+    path('client/report/', LCOCustomerReportView.as_view()),
 ]
