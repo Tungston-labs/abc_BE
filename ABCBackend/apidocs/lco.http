@@ -1,6 +1,14 @@
 
  @baseUrl = https://api.aluvabroadband.com/api/auth
 #  @baseUrl = http://localhost:8000/api/auth
+### ✅ Login (Obtain Access & Refresh Tokens)---for lco
+POST {{baseUrl}}/login/
+Content-Type: application/json
+
+{
+  "username": "santhoshaluva@gmail.com",
+  "password": "Password@123"
+}
 
 
 # --------------LCO---------------------------------
@@ -34,3 +42,10 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 ### Delete LCO (GET, PUT, DELETE)
 GET http://localhost:8000/api/lcos/lco/1/
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxNDQwNjQ0LCJpYXQiOjE3NTE0MzcwNDQsImp0aSI6IjgxMDRhZDhiMzYzMzQzNTNiZGUzMmMxNzhmMDM4ODE5IiwidXNlcl9pZCI6Mn0.pnkgsiJjaMCwaX99MWwJDNq95cU-PP-YfL1FOuuAlC4
+
+### lco dashboard count
+GET https://api.aluvabroadband.com/api/lcos/dashboard/count/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc0NDU1MDMxLCJpYXQiOjE3NzQ0MzM0MzEsImp0aSI6IjNhMThjNjJhMDJmMjQyNThiMWZmNGZiNzlmOGM3NjIwIiwidXNlcl9pZCI6IjQifQ.yen03-yBr8C6W4Ly_9ixT_tSOJ3HpYeskE2ouN8otpA
+
+
+

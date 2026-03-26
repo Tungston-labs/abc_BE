@@ -1,4 +1,4 @@
- @baseUrl = http://localhost:8000/api/ticket/
+ @baseUrl = https://api.aluvabroadband.com/api/ticket/
 
 
 ###############################################
@@ -43,7 +43,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 ###############################################
 
 GET {{baseUrl}}
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY5NTE5MzI0LCJpYXQiOjE3Njk0OTc3MjQsImp0aSI6IjkwMDBhYmM1ZTU2OTQ3NDg4MjYxODM4ODFkNzdiMzM5IiwidXNlcl9pZCI6MX0.kywKestPYmVpKC6AVUMHNW5olt5tBswfRMsWDZIIqVU
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc0NDU2OTI0LCJpYXQiOjE3NzQ0MzUzMjQsImp0aSI6IjZlNjNhYTFkOGYzNDQwNzZiNWNhNjdmZDUwODVhMWE4IiwidXNlcl9pZCI6IjMwIn0.Mk4I6zU0hsNNTmW6s9OG5P6hF1GK13HvbEgYzdrPpYU
 ###dasboard count for ticket
 GET {{baseUrl}}admin/dashboard/
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY5NTE5MzI0LCJpYXQiOjE3Njk0OTc3MjQsImp0aSI6IjkwMDBhYmM1ZTU2OTQ3NDg4MjYxODM4ODFkNzdiMzM5IiwidXNlcl9pZCI6MX0.kywKestPYmVpKC6AVUMHNW5olt5tBswfRMsWDZIIqVU
@@ -93,6 +93,6 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 # 8 .Lco – LIST TICKETS CREATED BY LCO
 ###############################################
 
-GET  {{baseUrl}}list/lco/
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY5NTE0MTAxLCJpYXQiOjE3Njk0OTI1MDEsImp0aSI6ImE2NWQ0NzIwNTIxMDQwZTlhZmI0NTY3NDU5NjYwODAwIiwidXNlcl9pZCI6Mn0.A_m4O9u_XvEXP4EnDERv2ofSQOihLF3VHpSCP-Wu89s
+GET  https://api.aluvabroadband.com/api/ticket/list/lco/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc0NTI3Mjk4LCJpYXQiOjE3NzQ1MDU2OTgsImp0aSI6ImYwMTg1YmZjMjYwMzQ2ZWJhY2EyNDhmOGYwNGFiYjQ4IiwidXNlcl9pZCI6IjQifQ.na-0QW4L5Am2pMqDqz-Pcgu4F2GXEOlDCgmawLnpIGA
 

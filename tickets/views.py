@@ -77,17 +77,17 @@ class LCOTicketListAPIView(generics.ListAPIView):
             if parsed_date:
                 queryset = queryset.filter(created_at__date=parsed_date)
 
-        # 🟢 Status
+        #  Status
         status = self.request.query_params.get("status")
         if status and status != "all":
             queryset = queryset.filter(status__iexact=status)
 
-        # 🔴 Priority
+        #  Priority
         priority = self.request.query_params.get("priority")
         if priority and priority != "all":
             queryset = queryset.filter(priority__iexact=priority)
 
-        # 🟡 Category
+        #  Category
         category = self.request.query_params.get("category")
         if category and category != "all":
             queryset = queryset.filter(category__iexact=category)

@@ -9,6 +9,8 @@ class TicketAttachmentSerializer(serializers.ModelSerializer):
 
 class TicketSerializer(serializers.ModelSerializer):
     attachments = TicketAttachmentSerializer(many=True, read_only=True)
+    lco_name = serializers.CharField(source="lco.name", read_only=True)
+
 
     class Meta:
         model = Ticket
