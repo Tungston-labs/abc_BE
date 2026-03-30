@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from lcos.models import LCOISPMapping
-from services.isp_handler import fetch_isp_data
+from network.services import fetch_isp_data
 
 
 class Command(BaseCommand):
