@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from lcos.models import LCOISPMapping
 from network.services.isp_handler import fetch_isp_data
-from network.models import Customer
+from customers.models import Customer
 from datetime import datetime
 
 
