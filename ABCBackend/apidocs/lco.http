@@ -51,11 +51,11 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 
 POST https://api.aluvabroadband.com/api/lcos/lco-isp-mapping/
 Content-Type: application/json
-Authorization: Bearer <token>
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc0ODc3ODA1LCJpYXQiOjE3NzQ4NTYyMDUsImp0aSI6ImNlZGRmNzBkNjA5YjQyNjZhOGNlYWE5MDE1MTQ3MjE3IiwidXNlcl9pZCI6IjMwIn0.HhieXvI1QGAZxKqs0PSsQA8ibBI4c1B-qDCu2N8zHRQ
 
 {
-    "lco": 1,
-    "isp": 2,
-    "partner_name": "ABC123",
+    "lco": 13,
+    "isp": 21,
+    "partner_name": "ABC_STAR CABLE T V NETWORK(Cochin Bank)",
     "is_active": true
 }

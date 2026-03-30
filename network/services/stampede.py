@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 def fetch_stampede_data(mapping):
     isp = mapping.isp
 
-    token = isp.token  # ✅ static for now
+    token = isp.token  # static token for now
 
     today = datetime.now()
 
@@ -24,7 +24,7 @@ def fetch_stampede_data(mapping):
     }
 
     response = requests.post(
-        "https://api.stampede.com/endpoint",  # replace
+        "https://bssadmin.stampedecom.in/eapi/api/v1/searchCustomerData",
         json=payload,
         headers=headers
     )
