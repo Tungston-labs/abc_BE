@@ -1,4 +1,4 @@
-from services.stampede import fetch_stampede_data
+from network.services.stampede import fetch_stampede_data
 
 
 def fetch_isp_data(mapping):
