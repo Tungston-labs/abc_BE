@@ -1,7 +1,7 @@
 # network/urls.py
 
 from django.urls import path
-from .views import LCOCreateListView, LCORetrieveUpdateDeleteView,BulkLCOUpload,LCOScrollListView,PublicLCOSearchView,NearbyLCOView,DashboardCountView,LCOCustomerReportView
+from .views import LCOCreateListView, LCORetrieveUpdateDeleteView,BulkLCOUpload,LCOScrollListView,PublicLCOSearchView,NearbyLCOView,DashboardCountView,LCOCustomerReportView,LCOISPMappingCreateView
 
 urlpatterns = [
     path('lco/', LCOCreateListView.as_view(), name='lco-create-list'),
@@ -12,4 +12,5 @@ urlpatterns = [
     path('public/nearby/', NearbyLCOView.as_view()),
     path('dashboard/count/', DashboardCountView.as_view(), name='dashboard-count'),
     path('client/report/', LCOCustomerReportView.as_view()),
+    path('lco-isp-mapping/', LCOISPMappingCreateView.as_view()),
 ]

@@ -762,3 +762,16 @@ class LCOCustomerReportView(APIView):
         )
         response["Content-Disposition"] = 'attachment; filename="lco_customer_report.xlsx"'
         return response
+    
+
+
+
+# lco mapping view for isp api call
+
+from .models import LCOISPMapping
+from .serializers import LCOISPMappingSerializer
+
+
+class LCOISPMappingCreateView(generics.CreateAPIView):
+    queryset = LCOISPMapping.objects.all()
+    serializer_class = LCOISPMappingSerializer

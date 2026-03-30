@@ -2,7 +2,7 @@
 from django.db import models
 from shared.models import TimeStampedModel
 from accounts.models import User
-from network.models import OLT
+from network.models import OLT,ISP
 
 class LCO(TimeStampedModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='lco_profile')
@@ -41,3 +41,13 @@ class LCO(TimeStampedModel):
 
     def __str__(self):
         return self.name
+
+
+
+class LCOISPMapping(TimeStampedModel):
+    lco = models.ForeignKey(LCO, on_delete=models.CASCADE)
+    isp = models.ForeignKey(ISP, on_delete=models.CASCADE)
+
+    partner_name = models.CharField(max_length=255)
+
+    is_active = models.BooleanField(default=True)

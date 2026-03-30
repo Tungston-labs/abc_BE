@@ -73,6 +73,13 @@ class ISP(TimeStampedModel):
         blank=True,
         validators=[FileExtensionValidator(['png', 'jpg', 'jpeg', 'svg'])]
     )
+    token = models.TextField(null=True, blank=True)
+
+    token_type = models.CharField(
+        max_length=20,
+        choices=[("static", "Static"), ("dynamic", "Dynamic")],
+        default="static"
+    )
 
     def save(self, *args, **kwargs):
         if self.pk is None and not self.unique_id:

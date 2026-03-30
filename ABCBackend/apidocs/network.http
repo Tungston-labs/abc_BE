@@ -128,3 +128,14 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 ### Delete ISP
 DELETE http://localhost:8000/api/network/isp/1/
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUxMzcyODM3LCJpYXQiOjE3NTEzNjkyMzcsImp0aSI6ImE2MjYzNDBlMjI4YzQzZTQ4M2QxM2Q1ODZmYzM4ZGNkIiwidXNlcl9pZCI6Mn0.Aml5ofyH_RScsBKkul4HaVbgA5Dz2a6Mcqf0R3mHuos
+
+###
+POST https://bssadmin.stampedecom.in/eapi/api/v1/searchCustomerData
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJzdGFtZXhhcGkiLCJ1c2VyTmFtZSI6InN0YW1leGFwaSIsImlwQWRkcmVzcyI6ImFub25pbXVzIiwib2lkIjoiLTExMiIsImlhdCI6MTc3NDU5MjgzNiwiZXhwIjoxOTMyMzU5MjM2fQ.dQG-3BZ2XqoGLF2AOcPSeAXZ4kX-UFR58e0zuEmJ-5sok5hW9nbH1XF3pBNsrrHrzd7WKS_qTXiv0vhCtE6FSQ
+Content-Type: application/json
+
+{
+  "partnerName": "ABC_VIJAY CABLE VISION (Karukunnam)",
+  "expiryFrom": "2026-02-28 00:00:00",
+  "expiryTill": "2026-04-05 23:59:59"
+}

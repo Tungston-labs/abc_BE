@@ -205,3 +205,10 @@ class PublicLCOSerializer(serializers.ModelSerializer):
             'phone2',
             
         ]
+from .models import LCOISPMapping
+
+
+class LCOISPMappingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LCOISPMapping
+        fields = "__all__"
