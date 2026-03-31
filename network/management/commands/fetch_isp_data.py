@@ -88,8 +88,8 @@ def update_expiry(item, mapping):
     # 🔍 Match by username
     if username:
         customer = Customer.objects.filter(
-            username__iexact=username,
-            isp=mapping.isp
+            username__iexact=username
+            
         ).first()
 
     # 🔍 Fallback → MAC
