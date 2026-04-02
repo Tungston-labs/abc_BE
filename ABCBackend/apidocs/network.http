@@ -135,7 +135,7 @@ Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJzdGFtZXhhcGkiLCJ1c2VyTmFtZ
 Content-Type: application/json
 
 {
-  "partnerName": "ABC_VIJAY CABLE VISION (Karukunnam)",
-  "expiryFrom": "2026-02-28 00:00:00",
-  "expiryTill": "2026-04-05 23:59:59"
+  "partnerName": "ABC_VISION CHANNEL (West Kadungalloor)",
+  "expiryFrom": "2026-01-01 00:00:00",
+  "expiryTill": "2026-04-29 23:59:59"
 }

@@ -9,8 +9,8 @@ def fetch_stampede_data(mapping):
 
     today = datetime.now()
 
-    from_date = (today - timedelta(days=20)).strftime("%Y-%m-%d %H:%M:%S")
-    to_date = (today + timedelta(days=10)).strftime("%Y-%m-%d %H:%M:%S")
+    from_date = (today - timedelta(days=100)).strftime("%Y-%m-%d %H:%M:%S")
+    to_date = (today + timedelta(days=100)).strftime("%Y-%m-%d %H:%M:%S")
 
     payload = {
         "partnerName": mapping.partner_name,
