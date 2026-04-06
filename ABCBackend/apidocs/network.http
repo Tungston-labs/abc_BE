@@ -135,7 +135,7 @@ Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJzdGFtZXhhcGkiLCJ1c2VyTmFtZ
 Content-Type: application/json
 
 {
-  "partnerName": "ABC_VISION CHANNEL (West Kadungalloor)",
+  "partnerName": "ABC_NASA NETWORK (Thaikkattukara)",
   "expiryFrom": "2026-01-01 00:00:00",
-  "expiryTill": "2026-04-29 23:59:59"
+  "expiryTill": "2026-06-29 23:59:59"
 }
