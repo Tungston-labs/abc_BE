@@ -169,15 +169,6 @@ from network.models import OLT, ISP
 from lcos.models import LCO
 from shared.mixins import TrackCreatedUpdatedUserMixin
 from shared.permissions import IsSuperAdmin
-# customers/views.py
-import pandas as pd
-from rest_framework.views import APIView
-from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-
-
-# customers/views.py
 import pandas as pd
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -186,16 +177,12 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.db import transaction
 
-from .models import Customer
-from network.models import ISP, OLT
-from lcos.models import LCO
-from shared.mixins import TrackCreatedUpdatedUserMixin
-from shared.permissions import IsSuperAdmin
 
 
-class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
+
+class BulkCustomerUpload(APIView):
     parser_classes = (MultiPartParser, FormParser)
-    permission_classes = [IsAuthenticated, IsSuperAdmin]
+    permission_classes = [IsAuthenticated]  # keep your IsSuperAdmin if needed
 
     HEADER_ALIASES = {
         "full_name": ["Customer", "name", "Customer Name", "Name,", "Full Name", "FULL_NAME"],
@@ -204,8 +191,8 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
         "address": ["address", "residence", "Address", "ADDRESS", "Permanent Address"],
         "mac_id": ["mac", "mac id", "macid", "MACID", "MAC_ID"],
         "plan": ["plan", "internet plan", "Plan", "Plan Name"],
-        "lco": ["lco", "LCO", "lco code", "LCO_CODE"],  # Excel contains LCO code
-        "lco_ref": ["lco_ref", "LCO_REF", "lco reference", "LCO Reference"],  # Save directly
+        "lco": ["lco", "LCO", "lco code", "LCO_CODE"],
+        "lco_ref": ["lco_ref", "LCO_REF", "lco reference", "LCO Reference"],
         "isp": ["isp id", "isp", "ISP"],
         "olt": ["olt id", "olt", "OLT IP", "OLT Name", "OLT"],
         "v_lan": ["vlan", "v lan", "v_lan", "V_LAN"],
@@ -219,13 +206,12 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
     }
 
     def options(self, request, *args, **kwargs):
-        """Allow unauthenticated CORS preflight (OPTIONS) requests."""
         return Response(status=200)
 
     def normalize_headers(self, df):
-        """Map Excel headers to model fields based on aliases."""
         header_map = {}
         lower_cols = [col.lower().strip() for col in df.columns]
+
         for field, aliases in self.HEADER_ALIASES.items():
             for alias in aliases:
                 if alias.lower() in lower_cols:
@@ -247,33 +233,58 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
             return Response({'error': f'Invalid Excel file: {str(e)}'}, status=400)
 
         header_map = self.normalize_headers(df)
+
         success_count = 0
         errors = []
+        seen_usernames = set()
+
+        # 🔹 Optional: preload DB data for performance
+        isp_cache = {isp.name.lower(): isp for isp in ISP.objects.all()}
+        olt_cache = {olt.name.lower(): olt for olt in OLT.objects.all()}
+        lco_cache = {lco.lco_code.lower(): lco for lco in LCO.objects.all()}
 
         for index, row in df.iterrows():
             data = {}
-            # ---------------- Map Excel columns to model fields ----------------
+
+            # ---------------- Map Excel columns ----------------
             for field, excel_col in header_map.items():
                 val = row.get(excel_col)
                 if pd.isna(val):
                     val = None
                 data[field] = val
 
+            # ---------------- Username (UNIQUE KEY) ----------------
+            username = data.get('username')
+            if username:
+                username = str(username).strip().lower()
+            else:
+                errors.append(f"Row {index+1}: Missing username")
+                continue
+
+            # Duplicate inside Excel
+            if username in seen_usernames:
+                errors.append(f"Row {index+1}: Duplicate username in file '{username}'")
+                continue
+            seen_usernames.add(username)
+
             # ---------------- Phone cleanup ----------------
             phone = data.get('phone')
             if phone:
                 phone = str(phone).split('.')[0].strip()
+                if not phone.isdigit():
+                    errors.append(f"Row {index+1}: Invalid phone number")
+                    continue
                 data['phone'] = phone
             else:
-                errors.append(f"Row {index+1}: Missing phone number")
-                continue
+                data['phone'] = None  # allow empty
 
-            # ---------------- Prepare fields to update ----------------
+            # ---------------- Prepare defaults ----------------
             defaults = {}
 
-            # Full name, email, address, mac_id, plan, etc.
-            for field in ['full_name','email','address','mac_id','plan',
-                          'v_lan','ont_number','signal','kseb_post','port','distance','username']:
+            for field in [
+                'full_name', 'email', 'address', 'mac_id', 'plan',
+                'v_lan', 'ont_number', 'signal', 'kseb_post', 'port', 'distance'
+            ]:
                 if data.get(field) not in (None, ''):
                     defaults[field] = data[field]
 
@@ -281,55 +292,56 @@ class BulkCustomerUpload(TrackCreatedUpdatedUserMixin, APIView):
             expiry_val = data.get('expiry_date')
             if expiry_val not in (None, ''):
                 try:
-                    # Convert Excel dates safely
                     defaults['expiry_date'] = pd.to_datetime(expiry_val, errors='coerce').date()
                 except Exception:
                     defaults['expiry_date'] = None
 
-            # ---------------- ISP lookup ----------------
-            isp_val = data.get('isp')
+            # ---------------- ISP ----------------
             if request_isp_id:
                 try:
                     defaults['isp'] = ISP.objects.get(pk=int(request_isp_id))
                 except ISP.DoesNotExist:
                     errors.append(f"Row {index+1}: ISP '{request_isp_id}' not found.")
-            elif isp_val not in (None, ''):
+            elif data.get('isp'):
+                isp_name = str(data['isp']).strip().lower()
+                if isp_name in isp_cache:
+                    defaults['isp'] = isp_cache[isp_name]
+                else:
+                    errors.append(f"Row {index+1}: ISP '{data['isp']}' not found.")
+
+            # ---------------- OLT ----------------
+            if data.get('olt'):
+                olt_val = str(data['olt']).strip()
                 try:
-                    defaults['isp'] = ISP.objects.get(name__iexact=str(isp_val).strip())
-                except ISP.DoesNotExist:
-                    errors.append(f"Row {index+1}: ISP '{isp_val}' not found.")
+                    defaults['olt'] = OLT.objects.get(pk=int(olt_val))
+                except:
+                    olt_name = olt_val.lower()
+                    if olt_name in olt_cache:
+                        defaults['olt'] = olt_cache[olt_name]
+                    else:
+                        errors.append(f"Row {index+1}: OLT '{olt_val}' not found.")
 
-            # ---------------- OLT lookup ----------------
-            olt_val = data.get('olt')
-            if olt_val not in (None, ''):
-                try:
-                    try:
-                        defaults['olt'] = OLT.objects.get(pk=int(olt_val))
-                    except (ValueError, OLT.DoesNotExist):
-                        defaults['olt'] = OLT.objects.get(name__iexact=str(olt_val).strip())
-                except OLT.DoesNotExist:
-                    errors.append(f"Row {index+1}: OLT '{olt_val}' not found.")
+            # ---------------- LCO ----------------
+            if data.get('lco'):
+                lco_code = str(data['lco']).strip().lower()
+                if lco_code in lco_cache:
+                    defaults['lco'] = lco_cache[lco_code]
+                else:
+                    errors.append(f"Row {index+1}: LCO '{data['lco']}' not found.")
 
-            # ---------------- LCO lookup (by lco_code) ----------------
-            lco_code_val = data.get('lco')  # Excel "LCO" column has lco_code
-            if lco_code_val not in (None, ''):
-                try:
-                    defaults['lco'] = LCO.objects.get(lco_code__iexact=str(lco_code_val).strip())
-                except LCO.DoesNotExist:
-                    errors.append(f"Row {index+1}: LCO with code '{lco_code_val}' not found.")
-                    defaults['lco'] = None
+            # ---------------- LCO_REF ----------------
+            if data.get('lco_ref'):
+                defaults['lco_ref'] = str(data['lco_ref']).strip()
 
-            # ---------------- LCO_REF save directly ----------------
-            lco_ref_val = data.get('lco_ref')
-            if lco_ref_val not in (None, ''):
-                defaults['lco_ref'] = str(lco_ref_val).strip()
-
-            # ---------------- Create or Update Customer ----------------
+            # ---------------- Save ----------------
             try:
                 with transaction.atomic():
-                    customer, created = Customer.objects.update_or_create(
-                        phone=data['phone'],
-                        defaults=defaults
+                    Customer.objects.update_or_create(
+                        username=username,
+                        defaults={
+                            **defaults,
+                            "phone": data.get("phone")
+                        }
                     )
                     success_count += 1
             except Exception as e:
