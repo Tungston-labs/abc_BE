@@ -25,15 +25,18 @@ class Command(BaseCommand):
                 lco_map.setdefault(c.lco.phone, []).append(c)
 
         for phone, custs in lco_map.items():
-            # ✅ Date added in title
-            message = f"{today_str} - Today's Expiring Customers:\n\n"
 
+            customer_list = ""
             for c in custs:
-                message += f"• {c.full_name} ({c.phone})\n"
+                customer_list += f"{c.full_name} ({c.phone})\n"
 
-            # ✅ Prevent crash if Twilio fails
             try:
-                send_whatsapp_message(phone, message)
+                send_whatsapp_message(
+                    phone=phone,
+                    lco_name="LCO",
+                    date_str=today_str,
+                    customer_list=customer_list
+                )
                 self.stdout.write(f"Sent to LCO: {phone}")
             except Exception as e:
                 self.stderr.write(f"Failed for {phone}: {str(e)}")

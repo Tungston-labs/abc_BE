@@ -177,12 +177,24 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.db import transaction
 
+import pandas as pd
+import traceback
 
+from django.db import transaction
+from django.db.models import Q
+from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+from customers.models import Customer
+from lcos.models import LCO
+from network.models import ISP
 
 
 class BulkCustomerUpload(APIView):
     parser_classes = (MultiPartParser, FormParser)
-    permission_classes = [IsAuthenticated]  # keep your IsSuperAdmin if needed
+    permission_classes = [IsAuthenticated]
 
     HEADER_ALIASES = {
         "full_name": ["Customer", "name", "Customer Name", "Name,", "Full Name", "FULL_NAME"],
@@ -205,9 +217,6 @@ class BulkCustomerUpload(APIView):
         "username": ["username", "user name", "login name", "customer username", "USERNAME"],
     }
 
-    def options(self, request, *args, **kwargs):
-        return Response(status=200)
-
     def normalize_headers(self, df):
         header_map = {}
         lower_cols = [col.lower().strip() for col in df.columns]
@@ -220,137 +229,338 @@ class BulkCustomerUpload(APIView):
                     break
         return header_map
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         file = request.FILES.get('file')
-        if not file:
-            return Response({'error': 'No file uploaded'}, status=400)
-
         request_isp_id = request.data.get("isp")
+        request_lco_id = request.data.get("lco")
 
+        # ---------------- VALIDATION ----------------
+        if not file:
+            return Response({"error": "No file uploaded"}, status=400)
+
+        if not request_isp_id and not request_lco_id:
+            return Response({"error": "Select ISP or LCO"}, status=400)
+
+        if request_isp_id and request_lco_id:
+            return Response({"error": "Select either ISP or LCO, not both"}, status=400)
+
+        # ---------------- PRELOAD ----------------
+        selected_isp = None
+        selected_lco = None
+
+        if request_isp_id:
+            try:
+                selected_isp = ISP.objects.get(pk=request_isp_id)
+            except ISP.DoesNotExist:
+                return Response({"error": "Invalid ISP"}, status=400)
+
+        if request_lco_id:
+            try:
+                selected_lco = LCO.objects.get(pk=request_lco_id)
+            except LCO.DoesNotExist:
+                return Response({"error": "Invalid LCO"}, status=400)
+
+        # ---------------- READ EXCEL ----------------
         try:
             df = pd.read_excel(file)
         except Exception as e:
-            return Response({'error': f'Invalid Excel file: {str(e)}'}, status=400)
+            return Response({"error": f"Invalid Excel: {str(e)}"}, status=400)
 
         header_map = self.normalize_headers(df)
 
         success_count = 0
+        created_count = 0
+        updated_count = 0
         errors = []
         seen_usernames = set()
 
-        # 🔹 Optional: preload DB data for performance
+        # Cache
         isp_cache = {isp.name.lower(): isp for isp in ISP.objects.all()}
-        olt_cache = {olt.name.lower(): olt for olt in OLT.objects.all()}
         lco_cache = {lco.lco_code.lower(): lco for lco in LCO.objects.all()}
 
+        # ---------------- PROCESS ROWS ----------------
         for index, row in df.iterrows():
-            data = {}
-
-            # ---------------- Map Excel columns ----------------
-            for field, excel_col in header_map.items():
-                val = row.get(excel_col)
-                if pd.isna(val):
-                    val = None
-                data[field] = val
-
-            # ---------------- Username (UNIQUE KEY) ----------------
-            username = data.get('username')
-            if username:
-                username = str(username).strip().lower()
-            else:
-                errors.append(f"Row {index+1}: Missing username")
-                continue
-
-            # Duplicate inside Excel
-            if username in seen_usernames:
-                errors.append(f"Row {index+1}: Duplicate username in file '{username}'")
-                continue
-            seen_usernames.add(username)
-
-            # ---------------- Phone cleanup ----------------
-            phone = data.get('phone')
-            if phone:
-                phone = str(phone).split('.')[0].strip()
-                if not phone.isdigit():
-                    errors.append(f"Row {index+1}: Invalid phone number")
-                    continue
-                data['phone'] = phone
-            else:
-                data['phone'] = None  # allow empty
-
-            # ---------------- Prepare defaults ----------------
-            defaults = {}
-
-            for field in [
-                'full_name', 'email', 'address', 'mac_id', 'plan',
-                'v_lan', 'ont_number', 'signal', 'kseb_post', 'port', 'distance'
-            ]:
-                if data.get(field) not in (None, ''):
-                    defaults[field] = data[field]
-
-            # ---------------- Expiry date ----------------
-            expiry_val = data.get('expiry_date')
-            if expiry_val not in (None, ''):
-                try:
-                    defaults['expiry_date'] = pd.to_datetime(expiry_val, errors='coerce').date()
-                except Exception:
-                    defaults['expiry_date'] = None
-
-            # ---------------- ISP ----------------
-            if request_isp_id:
-                try:
-                    defaults['isp'] = ISP.objects.get(pk=int(request_isp_id))
-                except ISP.DoesNotExist:
-                    errors.append(f"Row {index+1}: ISP '{request_isp_id}' not found.")
-            elif data.get('isp'):
-                isp_name = str(data['isp']).strip().lower()
-                if isp_name in isp_cache:
-                    defaults['isp'] = isp_cache[isp_name]
-                else:
-                    errors.append(f"Row {index+1}: ISP '{data['isp']}' not found.")
-
-            # ---------------- OLT ----------------
-            if data.get('olt'):
-                olt_val = str(data['olt']).strip()
-                try:
-                    defaults['olt'] = OLT.objects.get(pk=int(olt_val))
-                except:
-                    olt_name = olt_val.lower()
-                    if olt_name in olt_cache:
-                        defaults['olt'] = olt_cache[olt_name]
-                    else:
-                        errors.append(f"Row {index+1}: OLT '{olt_val}' not found.")
-
-            # ---------------- LCO ----------------
-            if data.get('lco'):
-                lco_code = str(data['lco']).strip().lower()
-                if lco_code in lco_cache:
-                    defaults['lco'] = lco_cache[lco_code]
-                else:
-                    errors.append(f"Row {index+1}: LCO '{data['lco']}' not found.")
-
-            # ---------------- LCO_REF ----------------
-            if data.get('lco_ref'):
-                defaults['lco_ref'] = str(data['lco_ref']).strip()
-
-            # ---------------- Save ----------------
             try:
+                data = {}
+
+                for field, excel_col in header_map.items():
+                    val = row.get(excel_col)
+                    data[field] = None if pd.isna(val) else val
+
+                # -------- USERNAME --------
+                username = str(data.get("username", "")).strip().lower()
+
+                if not username:
+                    errors.append(f"Row {index+1}: Missing username")
+                    continue
+
+                if username in seen_usernames:
+                    errors.append(f"Row {index+1}: Duplicate username in file")
+                    continue
+
+                seen_usernames.add(username)
+
+                # -------- ONT --------
+                ont_number = data.get("ont_number")
+                if ont_number:
+                    ont_number = str(ont_number).strip()
+
+                # 🔴 CHECK ONT CONFLICT
+                if ont_number:
+                    existing_ont = Customer.objects.filter(
+                        ont_number=ont_number
+                    ).exclude(username=username)
+
+                    if existing_ont.exists():
+                        errors.append(
+                            f"Row {index+1}: ONT '{ont_number}' already exists for another user"
+                        )
+                        print(f"❌ ONT CONFLICT → {ont_number}")
+                        continue
+
+                # -------- DEFAULTS --------
+                defaults = {}
+
+                for field in ["full_name", "email", "address", "plan"]:
+                    if data.get(field):
+                        defaults[field] = data[field]
+
+                if data.get("phone"):
+                    defaults["phone"] = str(data["phone"]).split('.')[0]
+
+                if ont_number:
+                    defaults["ont_number"] = ont_number
+
+                if data.get("expiry_date"):
+                    defaults["expiry_date"] = pd.to_datetime(
+                        data["expiry_date"], errors="coerce"
+                    ).date()
+
+                # -------- ISP --------
+                if selected_isp:
+                    defaults["isp"] = selected_isp
+                elif data.get("isp"):
+                    isp_name = str(data["isp"]).strip().lower()
+                    if isp_name in isp_cache:
+                        defaults["isp"] = isp_cache[isp_name]
+
+                # -------- LCO --------
+                if selected_lco:
+                    defaults["lco"] = selected_lco
+                    if hasattr(selected_lco, "isp"):
+                        defaults["isp"] = selected_lco.isp
+                elif data.get("lco"):
+                    lco_code = str(data["lco"]).strip().lower()
+                    if lco_code in lco_cache:
+                        defaults["lco"] = lco_cache[lco_code]
+
+                # -------- DEBUG PRINT --------
+                print(f"\n📌 Row {index+1}")
+                print("Username:", username)
+                print("ONT:", ont_number)
+                print("Defaults:", defaults)
+
+                # -------- SAVE --------
                 with transaction.atomic():
-                    Customer.objects.update_or_create(
+                    obj, created = Customer.objects.update_or_create(
                         username=username,
-                        defaults={
-                            **defaults,
-                            "phone": data.get("phone")
-                        }
+                        defaults=defaults
                     )
-                    success_count += 1
+
+                if created:
+                    created_count += 1
+                    print(f"✅ CREATED: {username}")
+                else:
+                    updated_count += 1
+                    print(f"🔄 UPDATED: {username}")
+
+                success_count += 1
+
             except Exception as e:
+                print("\n🔥 ERROR:")
+                traceback.print_exc()
                 errors.append(f"Row {index+1}: {str(e)}")
 
+        # ---------------- RESPONSE ----------------
         return Response({
-            "message": f"{success_count} customers uploaded/updated successfully",
+            "message": f"{success_count} processed",
+            "created": created_count,
+            "updated": updated_count,
             "errors": errors
-        }, status=200)
+        })
+
+
+# class BulkCustomerUpload(APIView):
+#     parser_classes = (MultiPartParser, FormParser)
+#     permission_classes = [IsAuthenticated]  # keep your IsSuperAdmin if needed
+
+#     HEADER_ALIASES = {
+#         "full_name": ["Customer", "name", "Customer Name", "Name,", "Full Name", "FULL_NAME"],
+#         "phone": ["phone", "mobile", "contact number", "Mobile", "Mobile No.", "Phone", "MOBILE", "PHONE"],
+#         "email": ["email", "e-mail", "mail", "EMAIL_ID", "Email Address", "Email", "EMAIL ID"],
+#         "address": ["address", "residence", "Address", "ADDRESS", "Permanent Address"],
+#         "mac_id": ["mac", "mac id", "macid", "MACID", "MAC_ID"],
+#         "plan": ["plan", "internet plan", "Plan", "Plan Name"],
+#         "lco": ["lco", "LCO", "lco code", "LCO_CODE"],
+#         "lco_ref": ["lco_ref", "LCO_REF", "lco reference", "LCO Reference"],
+#         "isp": ["isp id", "isp", "ISP"],
+#         "olt": ["olt id", "olt", "OLT IP", "OLT Name", "OLT"],
+#         "v_lan": ["vlan", "v lan", "v_lan", "V_LAN"],
+#         "ont_number": ["ont number", "ont", "ont no", "ONT_NUMBER"],
+#         "expiry_date": ["expiry", "expiry date", "Expiry Date", "Validity End", "EXPIRY_DATE"],
+#         "signal": ["signal", "SIGNAL"],
+#         "kseb_post": ["kseb post", "post", "KSEB_POST"],
+#         "port": ["port", "PORT"],
+#         "distance": ["distance", "DISTANCE"],
+#         "username": ["username", "user name", "login name", "customer username", "USERNAME"],
+#     }
+
+#     def options(self, request, *args, **kwargs):
+#         return Response(status=200)
+
+#     def normalize_headers(self, df):
+#         header_map = {}
+#         lower_cols = [col.lower().strip() for col in df.columns]
+
+#         for field, aliases in self.HEADER_ALIASES.items():
+#             for alias in aliases:
+#                 if alias.lower() in lower_cols:
+#                     original_col = df.columns[lower_cols.index(alias.lower())]
+#                     header_map[field] = original_col
+#                     break
+#         return header_map
+
+#     def post(self, request, *args, **kwargs):
+#         file = request.FILES.get('file')
+#         if not file:
+#             return Response({'error': 'No file uploaded'}, status=400)
+
+#         request_isp_id = request.data.get("isp")
+
+#         try:
+#             df = pd.read_excel(file)
+#         except Exception as e:
+#             return Response({'error': f'Invalid Excel file: {str(e)}'}, status=400)
+
+#         header_map = self.normalize_headers(df)
+
+#         success_count = 0
+#         errors = []
+#         seen_usernames = set()
+
+#         # 🔹 Optional: preload DB data for performance
+#         isp_cache = {isp.name.lower(): isp for isp in ISP.objects.all()}
+#         olt_cache = {olt.name.lower(): olt for olt in OLT.objects.all()}
+#         lco_cache = {lco.lco_code.lower(): lco for lco in LCO.objects.all()}
+
+#         for index, row in df.iterrows():
+#             data = {}
+
+#             # ---------------- Map Excel columns ----------------
+#             for field, excel_col in header_map.items():
+#                 val = row.get(excel_col)
+#                 if pd.isna(val):
+#                     val = None
+#                 data[field] = val
+
+#             # ---------------- Username (UNIQUE KEY) ----------------
+#             username = data.get('username')
+#             if username:
+#                 username = str(username).strip().lower()
+#             else:
+#                 errors.append(f"Row {index+1}: Missing username")
+#                 continue
+
+#             # Duplicate inside Excel
+#             if username in seen_usernames:
+#                 errors.append(f"Row {index+1}: Duplicate username in file '{username}'")
+#                 continue
+#             seen_usernames.add(username)
+
+#             # ---------------- Phone cleanup ----------------
+#             phone = data.get('phone')
+#             if phone:
+#                 phone = str(phone).split('.')[0].strip()
+#                 if not phone.isdigit():
+#                     errors.append(f"Row {index+1}: Invalid phone number")
+#                     continue
+#                 data['phone'] = phone
+#             else:
+#                 data['phone'] = None  # allow empty
+
+#             # ---------------- Prepare defaults ----------------
+#             defaults = {}
+
+#             for field in [
+#                 'full_name', 'email', 'address', 'mac_id', 'plan',
+#                 'v_lan', 'ont_number', 'signal', 'kseb_post', 'port', 'distance'
+#             ]:
+#                 if data.get(field) not in (None, ''):
+#                     defaults[field] = data[field]
+
+#             # ---------------- Expiry date ----------------
+#             expiry_val = data.get('expiry_date')
+#             if expiry_val not in (None, ''):
+#                 try:
+#                     defaults['expiry_date'] = pd.to_datetime(expiry_val, errors='coerce').date()
+#                 except Exception:
+#                     defaults['expiry_date'] = None
+
+#             # ---------------- ISP ----------------
+#             if request_isp_id:
+#                 try:
+#                     defaults['isp'] = ISP.objects.get(pk=int(request_isp_id))
+#                 except ISP.DoesNotExist:
+#                     errors.append(f"Row {index+1}: ISP '{request_isp_id}' not found.")
+#             elif data.get('isp'):
+#                 isp_name = str(data['isp']).strip().lower()
+#                 if isp_name in isp_cache:
+#                     defaults['isp'] = isp_cache[isp_name]
+#                 else:
+#                     errors.append(f"Row {index+1}: ISP '{data['isp']}' not found.")
+
+#             # ---------------- OLT ----------------
+#             if data.get('olt'):
+#                 olt_val = str(data['olt']).strip()
+#                 try:
+#                     defaults['olt'] = OLT.objects.get(pk=int(olt_val))
+#                 except:
+#                     olt_name = olt_val.lower()
+#                     if olt_name in olt_cache:
+#                         defaults['olt'] = olt_cache[olt_name]
+#                     else:
+#                         errors.append(f"Row {index+1}: OLT '{olt_val}' not found.")
+
+#             # ---------------- LCO ----------------
+#             if data.get('lco'):
+#                 lco_code = str(data['lco']).strip().lower()
+#                 if lco_code in lco_cache:
+#                     defaults['lco'] = lco_cache[lco_code]
+#                 else:
+#                     errors.append(f"Row {index+1}: LCO '{data['lco']}' not found.")
+
+#             # ---------------- LCO_REF ----------------
+#             if data.get('lco_ref'):
+#                 defaults['lco_ref'] = str(data['lco_ref']).strip()
+
+#             # ---------------- Save ----------------
+#             try:
+#                 with transaction.atomic():
+#                     Customer.objects.update_or_create(
+#                         username=username,
+#                         defaults={
+#                             **defaults,
+#                             "phone": data.get("phone")
+#                         }
+#                     )
+#                     success_count += 1
+#             except Exception as e:
+#                 errors.append(f"Row {index+1}: {str(e)}")
+
+#         return Response({
+#             "message": f"{success_count} customers uploaded/updated successfully",
+#             "errors": errors
+#         }, status=200)
 
 
 # -------------------REPORT MODULE---------------------
