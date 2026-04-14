@@ -22,8 +22,7 @@ def log_create_or_update(sender, instance, created, **kwargs):
             action=action,
             model_name=sender.__name__,
             object_id=str(instance.pk),
-            description=f"{user} {action} {sender.__name__} ({instance})",
-        )
+            description=f"{user} {action} {sender.__name__} ({str(instance)})",)
     except (ProgrammingError, OperationalError, DatabaseError):
         # Likely running during migration; ignore if ActivityLog table doesn't exist yet
         pass

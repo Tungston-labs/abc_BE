@@ -29,5 +29,5 @@ class Customer(TimeStampedModel):
     username = models.CharField(max_length=50,null=True, blank=True)
 
     def __str__(self):
-        return self.full_name
+        return str(self.full_name or self.username or f"Customer-{self.id}")
 
