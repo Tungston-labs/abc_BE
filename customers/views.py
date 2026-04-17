@@ -176,20 +176,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from django.db import transaction
-
-import pandas as pd
 import traceback
-
-from django.db import transaction
-from django.db.models import Q
-from rest_framework.views import APIView
-from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-
-from customers.models import Customer
-from lcos.models import LCO
-from network.models import ISP
 
 
 class BulkCustomerUpload(APIView):
@@ -197,24 +184,24 @@ class BulkCustomerUpload(APIView):
     permission_classes = [IsAuthenticated]
 
     HEADER_ALIASES = {
-        "full_name": ["Customer", "name", "Customer Name", "Name,", "Full Name", "FULL_NAME"],
-        "phone": ["phone", "mobile", "contact number", "Mobile", "Mobile No.", "Phone", "MOBILE", "PHONE"],
-        "email": ["email", "e-mail", "mail", "EMAIL_ID", "Email Address", "Email", "EMAIL ID"],
-        "address": ["address", "residence", "Address", "ADDRESS", "Permanent Address"],
+        "full_name": ["Customer", "name", "Customer Name", "Full Name"],
+        "phone": ["phone", "mobile", "Mobile No.", "Phone"],
+        "email": ["email", "Email"],
+        "address": ["address", "Address"],
         "mac_id": ["mac", "mac id", "macid", "MACID", "MAC_ID"],
-        "plan": ["plan", "internet plan", "Plan", "Plan Name"],
-        "lco": ["lco", "LCO", "lco code", "LCO_CODE"],
-        "lco_ref": ["lco_ref", "LCO_REF", "lco reference", "LCO Reference"],
-        "isp": ["isp id", "isp", "ISP"],
-        "olt": ["olt id", "olt", "OLT IP", "OLT Name", "OLT"],
-        "v_lan": ["vlan", "v lan", "v_lan", "V_LAN"],
-        "ont_number": ["ont number", "ont", "ont no", "ONT_NUMBER"],
-        "expiry_date": ["expiry", "expiry date", "Expiry Date", "Validity End", "EXPIRY_DATE"],
-        "signal": ["signal", "SIGNAL"],
-        "kseb_post": ["kseb post", "post", "KSEB_POST"],
-        "port": ["port", "PORT"],
-        "distance": ["distance", "DISTANCE"],
-        "username": ["username", "user name", "login name", "customer username", "USERNAME"],
+        "plan": ["plan", "Plan Name"],
+        "lco": ["lco", "LCO", "lco code"],
+        "lco_ref": ["lco_ref"],
+        "isp": ["isp", "ISP"],
+        "olt": ["olt", "OLT"],
+        "v_lan": ["vlan"],
+        "ont_number": ["ont number", "ont", "ONT_NUMBER"],
+        "expiry_date": ["expiry", "Expiry Date"],
+        "signal": ["signal"],
+        "kseb_post": ["kseb post"],
+        "port": ["port"],
+        "distance": ["distance"],
+        "username": ["username"],
     }
 
     def normalize_headers(self, df):
@@ -227,6 +214,8 @@ class BulkCustomerUpload(APIView):
                     original_col = df.columns[lower_cols.index(alias.lower())]
                     header_map[field] = original_col
                     break
+
+        print("🧠 HEADER MAP:", header_map)
         return header_map
 
     def post(self, request):
@@ -242,7 +231,7 @@ class BulkCustomerUpload(APIView):
             return Response({"error": "Select ISP or LCO"}, status=400)
 
         if request_isp_id and request_lco_id:
-            return Response({"error": "Select either ISP or LCO, not both"}, status=400)
+            return Response({"error": "Select either ISP or LCO"}, status=400)
 
         # ---------------- PRELOAD ----------------
         selected_isp = None
@@ -277,8 +266,9 @@ class BulkCustomerUpload(APIView):
         # Cache
         isp_cache = {isp.name.lower(): isp for isp in ISP.objects.all()}
         lco_cache = {lco.lco_code.lower(): lco for lco in LCO.objects.all()}
+        olt_cache = {olt.name.lower(): olt for olt in OLT.objects.all()}
 
-        # ---------------- PROCESS ROWS ----------------
+        # ---------------- PROCESS ----------------
         for index, row in df.iterrows():
             try:
                 data = {}
@@ -305,36 +295,54 @@ class BulkCustomerUpload(APIView):
                 if ont_number:
                     ont_number = str(ont_number).strip()
 
-                # 🔴 CHECK ONT CONFLICT
                 if ont_number:
-                    existing_ont = Customer.objects.filter(
+                    existing = Customer.objects.filter(
                         ont_number=ont_number
                     ).exclude(username=username)
 
-                    if existing_ont.exists():
-                        errors.append(
-                            f"Row {index+1}: ONT '{ont_number}' already exists for another user"
-                        )
+                    if existing.exists():
+                        errors.append(f"Row {index+1}: ONT '{ont_number}' already exists")
                         print(f"❌ ONT CONFLICT → {ont_number}")
                         continue
 
                 # -------- DEFAULTS --------
                 defaults = {}
 
-                for field in ["full_name", "email", "address", "plan"]:
-                    if data.get(field):
-                        defaults[field] = data[field]
+                # TEXT FIELDS
+                text_fields = [
+                    "full_name", "email", "address", "plan",
+                    "mac_id", "v_lan", "signal", "kseb_post",
+                    "port", "lco_ref"
+                ]
 
+                for field in text_fields:
+                    if data.get(field) not in (None, ""):
+                        defaults[field] = str(data[field]).strip()
+
+                # PHONE
                 if data.get("phone"):
-                    defaults["phone"] = str(data["phone"]).split('.')[0]
+                    phone = str(data["phone"]).split('.')[0].strip()
+                    defaults["phone"] = phone
 
+                # DISTANCE (FLOAT)
+                if data.get("distance") not in (None, ""):
+                    try:
+                        defaults["distance"] = float(data["distance"])
+                    except:
+                        errors.append(f"Row {index+1}: Invalid distance")
+
+                # EXPIRY DATE
+                if data.get("expiry_date"):
+                    try:
+                        defaults["expiry_date"] = pd.to_datetime(
+                            data["expiry_date"], errors="coerce"
+                        ).date()
+                    except:
+                        pass
+
+                # ONT
                 if ont_number:
                     defaults["ont_number"] = ont_number
-
-                if data.get("expiry_date"):
-                    defaults["expiry_date"] = pd.to_datetime(
-                        data["expiry_date"], errors="coerce"
-                    ).date()
 
                 # -------- ISP --------
                 if selected_isp:
@@ -354,10 +362,19 @@ class BulkCustomerUpload(APIView):
                     if lco_code in lco_cache:
                         defaults["lco"] = lco_cache[lco_code]
 
-                # -------- DEBUG PRINT --------
+                # -------- OLT --------
+                if data.get("olt"):
+                    olt_val = str(data["olt"]).strip()
+                    try:
+                        defaults["olt"] = OLT.objects.get(pk=int(olt_val))
+                    except:
+                        olt_name = olt_val.lower()
+                        if olt_name in olt_cache:
+                            defaults["olt"] = olt_cache[olt_name]
+
+                # -------- DEBUG --------
                 print(f"\n📌 Row {index+1}")
                 print("Username:", username)
-                print("ONT:", ont_number)
                 print("Defaults:", defaults)
 
                 # -------- SAVE --------
@@ -381,14 +398,12 @@ class BulkCustomerUpload(APIView):
                 traceback.print_exc()
                 errors.append(f"Row {index+1}: {str(e)}")
 
-        # ---------------- RESPONSE ----------------
         return Response({
             "message": f"{success_count} processed",
             "created": created_count,
             "updated": updated_count,
             "errors": errors
         })
-
 
 # class BulkCustomerUpload(APIView):
 #     parser_classes = (MultiPartParser, FormParser)
