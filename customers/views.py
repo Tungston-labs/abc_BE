@@ -177,6 +177,21 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.db import transaction
 import traceback
+import pandas as pd
+import traceback
+from django.db import transaction
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import MultiPartParser, FormParser
+
+from customers.models import Customer
+from lcos.models import LCO
+from network.models import ISP, OLT
+
+# ✅ SIGNAL CONTROL
+from django.db.models.signals import post_save
+from shared.signals import log_create_or_update
 
 
 class BulkCustomerUpload(APIView):
@@ -268,135 +283,143 @@ class BulkCustomerUpload(APIView):
         lco_cache = {lco.lco_code.lower(): lco for lco in LCO.objects.all()}
         olt_cache = {olt.name.lower(): olt for olt in OLT.objects.all()}
 
-        # ---------------- PROCESS ----------------
-        for index, row in df.iterrows():
-            try:
-                data = {}
+        # ✅ DISABLE SIGNALS
+        post_save.disconnect(log_create_or_update, sender=Customer)
 
-                for field, excel_col in header_map.items():
-                    val = row.get(excel_col)
-                    data[field] = None if pd.isna(val) else val
+        try:
+            # ✅ SINGLE TRANSACTION (important)
+            with transaction.atomic():
 
-                # -------- USERNAME --------
-                username = str(data.get("username", "")).strip().lower()
-
-                if not username:
-                    errors.append(f"Row {index+1}: Missing username")
-                    continue
-
-                if username in seen_usernames:
-                    errors.append(f"Row {index+1}: Duplicate username in file")
-                    continue
-
-                seen_usernames.add(username)
-
-                # -------- ONT --------
-                ont_number = data.get("ont_number")
-                if ont_number:
-                    ont_number = str(ont_number).strip()
-
-                if ont_number:
-                    existing = Customer.objects.filter(
-                        ont_number=ont_number
-                    ).exclude(username=username)
-
-                    if existing.exists():
-                        errors.append(f"Row {index+1}: ONT '{ont_number}' already exists")
-                        print(f"❌ ONT CONFLICT → {ont_number}")
-                        continue
-
-                # -------- DEFAULTS --------
-                defaults = {}
-
-                # TEXT FIELDS
-                text_fields = [
-                    "full_name", "email", "address", "plan",
-                    "mac_id", "v_lan", "signal", "kseb_post",
-                    "port", "lco_ref"
-                ]
-
-                for field in text_fields:
-                    if data.get(field) not in (None, ""):
-                        defaults[field] = str(data[field]).strip()
-
-                # PHONE
-                if data.get("phone"):
-                    phone = str(data["phone"]).split('.')[0].strip()
-                    defaults["phone"] = phone
-
-                # DISTANCE (FLOAT)
-                if data.get("distance") not in (None, ""):
+                for index, row in df.iterrows():
                     try:
-                        defaults["distance"] = float(data["distance"])
-                    except:
-                        errors.append(f"Row {index+1}: Invalid distance")
+                        data = {}
 
-                # EXPIRY DATE
-                if data.get("expiry_date"):
-                    try:
-                        defaults["expiry_date"] = pd.to_datetime(
-                            data["expiry_date"], errors="coerce"
-                        ).date()
-                    except:
-                        pass
+                        for field, excel_col in header_map.items():
+                            val = row.get(excel_col)
+                            data[field] = None if pd.isna(val) else val
 
-                # ONT
-                if ont_number:
-                    defaults["ont_number"] = ont_number
+                        # -------- USERNAME --------
+                        username = str(data.get("username", "")).strip().lower()
 
-                # -------- ISP --------
-                if selected_isp:
-                    defaults["isp"] = selected_isp
-                elif data.get("isp"):
-                    isp_name = str(data["isp"]).strip().lower()
-                    if isp_name in isp_cache:
-                        defaults["isp"] = isp_cache[isp_name]
+                        if not username:
+                            print(f"❌ SKIPPED Row {index+1}: Missing username")
+                            errors.append(f"Row {index+1}: Missing username")
+                            continue
 
-                # -------- LCO --------
-                if selected_lco:
-                    defaults["lco"] = selected_lco
-                    if hasattr(selected_lco, "isp"):
-                        defaults["isp"] = selected_lco.isp
-                elif data.get("lco"):
-                    lco_code = str(data["lco"]).strip().lower()
-                    if lco_code in lco_cache:
-                        defaults["lco"] = lco_cache[lco_code]
+                        if username in seen_usernames:
+                            print(f"❌ SKIPPED Row {index+1}: Duplicate username in file")
+                            errors.append(f"Row {index+1}: Duplicate username in file")
+                            continue
 
-                # -------- OLT --------
-                if data.get("olt"):
-                    olt_val = str(data["olt"]).strip()
-                    try:
-                        defaults["olt"] = OLT.objects.get(pk=int(olt_val))
-                    except:
-                        olt_name = olt_val.lower()
-                        if olt_name in olt_cache:
-                            defaults["olt"] = olt_cache[olt_name]
+                        seen_usernames.add(username)
 
-                # -------- DEBUG --------
-                print(f"\n📌 Row {index+1}")
-                print("Username:", username)
-                print("Defaults:", defaults)
+                        # -------- ONT --------
+                        ont_number = data.get("ont_number")
+                        if ont_number:
+                            ont_number = str(ont_number).strip()
 
-                # -------- SAVE --------
-                with transaction.atomic():
-                    obj, created = Customer.objects.update_or_create(
-                        username=username,
-                        defaults=defaults
-                    )
+                        # ✅ FIX: Allow update instead of skipping
+                        if ont_number:
+                            existing_ont = Customer.objects.filter(
+                                ont_number=ont_number
+                            ).exclude(username=username).first()
 
-                if created:
-                    created_count += 1
-                    print(f"✅ CREATED: {username}")
-                else:
-                    updated_count += 1
-                    print(f"🔄 UPDATED: {username}")
+                            if existing_ont:
+                                print(f"⚠️ ONT reassigned {existing_ont.username} → {username}")
+                                existing_ont.username = username
+                                existing_ont.save()
 
-                success_count += 1
+                        # -------- DEFAULTS --------
+                        defaults = {}
 
-            except Exception as e:
-                print("\n🔥 ERROR:")
-                traceback.print_exc()
-                errors.append(f"Row {index+1}: {str(e)}")
+                        text_fields = [
+                            "full_name", "email", "address", "plan",
+                            "mac_id", "v_lan", "signal", "kseb_post",
+                            "port", "lco_ref"
+                        ]
+
+                        for field in text_fields:
+                            if data.get(field) not in (None, ""):
+                                defaults[field] = str(data[field]).strip()
+
+                        # PHONE
+                        if data.get("phone"):
+                            defaults["phone"] = str(data["phone"]).split('.')[0].strip()
+
+                        # DISTANCE
+                        if data.get("distance") not in (None, ""):
+                            try:
+                                defaults["distance"] = float(data["distance"])
+                            except:
+                                errors.append(f"Row {index+1}: Invalid distance")
+
+                        # EXPIRY DATE
+                        if data.get("expiry_date"):
+                            try:
+                                defaults["expiry_date"] = pd.to_datetime(
+                                    data["expiry_date"], errors="coerce"
+                                ).date()
+                            except:
+                                pass
+
+                        if ont_number:
+                            defaults["ont_number"] = ont_number
+
+                        # ISP
+                        if selected_isp:
+                            defaults["isp"] = selected_isp
+                        elif data.get("isp"):
+                            isp_name = str(data["isp"]).strip().lower()
+                            if isp_name in isp_cache:
+                                defaults["isp"] = isp_cache[isp_name]
+
+                        # LCO
+                        if selected_lco:
+                            defaults["lco"] = selected_lco
+                            if hasattr(selected_lco, "isp"):
+                                defaults["isp"] = selected_lco.isp
+                        elif data.get("lco"):
+                            lco_code = str(data["lco"]).strip().lower()
+                            if lco_code in lco_cache:
+                                defaults["lco"] = lco_cache[lco_code]
+
+                        # OLT
+                        if data.get("olt"):
+                            olt_val = str(data["olt"]).strip()
+                            try:
+                                defaults["olt"] = OLT.objects.get(pk=int(olt_val))
+                            except:
+                                if olt_val.lower() in olt_cache:
+                                    defaults["olt"] = olt_cache[olt_val.lower()]
+
+                        # DEBUG
+                        print(f"\n📌 Row {index+1}")
+                        print("Username:", username)
+                        print("Defaults:", defaults)
+
+                        # SAVE
+                        obj, created = Customer.objects.update_or_create(
+                            username=username,
+                            defaults=defaults
+                        )
+
+                        if created:
+                            created_count += 1
+                            print(f"✅ CREATED: {username}")
+                        else:
+                            updated_count += 1
+                            print(f"🔄 UPDATED: {username}")
+
+                        success_count += 1
+
+                    except Exception as e:
+                        print("\n🔥 ERROR:")
+                        traceback.print_exc()
+                        errors.append(f"Row {index+1}: {str(e)}")
+
+        finally:
+            # ✅ RE-ENABLE SIGNALS
+            post_save.connect(log_create_or_update, sender=Customer)
 
         return Response({
             "message": f"{success_count} processed",
@@ -404,7 +427,6 @@ class BulkCustomerUpload(APIView):
             "updated": updated_count,
             "errors": errors
         })
-
 # class BulkCustomerUpload(APIView):
 #     parser_classes = (MultiPartParser, FormParser)
 #     permission_classes = [IsAuthenticated]  # keep your IsSuperAdmin if needed

@@ -26,6 +26,9 @@ class Command(BaseCommand):
 
         for phone, custs in lco_map.items():
 
+            # 🔥 FIX: remove + symbol
+            phone = phone.replace("+", "")
+
             customer_list = ""
             for c in custs:
                 customer_list += f"{c.full_name} ({c.phone})\n"
