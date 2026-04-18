@@ -34,12 +34,13 @@ class Command(BaseCommand):
                 customer_list += f"{c.full_name} ({c.phone})\n"
 
             try:
-                send_whatsapp_message(
+                result=send_whatsapp_message(
                     phone=phone,
                     lco_name="LCO",
                     date_str=today_str,
                     customer_list=customer_list
                 )
+                print("META RESPONSE:", result)
                 self.stdout.write(f"Sent to LCO: {phone}")
             except Exception as e:
                 self.stderr.write(f"Failed for {phone}: {str(e)}")

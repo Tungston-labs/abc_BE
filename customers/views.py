@@ -823,3 +823,27 @@ class CustomersExpiringSoonFilteredView(generics.ListAPIView):
         elif hasattr(user, 'lco_profile'):
             return queryset.filter(lco=user.lco_profile)
         return Customer.objects.none()
+    
+
+
+
+from rest_framework.permissions import AllowAny
+
+
+class CustomerSignalListView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        limit = int(request.query_params.get("limit", 5000))  # default 5k
+        offset = int(request.query_params.get("offset", 0))
+
+        queryset = Customer.objects.exclude(ont_number__isnull=True)\
+                                   .exclude(ont_number="")\
+                                   .values("id", "ont_number", "signal")[offset:offset+limit]
+
+        return Response({
+            "count": Customer.objects.count(),
+            "limit": limit,
+            "offset": offset,
+            "results": list(queryset)
+        })

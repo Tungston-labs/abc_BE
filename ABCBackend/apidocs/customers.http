@@ -7,9 +7,8 @@
 # ---------CUSTOMER----------
 
 ### List all customers (with search and pagination)
-GET http://localhost:8000/api/client/customer/?search=&page=1
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY5NTkzMTU2LCJpYXQiOjE3Njk1NzE1NTYsImp0aSI6IjgwZTgyYzdlY2ZkNDRhMjI4ZTA1ZWRhOTE1ZDFjNmUwIiwidXNlcl9pZCI6MX0.oL2CpySHRezTXyJ-qCwzaqBHuiTYCZUitWndESvGjCQ
-
+GET https://api.aluvabroadband.com/api/client/customer/?search=&page=1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc2NTMzMDcyLCJpYXQiOjE3NzY1MTE0NzIsImp0aSI6ImEwN2I2NGVkMzljZjRhMDc5MGZiMzZlNmM2ZWFlNTdiIiwidXNlcl9pZCI6MzB9.RoiNaExyvdTOt679jUeUE0VCksraiBO5qeUHzaKtuVY
 
 ### Create customer
 POST http://localhost:8000/api/client/customer/
