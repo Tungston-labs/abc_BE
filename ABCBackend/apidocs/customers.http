@@ -7,7 +7,7 @@
 # ---------CUSTOMER----------
 
 ### List all customers (with search and pagination)
-GET https://api.aluvabroadband.com/api/client/customer/?search=&page=1
+GET https://api.aluvabroadband.com/api/client/customer/signal-list/
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc2NTMzMDcyLCJpYXQiOjE3NzY1MTE0NzIsImp0aSI6ImEwN2I2NGVkMzljZjRhMDc5MGZiMzZlNmM2ZWFlNTdiIiwidXNlcl9pZCI6MzB9.RoiNaExyvdTOt679jUeUE0VCksraiBO5qeUHzaKtuVY
 
 ### Create customer

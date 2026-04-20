@@ -38,6 +38,9 @@ class OLT(TimeStampedModel):
     switch = models.ForeignKey('network.Switch', on_delete=models.CASCADE, related_name='olts')
     lco = models.ForeignKey('lcos.LCO', on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_olts')
     unique_id = models.CharField(max_length=50,unique=True,null=True,blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    telnet_username = models.CharField(max_length=100, null=True, blank=True)
+    telnet_password = models.CharField(max_length=100, null=True, blank=True)
 
 
     def save(self, *args, **kwargs):
