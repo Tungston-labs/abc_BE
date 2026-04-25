@@ -10,12 +10,10 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         customers = get_today_expiring_customers()
 
-        # ✅ If no customers → stop cron quietly
         if not customers:
             self.stdout.write("No expiring customers today.")
             return
 
-        # Format today's date → 09 Feb 2026
         today_str = date.today().strftime("%d %b %Y")
 
         lco_map = {}
@@ -26,22 +24,29 @@ class Command(BaseCommand):
 
         for phone, custs in lco_map.items():
 
-            # 🔥 FIX: remove + symbol
+            # ✅ Remove +
             phone = phone.replace("+", "")
 
-            customer_list = ""
-            for c in custs:
-                customer_list += f"{c.full_name} ({c.phone})\n"
+            # ✅ NO newline (IMPORTANT)
+            customer_list = ", ".join([
+            f"{c.full_name or c.username or '-'} "
+            f"({c.phone or '-'}) "
+            f"| User: {c.username or '-'} "
+            f"| ISP: {c.isp.name if c.isp else '-'}"
+            for c in custs
+        ])
 
             try:
-                result=send_whatsapp_message(
+                result = send_whatsapp_message(
                     phone=phone,
                     lco_name="LCO",
                     date_str=today_str,
                     customer_list=customer_list
                 )
+
                 print("META RESPONSE:", result)
                 self.stdout.write(f"Sent to LCO: {phone}")
+
             except Exception as e:
                 self.stderr.write(f"Failed for {phone}: {str(e)}")
 

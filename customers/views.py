@@ -188,8 +188,6 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from customers.models import Customer
 from lcos.models import LCO
 from network.models import ISP, OLT
-
-# ✅ SIGNAL CONTROL
 from django.db.models.signals import post_save
 from shared.signals import log_create_or_update
 
@@ -230,7 +228,7 @@ class BulkCustomerUpload(APIView):
                     header_map[field] = original_col
                     break
 
-        print("🧠 HEADER MAP:", header_map)
+        print(" HEADER MAP:", header_map)
         return header_map
 
     def post(self, request):

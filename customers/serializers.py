@@ -10,7 +10,13 @@ from lcos.models import LCO
 from network.models import OLT,ISP
 
 class CustomerSerializer(serializers.ModelSerializer):
-    # Fully editable field
+
+    phone = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        validators=[]   
+    )
+
     lco_ref = serializers.CharField(required=False, allow_blank=True)
     lco_name = serializers.CharField(source='lco.name', read_only=True)
     isp_name = serializers.CharField(source='isp.name', read_only=True)
@@ -23,9 +29,8 @@ class CustomerSerializer(serializers.ModelSerializer):
             'last_updated', 'lco', 'lco_ref', 'mac_id', 'plan', 'v_lan',
             'isp', 'expiry_date', 'ont_number', 'olt', 'signal',
             'kseb_post', 'port', 'distance',
-            'lco_name', 'isp_name', 'olt_name','username'
+            'lco_name', 'isp_name', 'olt_name', 'username'
         ]
-
 
 
 class LCODropdownSerializer(serializers.ModelSerializer):

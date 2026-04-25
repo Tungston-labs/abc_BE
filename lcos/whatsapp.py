@@ -24,14 +24,24 @@ def send_whatsapp_message(phone, lco_name, date_str, customer_list):
     }
 
     data = {
-    "messaging_product": "whatsapp",
-    "to": phone,
-    "type": "template",
-    "template": {
-        "name": "hello_world",
-        "language": {"code": "en_US"}
+        "messaging_product": "whatsapp",
+        "to": phone,
+        "type": "template",
+        "template": {
+            "name": "alert_expiry",
+            "language": {"code": "en"},
+            "components": [
+                {
+                    "type": "body",
+                    "parameters": [
+                        {"type": "text", "text": lco_name},
+                        {"type": "text", "text": date_str},
+                        {"type": "text", "text": customer_list}
+                    ]
+                }
+            ]
+        }
     }
-}
 
     response = requests.post(url, json=data, headers=headers)
 
