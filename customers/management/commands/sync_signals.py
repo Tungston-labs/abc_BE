@@ -1,8 +1,8 @@
 import requests
 from django.core.management.base import BaseCommand
 from customers.models import Customer
-
-API_URL = "http://103.104.45.59:8000/signals"
+from django.conf import settings
+API_URL = settings.SIGNAL_API_BASE_URL
 
 class Command(BaseCommand):
     help = "Fast sync ONU signals"

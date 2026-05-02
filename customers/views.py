@@ -81,17 +81,61 @@ class CustomerListCreateView(TrackCreatedUpdatedUserMixin, generics.ListCreateAP
 
 
 
-class CustomerRetrieveUpdateDestroyView(TrackCreatedUpdatedUserMixin, generics.RetrieveUpdateDestroyAPIView):
+import requests
+from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+from .models import Customer
+from .serializers import CustomerSerializer
+
+
+import requests
+from django.conf import settings
+from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+
+class CustomerRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = CustomerSerializer
 
     def get_queryset(self):
         user = self.request.user
+
         if user.is_super_admin:
             return Customer.objects.all()
         elif hasattr(user, 'lco_profile'):
             return Customer.objects.filter(lco=user.lco_profile)
+
         return Customer.objects.none()
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        serial_number = instance.ont_number
+
+        if serial_number:
+            try:
+                base_url = settings.SIGNAL_API_BASE_URL
+                url = f"{base_url}/signal/{serial_number}"
+
+                response = requests.get(url, timeout=3)
+
+                if response.status_code == 200:
+                    data = response.json()
+                    rx_power = data.get("rx_power")
+
+                    if rx_power is not None:
+                        instance.signal = rx_power
+                        instance.save(update_fields=["signal", "last_updated"])
+
+            except Exception as e:
+                print("Signal API error:", e)
+
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
 
 
