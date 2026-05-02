@@ -146,7 +146,7 @@ DATABASES = {
 # DATABASES = {
 #     "default": {
 #         "ENGINE": "django.db.backends.sqlite3",
-#         "NAME": BASE_DIR / "db.sqlite3",   # database file path
+#         "NAME": BASE_DIR / "db.sqlite3",   
 #     }
 # }
 
@@ -235,6 +235,7 @@ EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
 TWILIO_ACCOUNT_SID = config("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = config("TWILIO_AUTH_TOKEN")
 TWILIO_WHATSAPP_NUMBER = config("TWILIO_WHATSAPP_NUMBER")
+TWILIO_TEMPLATE_SID = config("TWILIO_TEMPLATE_SID")
 
 
 MEDIA_URL = '/media/'
