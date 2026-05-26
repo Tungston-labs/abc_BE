@@ -842,16 +842,26 @@ from datetime import date, timedelta
 from .models import Customer
 from .serializers import CustomerSerializer
 
+
+
 class CustomersExpiringSoonFilteredView(generics.ListAPIView):
+
     permission_classes = [IsAuthenticated]
+
     serializer_class = CustomerSerializer
+
     pagination_class = StandardResultsSetPagination
+
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+
     filterset_fields = ['lco']
-    search_fields = ['full_name', 'phone','plan']
+
+    search_fields = ['full_name', 'phone', 'plan']
 
     def get_queryset(self):
+
         today = timezone.now().date()
+
         five_days_from_now = today + timedelta(days=5)
 
         queryset = Customer.objects.filter(
@@ -860,10 +870,16 @@ class CustomersExpiringSoonFilteredView(generics.ListAPIView):
 
         user = self.request.user
 
+        # SUPER ADMIN → ALL EXPIRING CUSTOMERS
         if user.is_super_admin:
             return queryset
-        elif hasattr(user, 'lco_profile'):
-            return queryset.filter(lco=user.lco_profile)
+
+        # LCO USER → ONLY THEIR CUSTOMERS
+        if hasattr(user, 'lco_profile'):
+            return queryset.filter(
+                lco=user.lco_profile
+            )
+
         return Customer.objects.none()
     
 

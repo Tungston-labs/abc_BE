@@ -471,33 +471,69 @@ from lcos.models import LCO
 from django.db import models
 
 
+from django.utils import timezone
+from django.db import models
+from datetime import timedelta
+
+
+
+
 class DashboardCountView(APIView):
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+
         user = request.user
 
         # Get LCO instance for logged-in user
         try:
             lco = LCO.objects.get(user=user)
+
         except LCO.DoesNotExist:
+
             return Response({
                 "error": "LCO not found for this user"
             }, status=400)
 
         # Customer count
-        customer_count = Customer.objects.filter(lco=lco).count()
+        customer_count = Customer.objects.filter(
+            lco=lco
+        ).count()
 
         # Ticket count
-        ticket_count = Ticket.objects.filter(lco=user).count()
+        ticket_count = Ticket.objects.filter(
+            lco=user
+        ).count()
 
-        # Optional: status-wise ticket counts
-        ticket_status_counts = Ticket.objects.filter(lco=user).values('status').annotate(count=models.Count('id'))
+        # Status-wise ticket counts
+        ticket_status_counts = (
+            Ticket.objects.filter(lco=user)
+            .values('status')
+            .annotate(count=models.Count('id'))
+        )
+
+        # ==============================
+        # Expiring customer count
+        # ==============================
+        today = timezone.now().date()
+
+        five_days_from_now = today + timedelta(days=5)
+
+        expiring_customer_count = Customer.objects.filter(
+            lco=lco,
+            expiry_date__range=(today, five_days_from_now)
+        ).count()
 
         return Response({
+
             "customer_count": customer_count,
+
             "ticket_count": ticket_count,
-            "ticket_status_counts": ticket_status_counts
+
+            "ticket_status_counts": ticket_status_counts,
+
+            "expiring_customer_count": expiring_customer_count
         })
 
 
