@@ -131,7 +131,6 @@ from rest_framework.permissions import IsAuthenticated
 from .models import OLT
 from .serializers import OLTSerializer
 
-from shared.pagination import StandardResultsSetPagination
 
 
 class OLTListCreateView(
