@@ -125,19 +125,46 @@ class BulkSwitchUpload(TrackCreatedUpdatedUserMixin, APIView):
 
 
 
-from rest_framework import generics
+from rest_framework import generics, filters
 from rest_framework.permissions import IsAuthenticated
+
 from .models import OLT
 from .serializers import OLTSerializer
-from shared.permissions import IsSuperAdmin
 
-class OLTListCreateView(TrackCreatedUpdatedUserMixin,generics.ListCreateAPIView):
-    queryset = OLT.objects.all()
+from shared.pagination import StandardResultsSetPagination
+
+
+class OLTListCreateView(
+    TrackCreatedUpdatedUserMixin,
+    generics.ListCreateAPIView
+):
+
     serializer_class = OLTSerializer
+
     permission_classes = [IsAuthenticated]
+
     pagination_class = StandardResultsSetPagination
+
     filter_backends = [filters.SearchFilter]
+
     search_fields = ['name', 'uid']
+
+    def get_queryset(self):
+
+        user = self.request.user
+
+        # SUPER ADMIN → ALL OLTS
+        if user.is_super_admin:
+            return OLT.objects.all().order_by('-id')
+
+        # LCO → ONLY THEIR OLTS
+        elif hasattr(user, 'lco_profile'):
+
+            return OLT.objects.filter(
+                lco=user.lco_profile
+            ).order_by('-id')
+
+        return OLT.objects.none()
 
 
 class OLTRetrieveUpdateDestroyView(TrackCreatedUpdatedUserMixin,generics.RetrieveUpdateDestroyAPIView):

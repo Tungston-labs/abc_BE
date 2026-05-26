@@ -524,10 +524,16 @@ class DashboardCountView(APIView):
             lco=lco,
             expiry_date__range=(today, five_days_from_now)
         ).count()
+        # OLT count
+        olt_count = OLT.objects.filter(
+            lco=lco
+        ).count()
 
         return Response({
 
             "customer_count": customer_count,
+
+            "olt_count": olt_count,
 
             "ticket_count": ticket_count,
 
