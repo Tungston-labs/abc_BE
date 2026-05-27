@@ -140,56 +140,120 @@ class CustomerRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
 
 
 
-# drop down data of lco,olt,isp
+
+
 
 class DropdownDataAPIView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
+
+        user = request.user
+
         lco_id = request.query_params.get("lco_id", None)
 
-        # LCO list with name and address
-        lcos = LCO.objects.all()
-        lco_data = [
-            {
-                "id": lco.id,
-                "label": f"{lco.name} ({lco.address})"
-            } for lco in lcos
-        ]
+        # ==========================================
+        # SUPER ADMIN
+        # ==========================================
+        if user.is_super_admin:
 
-        # ISP list
+            lcos = LCO.objects.all()
+
+            lco_data = [
+                {
+                    "id": lco.id,
+                    "label": f"{lco.name} ({lco.address})"
+                }
+                for lco in lcos
+            ]
+
+        # ==========================================
+        # LCO USER
+        # ==========================================
+        elif hasattr(user, 'lco_profile'):
+
+            lco = user.lco_profile
+
+            lco_data = [
+                {
+                    "id": lco.id,
+                    "label": f"{lco.name} ({lco.address})"
+                }
+            ]
+
+            # Automatically use logged-in LCO id
+            lco_id = lco.id
+
+        else:
+
+            return Response(
+                {"error": "Invalid user"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # ==========================================
+        # ISP LIST
+        # ==========================================
         isps = ISP.objects.all()
+
         isp_data = [
             {
                 "id": isp.id,
                 "name": isp.name
-            } for isp in isps
+            }
+            for isp in isps
         ]
 
-        # Filtered OLTs based on selected LCO
+        # ==========================================
+        # OLT LIST
+        # ==========================================
         if lco_id:
-            olts = OLT.objects.filter(lco_id=lco_id)
+
+            olts = OLT.objects.filter(
+                lco_id=lco_id
+            )
+
         else:
+
             olts = OLT.objects.none()
 
         olt_data = [
             {
                 "id": olt.id,
                 "name": olt.name
-            } for olt in olts
+            }
+            for olt in olts
         ]
 
-        # LCO ref (e.g., username of linked user)
+        # ==========================================
+        # LCO REF
+        # ==========================================
         lco_ref = None
+
         if lco_id:
+
             try:
+
                 lco = LCO.objects.get(id=lco_id)
+
                 lco_ref = lco.user.username
+
             except LCO.DoesNotExist:
-                return Response({"error": "LCO not found"}, status=status.HTTP_404_NOT_FOUND)
+
+                return Response(
+                    {"error": "LCO not found"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
 
         return Response({
+
             "lcos": lco_data,
+
             "isps": isp_data,
+
             "olts": olt_data,
+
             "lco_ref": lco_ref
         })
 
