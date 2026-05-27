@@ -1,8 +1,9 @@
 from rest_framework import serializers
-from .models import Ticket,TicketAttachment
+from .models import Ticket, TicketAttachment
 
 
 class TicketAttachmentSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = TicketAttachment
         fields = ["id", "file", "uploaded_at"]
@@ -31,3 +32,12 @@ class TicketSerializer(serializers.ModelSerializer):
             return obj.lco.lco_profile.name
 
         return None
+
+    def create(self, validated_data):
+
+        # remove files before Ticket create
+        validated_data.pop("files", None)
+
+        ticket = Ticket.objects.create(**validated_data)
+
+        return ticket
