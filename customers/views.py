@@ -895,7 +895,7 @@ class LCOCustomerSearchListView(generics.ListAPIView):
     def get_queryset(self):
         return Customer.objects.filter(lco__user=self.request.user).order_by('-last_updated')
 
-
+from datetime import timedelta
 class CustomersExpiringSoonFilteredView(generics.ListAPIView):
 
     permission_classes = [IsAuthenticated]
