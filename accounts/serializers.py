@@ -7,25 +7,43 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+
     def validate(self, attrs):
+
         data = super().validate(attrs)
 
         user = self.user
 
-        # Safely get LCO name if exists
+        # Default values
         lco_name = ''
+        networking_name = ''
+
+        # LCO details
         if hasattr(user, 'lco_profile') and user.lco_profile:
+
             lco_name = user.lco_profile.name
-            networking_name = user.lco_profile.networking_name if user.lco_profile.networking_name else ''
+
+            networking_name = (
+                user.lco_profile.networking_name
+                if user.lco_profile.networking_name
+                else ''
+            )
 
         data['user'] = {
+
             'id': user.id,
+
             'username': user.username,
+
             'email': user.email,
+
             'phone': user.phone,
-            'is_super_admin': user.is_super_admin,  # ✅ Add this
+
+            'is_super_admin': user.is_super_admin,
+
             'lco_name': lco_name,
-            'networking_name':networking_name ,
+
+            'networking_name': networking_name,
         }
 
         return data
