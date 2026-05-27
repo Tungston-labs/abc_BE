@@ -896,18 +896,6 @@ class LCOCustomerSearchListView(generics.ListAPIView):
         return Customer.objects.filter(lco__user=self.request.user).order_by('-last_updated')
 
 
-# customers/views.py
-
-from rest_framework import generics, filters
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from django_filters.rest_framework import DjangoFilterBackend
-from datetime import date, timedelta
-from .models import Customer
-from .serializers import CustomerSerializer
-
-
-
 class CustomersExpiringSoonFilteredView(generics.ListAPIView):
 
     permission_classes = [IsAuthenticated]
@@ -918,7 +906,7 @@ class CustomersExpiringSoonFilteredView(generics.ListAPIView):
 
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
 
-    filterset_fields = ['lco']
+    filterset_fields = ['lco', 'expiry_date']
 
     search_fields = ['full_name', 'phone', 'plan']
 
@@ -940,13 +928,12 @@ class CustomersExpiringSoonFilteredView(generics.ListAPIView):
 
         # LCO USER → ONLY THEIR CUSTOMERS
         if hasattr(user, 'lco_profile'):
+
             return queryset.filter(
                 lco=user.lco_profile
             )
 
         return Customer.objects.none()
-    
-
 
 
 from rest_framework.permissions import AllowAny

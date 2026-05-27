@@ -6,9 +6,9 @@ from shared.models import TimeStampedModel
 class Ticket(TimeStampedModel):
     CATEGORY_CHOICES = (
         ("topup", "Top-up Request"),
-        ("connection", "Connection Issue"),
+        ("connection", "Recharge"),
         ("configuration", "Configuration Issue"),
-        ("new_connection", "New Connection Request"),
+        ("new_connection", "Creation"),
         ("other", "Other"),
     )
 
