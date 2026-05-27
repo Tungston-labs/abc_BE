@@ -9,13 +9,25 @@ class TicketAttachmentSerializer(serializers.ModelSerializer):
 
 
 class TicketSerializer(serializers.ModelSerializer):
+
     lco_name = serializers.SerializerMethodField()
 
+    files = serializers.ListField(
+        child=serializers.FileField(),
+        write_only=True,
+        required=False
+    )
+
     class Meta:
+
         model = Ticket
+
         fields = "__all__"
 
     def get_lco_name(self, obj):
+
         if obj.lco and hasattr(obj.lco, "lco_profile"):
+
             return obj.lco.lco_profile.name
+
         return None

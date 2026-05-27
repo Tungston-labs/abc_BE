@@ -26,19 +26,21 @@ class LCOTicketCreateAPIView(generics.CreateAPIView):
     parser_classes = (MultiPartParser, FormParser)
 
     def perform_create(self, serializer):
-        ticket = serializer.save(
-            created_by=self.request.user,
-            lco=self.request.user,        
-            source='lco_app'
-        )
 
-        # handle multiple file uploads
-        files = self.request.FILES.getlist("files")
-        for file in files:
-            TicketAttachment.objects.create(
-                ticket=ticket,
-                file=file
-            )
+    files = self.request.FILES.getlist("files")
+
+    ticket = serializer.save(
+        created_by=self.request.user,
+        lco=self.request.user,
+        source='lco_app'
+    )
+
+    for file in files:
+
+        TicketAttachment.objects.create(
+            ticket=ticket,
+            file=file
+        )
 
 
 
