@@ -16,6 +16,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         lco_name = ''
         if hasattr(user, 'lco_profile') and user.lco_profile:
             lco_name = user.lco_profile.name
+            networking_name = user.lco_profile.networking_name if user.lco_profile.networking_name else ''
 
         data['user'] = {
             'id': user.id,
@@ -24,6 +25,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             'phone': user.phone,
             'is_super_admin': user.is_super_admin,  # ✅ Add this
             'lco_name': lco_name,
+            'networking_name':networking_name ,
         }
 
         return data
