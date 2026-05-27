@@ -13,10 +13,17 @@ class TicketSerializer(serializers.ModelSerializer):
 
     lco_name = serializers.SerializerMethodField()
 
+    # For upload
     files = serializers.ListField(
         child=serializers.FileField(),
         write_only=True,
         required=False
+    )
+
+    # For response
+    attachments = TicketAttachmentSerializer(
+        many=True,
+        read_only=True
     )
 
     class Meta:
@@ -35,7 +42,6 @@ class TicketSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
 
-        # remove files before Ticket create
         validated_data.pop("files", None)
 
         ticket = Ticket.objects.create(**validated_data)
