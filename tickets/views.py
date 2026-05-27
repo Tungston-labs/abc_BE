@@ -27,20 +27,20 @@ class LCOTicketCreateAPIView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
 
-    files = self.request.FILES.getlist("files")
+        files = self.request.FILES.getlist("files")
 
-    ticket = serializer.save(
-        created_by=self.request.user,
-        lco=self.request.user,
-        source='lco_app'
-    )
-
-    for file in files:
-
-        TicketAttachment.objects.create(
-            ticket=ticket,
-            file=file
+        ticket = serializer.save(
+            created_by=self.request.user,
+            lco=self.request.user,
+            source='lco_app'
         )
+
+        for file in files:
+
+            TicketAttachment.objects.create(
+                ticket=ticket,
+                file=file
+            )
 
 
 
