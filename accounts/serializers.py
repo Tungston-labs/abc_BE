@@ -22,6 +22,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         if hasattr(user, 'lco_profile') and user.lco_profile:
 
             lco_name = user.lco_profile.name
+            lco_address = user.lco_profile.address
 
             networking_name = (
                 user.lco_profile.networking_name
@@ -44,6 +45,8 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             'lco_name': lco_name,
 
             'networking_name': networking_name,
+            
+            'lco_address':lco_address,
         }
 
         return data
