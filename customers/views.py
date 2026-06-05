@@ -896,6 +896,8 @@ class LCOCustomerSearchListView(generics.ListAPIView):
         return Customer.objects.filter(lco__user=self.request.user).order_by('-last_updated')
 
 from datetime import timedelta
+from datetime import timedelta
+from django.utils import timezone
 class CustomersExpiringSoonFilteredView(generics.ListAPIView):
 
     permission_classes = [IsAuthenticated]
@@ -906,9 +908,11 @@ class CustomersExpiringSoonFilteredView(generics.ListAPIView):
 
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
 
-    filterset_fields = ['lco', 'expiry_date']
+    filterset_fields = ['lco', 'expiry_date','isp']
 
     search_fields = ['full_name', 'phone', 'plan']
+
+
 
     def get_queryset(self):
 
@@ -922,18 +926,35 @@ class CustomersExpiringSoonFilteredView(generics.ListAPIView):
 
         user = self.request.user
 
-        # SUPER ADMIN → ALL EXPIRING CUSTOMERS
+        # Filters from query params
+        lco = self.request.GET.get("lco")
+        isp = self.request.GET.get("isp")
+
+        if lco:
+            queryset = queryset.filter(lco_id=lco)
+
+        if isp:
+            queryset = queryset.filter(isp_id=isp)
+
+        # Super Admin
         if user.is_super_admin:
             return queryset
 
-        # LCO USER → ONLY THEIR CUSTOMERS
+        # LCO
         if hasattr(user, 'lco_profile'):
-
             return queryset.filter(
                 lco=user.lco_profile
             )
 
         return Customer.objects.none()
+    
+    def list(self, request, *args, **kwargs):
+
+        response = super().list(request, *args, **kwargs)
+
+        response.data["is_super_admin"] = request.user.is_super_admin
+
+        return response
 
 
 from rest_framework.permissions import AllowAny
