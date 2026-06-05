@@ -54,6 +54,7 @@ class Ticket(TimeStampedModel):
 
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
     notes = models.TextField(blank=True, null=True)
+    amount = models.CharField(max_length=10,null=True,blank=True)
 
     status = models.CharField(
         max_length=20,
