@@ -4,7 +4,6 @@ from django.contrib.auth import get_user_model
 
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
@@ -17,12 +16,13 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         # Default values
         lco_name = ''
         networking_name = ''
+        lco_address = ''
 
         # LCO details
         if hasattr(user, 'lco_profile') and user.lco_profile:
 
             lco_name = user.lco_profile.name
-            lco_address = user.lco_profile.address
+            lco_address = user.lco_profile.address or ''
 
             networking_name = (
                 user.lco_profile.networking_name
@@ -31,22 +31,14 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             )
 
         data['user'] = {
-
             'id': user.id,
-
             'username': user.username,
-
             'email': user.email,
-
             'phone': user.phone,
-
             'is_super_admin': user.is_super_admin,
-
             'lco_name': lco_name,
-
             'networking_name': networking_name,
-            
-            'lco_address':lco_address,
+            'lco_address': lco_address,
         }
 
         return data
