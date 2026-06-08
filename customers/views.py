@@ -896,8 +896,9 @@ class LCOCustomerSearchListView(generics.ListAPIView):
         return Customer.objects.filter(lco__user=self.request.user).order_by('-last_updated')
 
 from datetime import timedelta
-from datetime import timedelta
-from django.utils import timezone
+
+
+
 class CustomersExpiringSoonFilteredView(generics.ListAPIView):
 
     permission_classes = [IsAuthenticated]
@@ -906,53 +907,129 @@ class CustomersExpiringSoonFilteredView(generics.ListAPIView):
 
     pagination_class = StandardResultsSetPagination
 
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.SearchFilter
+    ]
 
-    filterset_fields = ['lco', 'expiry_date','isp']
-
-    search_fields = ['full_name', 'phone', 'plan']
-
-
+    search_fields = [
+        "full_name",
+        "phone",
+        "plan",
+        "username"
+    ]
 
     def get_queryset(self):
 
-        today = timezone.now().date()
-
-        five_days_from_now = today + timedelta(days=5)
-
-        queryset = Customer.objects.filter(
-            expiry_date__range=(today, five_days_from_now)
-        ).order_by('expiry_date')
-
         user = self.request.user
 
-        # Filters from query params
+        queryset = Customer.objects.all().order_by(
+            "expiry_date"
+        )
+
+        # -----------------------------
+        # Query Params
+        # -----------------------------
         lco = self.request.GET.get("lco")
         isp = self.request.GET.get("isp")
 
+        from_date = self.request.GET.get(
+            "from_date"
+        )
+
+        to_date = self.request.GET.get(
+            "to_date"
+        )
+
+        # -----------------------------
+        # Default Expiring in 5 days
+        # -----------------------------
+        if not from_date and not to_date:
+
+            today = timezone.now().date()
+
+            five_days_from_now = (
+                today + timedelta(days=5)
+            )
+
+            queryset = queryset.filter(
+                expiry_date__range=(
+                    today,
+                    five_days_from_now
+                )
+            )
+
+        # -----------------------------
+        # Custom Date Range
+        # -----------------------------
+        if from_date and to_date:
+
+            queryset = queryset.filter(
+                expiry_date__range=[
+                    from_date,
+                    to_date
+                ]
+            )
+
+        elif from_date:
+
+            queryset = queryset.filter(
+                expiry_date__gte=from_date
+            )
+
+        elif to_date:
+
+            queryset = queryset.filter(
+                expiry_date__lte=to_date
+            )
+
+        # -----------------------------
+        # LCO Filter
+        # -----------------------------
         if lco:
-            queryset = queryset.filter(lco_id=lco)
 
+            queryset = queryset.filter(
+                lco_id=lco
+            )
+
+        # -----------------------------
+        # ISP Filter
+        # -----------------------------
         if isp:
-            queryset = queryset.filter(isp_id=isp)
 
+            queryset = queryset.filter(
+                isp_id=isp
+            )
+
+        # -----------------------------
         # Super Admin
+        # -----------------------------
         if user.is_super_admin:
+
             return queryset
 
-        # LCO
-        if hasattr(user, 'lco_profile'):
+        # -----------------------------
+        # LCO User
+        # -----------------------------
+        if hasattr(user, "lco_profile"):
+
             return queryset.filter(
                 lco=user.lco_profile
             )
 
         return Customer.objects.none()
-    
+
     def list(self, request, *args, **kwargs):
 
-        response = super().list(request, *args, **kwargs)
+        response = super().list(
+            request,
+            *args,
+            **kwargs
+        )
 
-        response.data["is_super_admin"] = request.user.is_super_admin
+        response.data["is_super_admin"] = (
+            request.user.is_super_admin
+        )
 
         return response
 
