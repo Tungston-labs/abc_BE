@@ -171,7 +171,7 @@ class TicketListAPIView(generics.ListAPIView):
                 queryset = queryset.filter(created_at__date__range=[start, end])
 
         #  Oldest first
-        return queryset.order_by("created_at")
+        return queryset.order_by("-created_at", "-id")
 
 
 
