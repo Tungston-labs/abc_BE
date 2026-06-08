@@ -8,7 +8,7 @@ class Ticket(TimeStampedModel):
         ("topup", "Top-up Request"),
         ("recharge", "Recharge"),
         ("configuration", "Configuration Issue"),
-        ("new_connection", "Creation"),
+        ("creation", "Creation"),
         ("other", "Other"),
     )
 
