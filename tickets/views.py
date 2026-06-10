@@ -131,8 +131,8 @@ class TicketListAPIView(generics.ListAPIView):
         queryset = Ticket.objects.select_related(
             "customer",
             "customer__olt",
-            "isp",
-            "lco"
+            "lco",
+            "created_by"
         )
 
         # Search
