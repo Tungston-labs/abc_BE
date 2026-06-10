@@ -126,53 +126,65 @@ class TicketListAPIView(generics.ListAPIView):
     permission_classes = [IsSuperAdmin]
     pagination_class = StandardResultsSetPagination
 
-
     def get_queryset(self):
-        queryset = Ticket.objects.all()
 
-        #  Search (name, phone, notes)
+        queryset = Ticket.objects.select_related(
+            "customer",
+            "customer__olt",
+            "isp",
+            "lco"
+        )
+
+        # Search
         search = self.request.GET.get("search")
         if search:
             queryset = queryset.filter(
                 Q(name__icontains=search) |
                 Q(phone__icontains=search) |
-                Q(notes__icontains=search)
+                Q(notes__icontains=search) |
+                Q(customer__full_name__icontains=search) |
+                Q(customer__username__icontains=search) |
+                Q(customer__ont_number__icontains=search)
             )
 
-        #  Filter by status
+        # Status
         status = self.request.GET.get("status")
         if status:
             queryset = queryset.filter(status__iexact=status)
 
-        #  Filter by priority
+        # Priority
         priority = self.request.GET.get("priority")
         if priority:
             queryset = queryset.filter(priority__iexact=priority)
 
-        # Filter by category
+        # Category
         category = self.request.GET.get("category")
         if category:
             queryset = queryset.filter(category__iexact=category)
 
-        #  Filter by single date
+        # Single date
         date = self.request.GET.get("date")
         if date:
             parsed_date = parse_date(date)
             if parsed_date:
-                queryset = queryset.filter(created_at__date=parsed_date)
+                queryset = queryset.filter(
+                    created_at__date=parsed_date
+                )
 
-        #  Filter by date range
+        # Date range
         start_date = self.request.GET.get("start_date")
         end_date = self.request.GET.get("end_date")
+
         if start_date and end_date:
             start = parse_date(start_date)
             end = parse_date(end_date)
+
             if start and end:
-                queryset = queryset.filter(created_at__date__range=[start, end])
+                queryset = queryset.filter(
+                    created_at__date__range=[start, end]
+                )
 
-        #  Oldest first
         return queryset.order_by("-created_at", "-id")
-
 
 
 from rest_framework.views import APIView

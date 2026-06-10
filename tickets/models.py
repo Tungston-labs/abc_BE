@@ -1,6 +1,7 @@
 from django.db import models
 from accounts.models import User
 from shared.models import TimeStampedModel
+from customers.models import Customer
 
 
 class Ticket(TimeStampedModel):
@@ -70,6 +71,13 @@ class Ticket(TimeStampedModel):
         max_length=20,
         choices=PRIORITY_CHOICES,
         default="medium"
+    )
+    customer = models.ForeignKey(
+        Customer,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="tickets"
     )
 
     def __str__(self):

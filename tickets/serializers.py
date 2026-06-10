@@ -12,6 +12,11 @@ class TicketAttachmentSerializer(serializers.ModelSerializer):
 class TicketSerializer(serializers.ModelSerializer):
 
     lco_name = serializers.SerializerMethodField()
+    customer_username = serializers.SerializerMethodField()
+    customer_plan = serializers.SerializerMethodField()
+    customer_olt = serializers.SerializerMethodField()
+    customer_ont = serializers.SerializerMethodField()
+    customer_port = serializers.SerializerMethodField()
 
     # For upload
     files = serializers.ListField(
@@ -39,6 +44,21 @@ class TicketSerializer(serializers.ModelSerializer):
             return obj.lco.lco_profile.name
 
         return None
+    
+    def get_customer_username(self, obj):
+        return obj.customer.username if obj.customer else None
+
+    def get_customer_plan(self, obj):
+        return obj.customer.plan if obj.customer else None
+
+    def get_customer_olt(self, obj):
+        return obj.customer.olt.name if obj.customer and obj.customer.olt else None
+
+    def get_customer_ont(self, obj):
+        return obj.customer.ont_number if obj.customer else None
+
+    def get_customer_port(self, obj):
+        return obj.customer.port if obj.customer else None
 
     def create(self, validated_data):
 
