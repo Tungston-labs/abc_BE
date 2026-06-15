@@ -408,7 +408,6 @@ from django.db.models.functions import Cast
 from customers.models import Customer
 from customers.serializers import CustomerSerializer
 
-
 class OltCustomerListView(APIView):
     pagination_class = StandardResultsSetPagination
 
@@ -418,42 +417,77 @@ class OltCustomerListView(APIView):
 
         customers = Customer.objects.filter(
             olt_id=olt_id
-        ).select_related('lco', 'isp', 'olt')
-
-        customers = customers.filter(
-            Q(port__regex=r'^\d+(\.\d+)?$') | Q(port__isnull=True) | Q(port="")
+        ).select_related(
+            "lco",
+            "isp",
+            "olt"
         )
 
+        # ===============================
+        # PORT FILTER
+        # ===============================
         if port:
-            customers = customers.annotate(
-                port_float=Cast('port', FloatField()),
-                port_int=Cast('port_float', IntegerField())
-            ).filter(port_int=int(float(port)))
+            customers = (
+                customers
+                .exclude(port__isnull=True)
+                .exclude(port="")
+                .exclude(port=" ")
+                .filter(
+                    port__regex=r'^\d+(\.\d+)?$'
+                )
+                .annotate(
+                    port_float=Cast("port", FloatField()),
+                    port_int=Cast("port_float", IntegerField())
+                )
+                .filter(
+                    port_int=int(float(port))
+                )
+            )
 
-        
-        unique_ports_qs = Customer.objects.filter(
-            olt_id=olt_id
-        ).filter(
-            Q(port__regex=r'^\d+(\.\d+)?$')
-        ).annotate(
-            port_float=Cast('port', FloatField()),
-            port_int=Cast('port_float', IntegerField())
-        ).values_list('port_int', flat=True).distinct()
+        # ===============================
+        # USED PORTS
+        # ===============================
+        unique_ports_qs = (
+            Customer.objects.filter(
+                olt_id=olt_id
+            )
+            .exclude(port__isnull=True)
+            .exclude(port="")
+            .exclude(port=" ")
+            .filter(
+                port__regex=r'^\d+(\.\d+)?$'
+            )
+            .annotate(
+                port_float=Cast("port", FloatField()),
+                port_int=Cast("port_float", IntegerField())
+            )
+            .values_list(
+                "port_int",
+                flat=True
+            )
+            .distinct()
+        )
 
-        #  Convert queryset to sorted list
         used_ports = sorted(list(unique_ports_qs))
-
         total_ports_used = len(used_ports)
 
-        #  Pagination
+        # ===============================
+        # PAGINATION
+        # ===============================
         paginator = self.pagination_class()
-        paginated_queryset = paginator.paginate_queryset(customers, request)
+        paginated_queryset = paginator.paginate_queryset(
+            customers,
+            request
+        )
 
-        serializer = CustomerSerializer(paginated_queryset, many=True)
+        serializer = CustomerSerializer(
+            paginated_queryset,
+            many=True
+        )
 
         return paginator.get_paginated_response({
             "total_customers": customers.count(),
             "total_ports_used": total_ports_used,
-            "used_ports": used_ports,   
-            "customers": serializer.data
+            "used_ports": used_ports,
+            "customers": serializer.data,
         })
