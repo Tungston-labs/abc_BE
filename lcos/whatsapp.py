@@ -69,7 +69,7 @@ def send_whatsapp_message(to_number, lco_name, date_str, customer_list):
 #             "type": "template",
 #             "template": {
 #                 "name": "alert_expiry",
-#                 "language": {"code": "en"},
+#                 "language": {"code": "en_US"}
 #                 "components": [
 #                     {
 #                         "type": "body",
