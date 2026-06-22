@@ -132,23 +132,23 @@ WSGI_APPLICATION = 'ABCBackend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'abcde_db_new',
-        'USER': 'postgres',
-        'PASSWORD': 'password@123',
-        'HOST': '178.248.112.16',
-        'PORT': '5432',
-    }
-}
-
 # DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.sqlite3",
-#         "NAME": BASE_DIR / "db.sqlite3",   
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'abcde_db_new',
+#         'USER': 'postgres',
+#         'PASSWORD': 'password@123',
+#         'HOST': '178.248.112.16',
+#         'PORT': '5432',
 #     }
 # }
+
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",   
+    }
+}
 
 
 
@@ -241,6 +241,6 @@ SIGNAL_API_BASE_URL = config("SIGNAL_API_BASE_URL")
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-# WHATSAPP_ACCESS_TOKEN=config("WHATSAPP_ACCESS_TOKEN")
-# WHATSAPP_PHONE_NUMBER_ID=config("WHATSAPP_PHONE_NUMBER_ID")
-# WHATSAPP_API_VERSION='v19.0'
+WHATSAPP_ACCESS_TOKEN = config("WHATSAPP_ACCESS_TOKEN")
+WHATSAPP_PHONE_NUMBER_ID = config("WHATSAPP_PHONE_NUMBER_ID")
+WHATSAPP_API_VERSION = "v23.0"

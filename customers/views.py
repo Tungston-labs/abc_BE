@@ -114,6 +114,8 @@ class CustomerRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
 
+        print("ONT Number:", instance.ont_number)
+
         serial_number = instance.ont_number
 
         if serial_number:
@@ -121,18 +123,29 @@ class CustomerRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
                 base_url = settings.SIGNAL_API_BASE_URL
                 url = f"{base_url}/signal/{serial_number}"
 
+                print("Calling URL:", url)
+
                 response = requests.get(url, timeout=3)
+
+                print("Status Code:", response.status_code)
+                print("Response Text:", response.text)
 
                 if response.status_code == 200:
                     data = response.json()
+
+                    print("API Data:", data)
+
                     rx_power = data.get("rx_power")
+                    print("RX Power:", rx_power)
 
                     if rx_power is not None:
-                        instance.signal = rx_power
-                        instance.save(update_fields=["signal", "last_updated"])
+                        instance.signal = str(rx_power)
+                        instance.save()
+
+                        print("Saved Signal:", instance.signal)
 
             except Exception as e:
-                print("Signal API error:", e)
+                print("Signal API error:", str(e))
 
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
