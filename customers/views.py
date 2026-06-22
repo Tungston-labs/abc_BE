@@ -17,7 +17,9 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.parsers import MultiPartParser, FormParser
 from shared.mixins import TrackCreatedUpdatedUserMixin
 
+import logging
 
+logger = logging.getLogger(__name__)
 class CustomerPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
@@ -115,6 +117,8 @@ class CustomerRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         instance = self.get_object()
 
         print("ONT Number:", instance.ont_number)
+        logger.error("========== RETRIEVE HIT ==========")
+        logger.error(f"ONT NUMBER: {instance.ont_number}")
 
         serial_number = instance.ont_number
 
