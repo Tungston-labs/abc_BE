@@ -114,54 +114,48 @@ class CustomerRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         return Customer.objects.none()
 
     def retrieve(self, request, *args, **kwargs):
+        logger.error("========== RETRIEVE HIT ==========")
+
         instance = self.get_object()
 
-        print("ONT Number:", instance.ont_number)
-        logger.error("========== RETRIEVE HIT ==========")
         logger.error(f"ONT NUMBER: {instance.ont_number}")
 
         serial_number = instance.ont_number
 
         if serial_number:
+            logger.error("STEP 1")
+
             try:
+                logger.error("STEP 2")
+
                 base_url = settings.SIGNAL_API_BASE_URL
+                logger.error(f"BASE URL: {base_url}")
+
                 url = f"{base_url}/signal/{serial_number}"
+                logger.error(f"URL: {url}")
 
-                print("Calling URL:", url)
+                response = requests.get(url, timeout=15)
 
-                response = requests.get(url, timeout=3)
-
-                print("Status Code:", response.status_code)
-                print("Response Text:", response.text)
+                logger.error("STEP 3")
+                logger.error(f"STATUS: {response.status_code}")
 
                 if response.status_code == 200:
                     data = response.json()
 
-                    print("API Data:", data)
+                    logger.error(f"DATA: {data}")
 
-                    rx_power = data.get("rx_power")
-                    print("RX Power:", rx_power)
+                    instance.signal = str(data.get("rx_power"))
+                    instance.port = str(data.get("port")) if data.get("port") else None
 
-                    rx_power = data.get("rx_power")
+                    instance.save()
 
-                    if rx_power is not None:
-                        instance.signal = str(rx_power)
-                        instance.port = data.get("port")
-
-                        instance.save()
-
-                        instance.refresh_from_db()
-
-                        logger.error(f"AFTER SAVE SIGNAL: {instance.signal}")
-                        logger.error(f"AFTER SAVE PORT: {instance.port}")
+                    logger.error("SAVE SUCCESS")
 
             except Exception as e:
-                print("Signal API error:", str(e))
+                logger.error(f"ERROR: {repr(e)}")
 
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
-
-
 
 
 
