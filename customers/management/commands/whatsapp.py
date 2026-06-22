@@ -1,43 +1,4 @@
-# # lcos/whatsapp.py
 
-# import json
-# import logging
-# from twilio.rest import Client
-# from django.conf import settings
-
-# logger = logging.getLogger(__name__)
-
-# client = Client(
-#     settings.TWILIO_ACCOUNT_SID,
-#     settings.TWILIO_AUTH_TOKEN
-# )
-
-
-# def send_whatsapp_message(to_number, lco_name, date_str, customer_list):
-
-#     try:
-#         # clean phone
-#         to_number = to_number.replace("+", "").replace(" ", "")
-
-#         if not to_number.startswith("91"):
-#             to_number = f"91{to_number}"
-
-#         message = client.messages.create(
-#             from_=settings.TWILIO_WHATSAPP_NUMBER,
-#             to=f"whatsapp:+{to_number}",
-#             content_sid=settings.TWILIO_TEMPLATE_SID,
-#             content_variables=json.dumps({
-#                 "1": lco_name,
-#                 "2": date_str,
-#                 "3": customer_list
-#             })
-#         )
-
-#         return message.sid
-
-#     except Exception as e:
-#         logger.error(f"Twilio send failed for {to_number}: {str(e)}")
-#         return None
 
 # -----for meta whatspp-------
 
@@ -114,3 +75,75 @@ def send_whatsapp_message(phone, lco_name, date_str, customer_list):
     except Exception as e:
         logger.exception("WhatsApp send error")
         return None
+    
+
+
+
+
+
+    # for ticket notification
+
+def send_ticket_update_whatsapp(
+    phone,
+    lco_name,
+    ticket_id,
+    ticket_type,
+    status,
+    admin_reply
+):
+
+    phone = phone.replace("+", "").replace(" ", "")
+
+    url = f"https://graph.facebook.com/{settings.WHATSAPP_API_VERSION}/{settings.WHATSAPP_PHONE_NUMBER_ID}/messages"
+
+    headers = {
+        "Authorization": f"Bearer {settings.WHATSAPP_ACCESS_TOKEN}",
+        "Content-Type": "application/json",
+    }
+
+    payload = {
+        "messaging_product": "whatsapp",
+        "to": phone,
+        "type": "template",
+        "template": {
+            "name": "ticket_status_update",
+            "language": {
+                "code": "en"
+            },
+            "components": [
+                {
+                    "type": "body",
+                    "parameters": [
+                        {
+                            "type": "text",
+                            "text": str(lco_name)
+                        },
+                        {
+                            "type": "text",
+                            "text": str(ticket_type)
+                        },
+                        {
+                            "type": "text",
+                            "text": str(status)
+                        },
+                        {
+                            "type": "text",
+                            "text": str(ticket_id)
+                        },
+                        {
+                            "type": "text",
+                            "text": str(admin_reply)
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+
+    response = requests.post(
+        url,
+        headers=headers,
+        json=payload
+    )
+
+    return response.json()

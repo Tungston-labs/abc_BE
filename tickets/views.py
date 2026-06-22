@@ -103,10 +103,47 @@ class LCOTicketListAPIView(generics.ListAPIView):
 
 
 
+
+
+from customers.management.commands.whatsapp import send_ticket_update_whatsapp
+
 class TicketDetailUpdateDeleteAPIView(generics.RetrieveUpdateDestroyAPIView):
+
     queryset = Ticket.objects.all()
     serializer_class = TicketSerializer
     permission_classes = [IsAuthenticated]
+
+    def perform_update(self, serializer):
+
+        old_ticket = self.get_object()
+        old_status = old_ticket.status
+
+        ticket = serializer.save()
+
+        if (
+            old_status != ticket.status
+            and ticket.status in ["Resolved", "Closed"]
+        ):
+
+            if (
+                ticket.lco
+                and hasattr(ticket.lco, "lco_profile")
+                and ticket.lco.phone
+            ):
+
+                phone = ticket.lco.phone.replace("+", "").replace(" ", "")
+
+                if not phone.startswith("91"):
+                    phone = f"91{phone}"
+
+                send_ticket_update_whatsapp(
+                    phone=phone,
+                    lco_name=ticket.lco.lco_profile.name,
+                    ticket_id=ticket.ticket_id,
+                    ticket_type=ticket.ticket_type,
+                    status=ticket.status,
+                    admin_reply=ticket.admin_reply or "No remarks provided."
+                )
 
 
 from rest_framework import generics, permissions
