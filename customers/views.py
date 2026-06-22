@@ -1037,6 +1037,19 @@ class CustomersExpiringSoonFilteredView(generics.ListAPIView):
 
     def list(self, request, *args, **kwargs):
 
+        if request.GET.get("download") == "true":
+
+            queryset = self.filter_queryset(
+                self.get_queryset()
+            )
+
+            serializer = self.get_serializer(
+                queryset,
+                many=True
+            )
+
+            return Response(serializer.data)
+
         response = super().list(
             request,
             *args,
@@ -1048,11 +1061,6 @@ class CustomersExpiringSoonFilteredView(generics.ListAPIView):
         )
 
         return response
-    
-    def paginate_queryset(self, queryset):
-        if self.request.GET.get("download") == "true":
-            return None
-        return super().paginate_queryset(queryset)
 
 
 from rest_framework.permissions import AllowAny
