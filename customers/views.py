@@ -142,11 +142,18 @@ class CustomerRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
                     rx_power = data.get("rx_power")
                     print("RX Power:", rx_power)
 
+                    rx_power = data.get("rx_power")
+
                     if rx_power is not None:
                         instance.signal = str(rx_power)
+                        instance.port = data.get("port")
+
                         instance.save()
 
-                        print("Saved Signal:", instance.signal)
+                        instance.refresh_from_db()
+
+                        logger.error(f"AFTER SAVE SIGNAL: {instance.signal}")
+                        logger.error(f"AFTER SAVE PORT: {instance.port}")
 
             except Exception as e:
                 print("Signal API error:", str(e))
