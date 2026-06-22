@@ -915,8 +915,6 @@ class LCOCustomerSearchListView(generics.ListAPIView):
 
 from datetime import timedelta
 
-
-
 class CustomersExpiringSoonFilteredView(generics.ListAPIView):
 
     permission_classes = [IsAuthenticated]
@@ -1050,6 +1048,11 @@ class CustomersExpiringSoonFilteredView(generics.ListAPIView):
         )
 
         return response
+    
+    def paginate_queryset(self, queryset):
+        if self.request.GET.get("download") == "true":
+            return None
+        return super().paginate_queryset(queryset)
 
 
 from rest_framework.permissions import AllowAny
