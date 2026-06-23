@@ -3,7 +3,7 @@ from django.core.management.base import BaseCommand
 from customers.models import Customer
 from django.conf import settings
 
-API_URL = settings.SIGNAL_API_BASE_URL
+API_URL = f"{settings.SIGNAL_API_BASE_URL}/signals"
 
 
 class Command(BaseCommand):
@@ -13,20 +13,17 @@ class Command(BaseCommand):
 
         response = requests.get(API_URL, timeout=30)
 
-        print(response.status_code)
-        print(response.text[:1000])
+        response.raise_for_status()
 
-        return
         data = response.json()
 
-        # Create lookup map
         customer_map = {
             item["serial_number"]: {
                 "signal": item.get("rx_power"),
                 "port": item.get("port"),
             }
             for item in data
-            if item.get("serial_number")
+            if isinstance(item, dict) and item.get("serial_number")
         }
 
         customers = Customer.objects.filter(
@@ -38,8 +35,17 @@ class Command(BaseCommand):
         for customer in customers:
             api_data = customer_map.get(customer.ont_number)
 
-            customer.signal = str(api_data.get("signal")) if api_data.get("signal") is not None else None
-            customer.port = str(api_data.get("port")) if api_data.get("port") is not None else None
+            customer.signal = (
+                str(api_data.get("signal"))
+                if api_data.get("signal") is not None
+                else None
+            )
+
+            customer.port = (
+                str(api_data.get("port"))
+                if api_data.get("port") is not None
+                else None
+            )
 
             update_list.append(customer)
 
