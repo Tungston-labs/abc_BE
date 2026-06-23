@@ -1,11 +1,13 @@
 import requests
+
 from django.core.management.base import BaseCommand
 from django.conf import settings
+from django.utils import timezone
+
 from customers.models import Customer
 
-API_URL = f"{settings.SIGNAL_API_BASE_URL}/signals"
 
-BATCH_SIZE = 1000
+API_URL = f"{settings.SIGNAL_API_BASE_URL}/signals"
 
 
 class Command(BaseCommand):
@@ -37,8 +39,7 @@ class Command(BaseCommand):
             }
 
             print(
-                f"4. Customer map created: "
-                f"{len(customer_map)}"
+                f"4. Customer map created: {len(customer_map)}"
             )
 
             customers = Customer.objects.filter(
@@ -46,20 +47,19 @@ class Command(BaseCommand):
             )
 
             print(
-                f"5. Customers found in DB: "
-                f"{customers.count()}"
+                f"5. Customers found in DB: {customers.count()}"
             )
 
             update_list = []
+
+            # Single timestamp for entire sync
+            sync_time = timezone.now()
 
             for customer in customers:
 
                 api_data = customer_map.get(
                     customer.ont_number
                 )
-
-                if not api_data:
-                    continue
 
                 customer.signal = (
                     str(api_data.get("signal"))
@@ -73,38 +73,33 @@ class Command(BaseCommand):
                     else None
                 )
 
+                # IMPORTANT:
+                # auto_now does not work with bulk_update
+                customer.last_updated = sync_time
+
                 update_list.append(customer)
 
             print(
-                f"6. Customers to update: "
-                f"{len(update_list)}"
+                f"6. Customers to update: {len(update_list)}"
             )
 
-            total = len(update_list)
+            batch_size = 1000
 
             for i in range(
                 0,
-                total,
-                BATCH_SIZE
+                len(update_list),
+                batch_size
             ):
 
-                batch = update_list[
-                    i:i + BATCH_SIZE
-                ]
-
                 Customer.objects.bulk_update(
-                    batch,
-                    [
-                        "signal",
-                        "port",
-                        "last_updated"
-                    ]
+                    update_list[i:i + batch_size],
+                    ["signal", "port", "last_updated"]
                 )
 
                 print(
                     f"Updated "
-                    f"{min(i + BATCH_SIZE, total)} "
-                    f"of {total}"
+                    f"{min(i + batch_size, len(update_list))}"
+                    f" of {len(update_list)}"
                 )
 
             print("7. Bulk update completed")
@@ -112,7 +107,7 @@ class Command(BaseCommand):
             self.stdout.write(
                 self.style.SUCCESS(
                     f"Successfully updated "
-                    f"{total} customers"
+                    f"{len(update_list)} customers"
                 )
             )
 
@@ -123,5 +118,3 @@ class Command(BaseCommand):
                     f"Sync failed: {str(e)}"
                 )
             )
-
-            raise
