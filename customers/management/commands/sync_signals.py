@@ -45,8 +45,17 @@ class Command(BaseCommand):
         for customer in customers:
             api_data = customer_map.get(customer.ont_number)
 
-            customer.signal = str(api_data.get("signal")) if api_data.get("signal") is not None else None
-            customer.port = str(api_data.get("port")) if api_data.get("port") is not None else None
+            customer.signal = (
+                str(api_data.get("signal"))
+                if api_data.get("signal") is not None
+                else None
+            )
+
+            customer.port = (
+                str(api_data.get("port"))
+                if api_data.get("port") is not None
+                else None
+            )
 
             update_list.append(customer)
 
@@ -59,51 +68,8 @@ class Command(BaseCommand):
 
         print("7. Bulk update completed")
 
-            response = requests.get(API_URL, timeout=30)
-
-            response.raise_for_status()
-
-            data = response.json()
-
-            customer_map = {
-                item["serial_number"]: {
-                    "signal": item.get("rx_power"),
-                    "port": item.get("port"),
-                }
-                for item in data
-                if isinstance(item, dict) and item.get("serial_number")
-            }
-
-            customers = Customer.objects.filter(
-                ont_number__in=customer_map.keys()
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Updated {len(update_list)} customers"
             )
-
-            update_list = []
-
-            for customer in customers:
-                api_data = customer_map.get(customer.ont_number)
-
-                customer.signal = (
-                    str(api_data.get("signal"))
-                    if api_data.get("signal") is not None
-                    else None
-                )
-
-                customer.port = (
-                    str(api_data.get("port"))
-                    if api_data.get("port") is not None
-                    else None
-                )
-
-                update_list.append(customer)
-
-            Customer.objects.bulk_update(
-                update_list,
-                ["signal", "port", "last_updated"]
-            )
-
-            self.stdout.write(
-                self.style.SUCCESS(
-                    f"Updated {len(update_list)} customers"
-                )
-            )
+        )
