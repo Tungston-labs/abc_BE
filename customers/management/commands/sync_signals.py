@@ -12,6 +12,11 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
 
         response = requests.get(API_URL, timeout=30)
+
+        print(response.status_code)
+        print(response.text[:1000])
+
+        return
         data = response.json()
 
         # Create lookup map
