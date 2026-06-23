@@ -11,7 +11,7 @@ class Customer(TimeStampedModel):
     phone = models.CharField(max_length=15,null=True, blank=True)
     address = models.TextField(null=True, blank=True)
     email = models.EmailField(null=True, blank=True)
-    last_updated = models.DateTimeField(auto_now=True,null=True, blank=True)
+    last_updated = models.DateTimeField(null=True, blank=True)
 
     lco = models.ForeignKey(LCO, on_delete=models.SET_NULL, null=True,blank=True)
     lco_ref = models.CharField(max_length=100, blank=True, null=True)

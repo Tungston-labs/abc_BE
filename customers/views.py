@@ -97,6 +97,11 @@ from django.conf import settings
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from django.utils.dateparse import parse_datetime
+import requests
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class CustomerRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
@@ -108,57 +113,78 @@ class CustomerRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
 
         if user.is_super_admin:
             return Customer.objects.all()
-        elif hasattr(user, 'lco_profile'):
-            return Customer.objects.filter(lco=user.lco_profile)
+
+        elif hasattr(user, "lco_profile"):
+            return Customer.objects.filter(
+                lco=user.lco_profile
+            )
 
         return Customer.objects.none()
 
     def retrieve(self, request, *args, **kwargs):
-        logger.error("========== RETRIEVE HIT ==========")
-
         instance = self.get_object()
-
-        logger.error(f"ONT NUMBER: {instance.ont_number}")
 
         serial_number = instance.ont_number
 
         if serial_number:
-            logger.error("STEP 1")
-
             try:
-                logger.error("STEP 2")
+                url = (
+                    f"{settings.SIGNAL_API_BASE_URL}/signal/{serial_number}"
+                )
 
-                base_url = settings.SIGNAL_API_BASE_URL
-                logger.error(f"BASE URL: {base_url}")
-
-                url = f"{base_url}/signal/{serial_number}"
-                logger.error(f"URL: {url}")
-
-                response = requests.get(url, timeout=15)
-
-                logger.error("STEP 3")
-                logger.error(f"STATUS: {response.status_code}")
+                response = requests.get(
+                    url,
+                    timeout=15
+                )
 
                 if response.status_code == 200:
                     data = response.json()
 
-                    logger.error(f"DATA: {data}")
+                    instance.signal = (
+                        str(data.get("rx_power"))
+                        if data.get("rx_power") is not None
+                        else None
+                    )
 
-                    instance.signal = str(data.get("rx_power"))
-                    instance.port = str(data.get("port")) if data.get("port") else None
+                    instance.port = (
+                        str(data.get("port"))
+                        if data.get("port")
+                        else None
+                    )
 
-                    instance.save()
+                    # Update last_updated from FastAPI response
+                    updated_at = data.get("updated_at")
 
-                    logger.error("SAVE SUCCESS")
+                    if updated_at:
+                        parsed_dt = parse_datetime(
+                            updated_at
+                        )
+
+                        Customer.objects.filter(
+                            id=instance.id
+                        ).update(
+                            signal=instance.signal,
+                            port=instance.port,
+                            last_updated=parsed_dt
+                        )
+                    else:
+                        Customer.objects.filter(
+                            id=instance.id
+                        ).update(
+                            signal=instance.signal,
+                            port=instance.port
+                        )
 
             except Exception as e:
-                logger.error(f"ERROR: {repr(e)}")
+                logger.error(
+                    f"Signal API Error: {repr(e)}"
+                )
+
+        instance.refresh_from_db()
 
         serializer = self.get_serializer(instance)
+
         return Response(serializer.data)
-
-
-
 
 
 class DropdownDataAPIView(APIView):
