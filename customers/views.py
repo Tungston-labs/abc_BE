@@ -932,7 +932,7 @@ class LCOCustomerSearchListView(generics.ListAPIView):
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
     search_fields = [
         'full_name', 'phone', 'email', 'mac_id', 'ont_number', 'address',
-        'v_lan', 'kseb_post', 'port', 'plan'
+        'v_lan', 'kseb_post', 'port', 'plan','username'
     ]
     filterset_fields = ['olt', 'isp']  
 

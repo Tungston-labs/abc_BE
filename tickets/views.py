@@ -107,6 +107,21 @@ class LCOTicketListAPIView(generics.ListAPIView):
 
 from customers.management.commands.whatsapp import send_ticket_update_whatsapp
 
+
+from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated
+
+from tickets.models import Ticket
+from tickets.serializers import TicketSerializer
+
+
+
+
+from customers.management.commands.whatsapp import (
+    send_ticket_update_whatsapp
+)
+
+
 class TicketDetailUpdateDeleteAPIView(generics.RetrieveUpdateDestroyAPIView):
 
     queryset = Ticket.objects.all()
@@ -115,35 +130,97 @@ class TicketDetailUpdateDeleteAPIView(generics.RetrieveUpdateDestroyAPIView):
 
     def perform_update(self, serializer):
 
+        print("\n========== TICKET UPDATE ==========")
+
         old_ticket = self.get_object()
         old_status = old_ticket.status
 
+        print("OLD STATUS:", old_status)
+
         ticket = serializer.save()
 
-        if (
-            old_status != ticket.status
-            and ticket.status in ["Resolved", "Closed"]
-        ):
+        print("NEW STATUS:", ticket.status)
 
-            if (
-                ticket.lco
-                and hasattr(ticket.lco, "lco_profile")
-                and ticket.lco.phone
-            ):
+        # Only send when status changes
+        if old_status == ticket.status:
 
-                phone = ticket.lco.phone.replace("+", "").replace(" ", "")
+            print("STATUS NOT CHANGED")
+            print("===================================\n")
+            return
 
-                if not phone.startswith("91"):
-                    phone = f"91{phone}"
+        print("STATUS CHANGED")
 
-                send_ticket_update_whatsapp(
-                    phone=phone,
-                    lco_name=ticket.lco.lco_profile.name,
-                    ticket_id=ticket.ticket_id,
-                    ticket_type=ticket.ticket_type,
-                    status=ticket.status,
-                    admin_reply=ticket.admin_reply or "No remarks provided."
+        # Send only for Resolved / Closed
+        if str(ticket.status).lower() not in ["resolved", "closed"]:
+
+            print("STATUS IS NOT RESOLVED/CLOSED")
+            print("===================================\n")
+            return
+
+        try:
+
+            if not ticket.lco:
+
+                print("NO LCO ATTACHED")
+                print("===================================\n")
+                return
+
+            print("LCO USER:", ticket.lco)
+
+            # User -> LCO Profile
+            if not hasattr(ticket.lco, "lco_profile"):
+
+                print("NO LCO PROFILE FOUND")
+                print("===================================\n")
+                return
+
+            lco_profile = ticket.lco.lco_profile
+
+            print("LCO NAME:", lco_profile.name)
+            print("LCO PHONE:", lco_profile.phone)
+
+            if not lco_profile.phone:
+
+                print("NO LCO PHONE FOUND")
+                print("===================================\n")
+                return
+
+            phone = (
+                lco_profile.phone
+                .replace("+", "")
+                .replace(" ", "")
+                .replace("-", "")
+            )
+
+            if not phone.startswith("91"):
+                phone = f"91{phone}"
+
+            print("FINAL PHONE:", phone)
+
+            result = send_ticket_update_whatsapp(
+                phone=phone,
+                lco_name=lco_profile.name,
+                ticket_id=str(ticket.id),
+                ticket_type=str(
+                    getattr(ticket, "ticket_type", "Support Ticket")
+                ),
+                status=str(ticket.status),
+                admin_reply=str(
+                    getattr(ticket, "admin_reply", "")
+                    or "No remarks provided"
                 )
+            )
+
+            print("WHATSAPP RESULT:")
+            print(result)
+
+        except Exception as e:
+
+            print("WHATSAPP ERROR:")
+            print(str(e))
+
+        print("===================================\n")
+
 
 
 from rest_framework import generics, permissions
