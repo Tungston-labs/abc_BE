@@ -130,25 +130,25 @@ WSGI_APPLICATION = 'ABCBackend.wsgi.application'
 
 
 # Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'abcde_db_new',
-#         'USER': 'postgres',
-#         'PASSWORD': 'password@123',
-#         'HOST': '178.248.112.16',
-#         'PORT': '5432',
-#     }
-# }
+https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",   
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'abcde_db_new',
+        'USER': 'postgres',
+        'PASSWORD': 'password@123',
+        'HOST': '178.248.112.16',
+        'PORT': '5432',
     }
 }
+
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": BASE_DIR / "db.sqlite3",   
+#     }
+# }
 
 
 
@@ -246,7 +246,7 @@ WHATSAPP_PHONE_NUMBER_ID = config("WHATSAPP_PHONE_NUMBER_ID")
 WHATSAPP_API_VERSION = "v23.0"
 
 
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+# MEDIA_URL = "/media/"
+# MEDIA_ROOT = BASE_DIR / "media"
 
-SITE_URL = "https://postcard-stoppable-freebee.ngrok-free.dev"
+# SITE_URL = "https://postcard-stoppable-freebee.ngrok-free.dev"
