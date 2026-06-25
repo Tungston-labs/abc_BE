@@ -246,7 +246,7 @@ WHATSAPP_PHONE_NUMBER_ID = config("WHATSAPP_PHONE_NUMBER_ID")
 WHATSAPP_API_VERSION = "v23.0"
 
 
-# MEDIA_URL = "/media/"
-# MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
-# SITE_URL = "https://postcard-stoppable-freebee.ngrok-free.dev"
+SITE_URL = "http://178.248.112.16"
