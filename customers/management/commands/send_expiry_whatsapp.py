@@ -250,10 +250,15 @@ class Command(BaseCommand):
             print("PDF URL:", pdf_url)
             print("=====================\n")
 
+            # document_result = send_whatsapp_document(
+            #     phone=phone,
+            #     document_url=pdf_url,
+            #     filename=pdf_name
+            # )
             document_result = send_whatsapp_document(
                 phone=phone,
-                document_url=pdf_url,
-                filename=pdf_name
+                document_url="https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+                filename="test.pdf"
             )
 
             print("DOCUMENT RESULT:")
