@@ -249,4 +249,4 @@ WHATSAPP_API_VERSION = "v23.0"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-SITE_URL = "http://178.248.112.16"
+SITE_URL = "https://api.aluvabroadband.com"
