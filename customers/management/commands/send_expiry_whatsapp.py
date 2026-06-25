@@ -124,7 +124,10 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
 
-        customers = get_today_expiring_customers()
+        # customers = get_today_expiring_customers()
+        customers = get_today_expiring_customers().filter(
+            lco_id=3
+        )
 
         if not customers:
             self.stdout.write("No expiring customers today.")
