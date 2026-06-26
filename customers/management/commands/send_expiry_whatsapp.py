@@ -1,7 +1,8 @@
 
 
 # # # ----whtspp meta
-
+from datetime import date
+import time
 
 from django.core.management.base import BaseCommand
 from datetime import date
@@ -10,7 +11,7 @@ from customers.utils import get_today_expiring_customers
 
 from customers.management.commands.whatsapp import (
     send_whatsapp_message,
-    send_whatsapp_text
+    send_expiry_customer_chunk
 )
 
 
@@ -93,25 +94,31 @@ class Command(BaseCommand):
 
             # Send customer list in chunks
 
-            chunk_size = 10
+            # Send customer list in chunks
+
+            chunk_size = 5
 
             for start in range(0, len(customer_lines), chunk_size):
 
                 chunk = customer_lines[start:start + chunk_size]
 
                 message = (
-                    f"Expiry Customers ({start + 1}"
-                    f" - {start + len(chunk)})\n\n"
+                    f"Expiry Customers ({start + 1}-{start + len(chunk)})\n\n"
                     + "\n\n".join(chunk)
                 )
 
-                text_result = send_whatsapp_text(
+                chunk_result = send_expiry_customer_chunk(
                     phone=phone,
-                    message=message
+                    customer_text=message
                 )
 
-                print("TEXT RESULT:")
-                print(text_result)
+                if chunk_result:
+                    print(f"Chunk {start // chunk_size + 1} sent")
+                else:
+                    print(f"Chunk {start // chunk_size + 1} failed")
+
+                # Wait 1 second before sending the next template
+                time.sleep(1)
 
             self.stdout.write(
                 self.style.SUCCESS(
@@ -127,7 +134,7 @@ class Command(BaseCommand):
 
 
 
-
+# for document sending---
 
 
 # from django.core.management.base import BaseCommand

@@ -73,8 +73,15 @@ def send_whatsapp_message(phone, lco_name, date_str, customer_list):
     except Exception as e:
         logger.exception("WhatsApp send error")
         return None
-# extra message-------   
-def send_whatsapp_text(phone, message):
+    
+
+    # extra messages with tepmlates
+
+
+def send_expiry_customer_chunk(
+    phone,
+    customer_text
+):
 
     phone = (
         str(phone)
@@ -97,10 +104,23 @@ def send_whatsapp_text(phone, message):
     payload = {
         "messaging_product": "whatsapp",
         "to": phone,
-        "type": "text",
-        "text": {
-            "preview_url": False,
-            "body": message
+        "type": "template",
+        "template": {
+            "name": "expiry_customers",
+            "language": {
+                "code": "en"
+            },
+            "components": [
+                {
+                    "type": "body",
+                    "parameters": [
+                        {
+                            "type": "text",
+                            "text": customer_text
+                        }
+                    ]
+                }
+            ]
         }
     }
 
@@ -111,12 +131,72 @@ def send_whatsapp_text(phone, message):
         timeout=30
     )
 
-    print("\n===== TEXT RESPONSE =====")
-    print(response.status_code)
-    print(response.text)
-    print("=========================\n")
+    print("\n===== CUSTOMER TEMPLATE =====")
+    print("STATUS:", response.status_code)
+    print("RESPONSE:", response.text)
+    print("=============================\n")
 
-    return response.json()
+    if response.status_code in (200, 201):
+        return response.json()
+
+    return None
+
+
+
+
+# extra message-------   
+# def send_whatsapp_text(phone, message):
+
+#     phone = (
+#         str(phone)
+#         .replace("+", "")
+#         .replace(" ", "")
+#         .replace("-", "")
+#     )
+
+#     url = (
+#         f"https://graph.facebook.com/"
+#         f"{settings.WHATSAPP_API_VERSION}/"
+#         f"{settings.WHATSAPP_PHONE_NUMBER_ID}/messages"
+#     )
+
+#     headers = {
+#         "Authorization": f"Bearer {settings.WHATSAPP_ACCESS_TOKEN}",
+#         "Content-Type": "application/json",
+#     }
+
+#     payload = {
+#         "messaging_product": "whatsapp",
+#         "to": phone,
+#         "type": "text",
+#         "text": {
+#             "preview_url": False,
+#             "body": message
+#         }
+#     }
+
+#     response = requests.post(
+#         url,
+#         headers=headers,
+#         json=payload,
+#         timeout=30
+#     )
+
+#     print("\n===== TEXT RESPONSE =====")
+#     print(response.status_code)
+#     print(response.text)
+#     print("=========================\n")
+
+#     return response.json()
+
+
+
+
+
+
+
+
+
 # -----document sending through whatspp-----
 # import requests
 # from django.conf import settings
