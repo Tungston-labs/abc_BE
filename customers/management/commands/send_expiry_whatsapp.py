@@ -107,6 +107,10 @@ class Command(BaseCommand):
                     + " || ".join(chunk)
                 )
 
+                print("\n========== CHUNK ==========")
+                print(message)
+                print("===========================\n")
+
                 chunk_result = send_expiry_customer_chunk(
                     phone=phone,
                     customer_text=message
