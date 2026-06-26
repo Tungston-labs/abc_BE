@@ -1,5 +1,3 @@
-# -----for meta whatspp-------
-
 import requests
 import logging
 from django.conf import settings
@@ -7,10 +5,20 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 
+# ----------------------------------------------------
+# FIRST TEMPLATE
+# ----------------------------------------------------
+
 def send_whatsapp_message(phone, lco_name, date_str, customer_list):
 
     try:
-        phone = phone.replace("+", "").replace(" ", "")
+
+        phone = (
+            str(phone)
+            .replace("+", "")
+            .replace(" ", "")
+            .replace("-", "")
+        )
 
         url = (
             f"https://graph.facebook.com/"
@@ -54,6 +62,10 @@ def send_whatsapp_message(phone, lco_name, date_str, customer_list):
             }
         }
 
+        print("\n===== FIRST TEMPLATE PAYLOAD =====")
+        print(payload)
+        print("==================================\n")
+
         response = requests.post(
             url,
             headers=headers,
@@ -61,22 +73,24 @@ def send_whatsapp_message(phone, lco_name, date_str, customer_list):
             timeout=30
         )
 
-        logger.info("WhatsApp Status: %s", response.status_code)
-        logger.info("WhatsApp Response: %s", response.text)
+        print("\n===== FIRST TEMPLATE RESPONSE =====")
+        print("STATUS:", response.status_code)
+        print("RESPONSE:", response.text)
+        print("===================================\n")
 
-        if response.status_code in [200, 201]:
+        if response.status_code in (200, 201):
             return response.json()
 
-        logger.error("WhatsApp Error: %s", response.text)
         return None
 
     except Exception as e:
-        logger.exception("WhatsApp send error")
+        logger.exception(e)
         return None
-    
 
-    # extra messages with tepmlates
 
+# ----------------------------------------------------
+# CUSTOMER CHUNK TEMPLATE
+# ----------------------------------------------------
 
 def send_expiry_customer_chunk(
     phone,
@@ -116,13 +130,21 @@ def send_expiry_customer_chunk(
                     "parameters": [
                         {
                             "type": "text",
-                            "text": customer_text
+                            "text": str(customer_text)
                         }
                     ]
                 }
             ]
         }
     }
+
+    print("\n========== CUSTOMER TEXT ==========")
+    print(customer_text)
+    print("===================================\n")
+
+    print("\n========== TEMPLATE PAYLOAD ==========")
+    print(payload)
+    print("======================================\n")
 
     response = requests.post(
         url,
@@ -131,16 +153,17 @@ def send_expiry_customer_chunk(
         timeout=30
     )
 
-    print("\n===== CUSTOMER TEMPLATE =====")
-    print("STATUS:", response.status_code)
-    print("RESPONSE:", response.text)
-    print("=============================\n")
+    print("\n===== CUSTOMER TEMPLATE RESPONSE =====")
+    print("STATUS :", response.status_code)
+    print("RESPONSE :", response.text)
+    print("======================================\n")
 
-    if response.status_code in (200, 201):
-        return response.json()
+    try:
+        data = response.json()
+    except Exception:
+        data = response.text
 
-    return None
-
+    return data if response.status_code in (200, 201) else None
 
 
 
