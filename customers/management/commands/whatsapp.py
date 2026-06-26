@@ -106,7 +106,7 @@ def send_expiry_customer_chunk(
         "to": phone,
         "type": "template",
         "template": {
-            "name": "expiry_customers",
+            "name": "alert_expiry_customers",
             "language": {
                 "code": "en"
             },
