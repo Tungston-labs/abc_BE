@@ -68,9 +68,9 @@ class Command(BaseCommand):
             for i, c in enumerate(custs, start=1):
 
                 customer_lines.append(
-                    f"{i}. {c.full_name or '-'}\n"
-                    f"Phone: {c.phone or '-'}\n"
-                    f"User: {c.username or '-'}\n"
+                    f"{i}. {c.full_name or '-'} | "
+                    f"Phone: {c.phone or '-'} | "
+                    f"User: {c.username or '-'} | "
                     f"ISP: {c.isp.name if c.isp else '-'}"
                 )
 
@@ -103,8 +103,8 @@ class Command(BaseCommand):
                 chunk = customer_lines[start:start + chunk_size]
 
                 message = (
-                    f"Expiry Customers ({start + 1}-{start + len(chunk)})\n\n"
-                    + "\n\n".join(chunk)
+                    f"Customers {start + 1}-{start + len(chunk)}: "
+                    + " || ".join(chunk)
                 )
 
                 chunk_result = send_expiry_customer_chunk(
