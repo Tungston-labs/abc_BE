@@ -1,17 +1,25 @@
 
 
 # # # ----whtspp meta
-from datetime import date
-import time
-
 from django.core.management.base import BaseCommand
 from datetime import date
+from pathlib import Path
+import time
+
+from django.conf import settings
+
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Paragraph,
+    Spacer,
+)
+from reportlab.lib.styles import getSampleStyleSheet
 
 from customers.utils import get_today_expiring_customers
 
 from customers.management.commands.whatsapp import (
     send_whatsapp_message,
-    send_expiry_customer_chunk
+    send_expiry_customer_chunk,
 )
 
 
@@ -21,7 +29,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
 
-        # TESTING ONLY
+        # TESTING
         customers = get_today_expiring_customers().filter(
             lco_id=3
         )
@@ -36,27 +44,27 @@ class Command(BaseCommand):
 
         for customer in customers:
 
-            if not customer.lco:
+            if not customer.lco or not customer.lco.phone:
                 continue
 
-            phone = customer.lco.phone
-
-            if not phone:
-                continue
-
-            phone = phone.replace("+", "").replace(" ", "")
+            phone = (
+                customer.lco.phone
+                .replace("+", "")
+                .replace(" ", "")
+            )
 
             if not phone.startswith("91"):
                 phone = f"91{phone}"
 
             if phone not in lco_map:
-
                 lco_map[phone] = {
                     "lco_name": customer.lco.name,
                     "customers": []
                 }
 
             lco_map[phone]["customers"].append(customer)
+
+        # -------------------------------------------------------
 
         for phone, data in lco_map.items():
 
@@ -65,7 +73,54 @@ class Command(BaseCommand):
 
             customer_lines = []
 
+            # -------------------------------
+            # Generate PDF
+            # -------------------------------
+
+            reports_dir = Path(settings.MEDIA_ROOT) / "expiry_reports"
+            reports_dir.mkdir(parents=True, exist_ok=True)
+
+            pdf_name = f"expiry_{phone}_{date.today()}.pdf"
+
+            pdf_path = reports_dir / pdf_name
+
+            doc = SimpleDocTemplate(str(pdf_path))
+
+            styles = getSampleStyleSheet()
+
+            content = []
+
+            content.append(
+                Paragraph(
+                    f"<b>Expiry Report - {today_str}</b>",
+                    styles["Title"]
+                )
+            )
+
+            content.append(
+                Paragraph(
+                    f"LCO : {lco_name}",
+                    styles["Heading2"]
+                )
+            )
+
+            content.append(Spacer(1, 20))
+
             for i, c in enumerate(custs, start=1):
+
+                pdf_text = f"""
+                <b>{i}. {c.full_name}</b><br/>
+                Phone : {c.phone}<br/>
+                Username : {c.username}<br/>
+                ISP : {c.isp.name if c.isp else "-"}<br/><br/>
+                """
+
+                content.append(
+                    Paragraph(
+                        pdf_text,
+                        styles["BodyText"]
+                    )
+                )
 
                 customer_lines.append(
                     f"{i}. {c.full_name or '-'} | "
@@ -74,27 +129,37 @@ class Command(BaseCommand):
                     f"ISP: {c.isp.name if c.isp else '-'}"
                 )
 
-            # Send template first
+            doc.build(content)
+
+            pdf_url = (
+                f"{settings.SITE_URL}"
+                f"{settings.MEDIA_URL}"
+                f"expiry_reports/{pdf_name}"
+            )
+
+            print("\nPDF URL:", pdf_url)
+
+            # -------------------------------
+            # First Template
+            # -------------------------------
 
             template_result = send_whatsapp_message(
                 phone=phone,
                 lco_name=lco_name,
                 date_str=today_str,
-                customer_list=(
-                    f"{len(customer_lines)} customer(s) "
-                    f"nearing expiry. Details follow."
-                )
+                customer_list=f"{len(customer_lines)} customer(s) nearing expiry."
             )
 
-            print("TEMPLATE RESULT:")
             print(template_result)
 
             if not template_result:
                 continue
 
-            # Send customer list in chunks
+            time.sleep(2)
 
-            # Send customer list in chunks
+            # -------------------------------
+            # Customer Chunks
+            # -------------------------------
 
             chunk_size = 5
 
@@ -103,26 +168,38 @@ class Command(BaseCommand):
                 chunk = customer_lines[start:start + chunk_size]
 
                 message = (
-                    f"Customers {start + 1}-{start + len(chunk)}: "
+                    f"Customers {start+1}-{start+len(chunk)}: "
                     + " || ".join(chunk)
                 )
+
+                # Only first chunk contains PDF URL
+
+                if start == 0:
+                    message += (
+                        f" || Complete customer report: {pdf_url}"
+                    )
 
                 print("\n========== CHUNK ==========")
                 print(message)
                 print("===========================\n")
 
-                chunk_result = send_expiry_customer_chunk(
+                result = send_expiry_customer_chunk(
                     phone=phone,
                     customer_text=message
                 )
 
-                if chunk_result:
-                    print(f"Chunk {start // chunk_size + 1} sent")
-                else:
-                    print(f"Chunk {start // chunk_size + 1} failed")
+                print(result)
 
-                # Wait 1 second before sending the next template
-                time.sleep(1)
+                if result:
+                    print(
+                        f"Chunk {(start//chunk_size)+1} sent"
+                    )
+                else:
+                    print(
+                        f"Chunk {(start//chunk_size)+1} failed"
+                    )
+
+                time.sleep(2)
 
             self.stdout.write(
                 self.style.SUCCESS(
@@ -135,7 +212,6 @@ class Command(BaseCommand):
                 "WhatsApp alerts process completed"
             )
         )
-
 
 
 # for document sending---
