@@ -19,9 +19,7 @@ from customers.utils import get_today_expiring_customers
 
 from customers.management.commands.whatsapp import (
     send_whatsapp_message,
-    send_expiry_customer_chunk,
 )
-
 
 class Command(BaseCommand):
 
@@ -31,7 +29,7 @@ class Command(BaseCommand):
 
         # TESTING
         customers = get_today_expiring_customers().filter(
-            lco_id=3
+            lco_id=1
         )
 
         if not customers:
@@ -147,7 +145,10 @@ class Command(BaseCommand):
                 phone=phone,
                 lco_name=lco_name,
                 date_str=today_str,
-                customer_list=f"{len(customer_lines)} customer(s) nearing expiry."
+                customer_list=(
+                    f"{len(customer_lines)} customer(s) nearing expiry. "
+                    f"Complete customer report: {pdf_url}"
+                )
             )
 
             print(template_result)
@@ -155,51 +156,7 @@ class Command(BaseCommand):
             if not template_result:
                 continue
 
-            time.sleep(2)
-
-            # -------------------------------
-            # Customer Chunks
-            # -------------------------------
-
-            chunk_size = 5
-
-            for start in range(0, len(customer_lines), chunk_size):
-
-                chunk = customer_lines[start:start + chunk_size]
-
-                message = (
-                    f"Customers {start+1}-{start+len(chunk)}: "
-                    + " || ".join(chunk)
-                )
-
-                # Only first chunk contains PDF URL
-
-                if start == 0:
-                    message += (
-                        f" || Complete customer report: {pdf_url}"
-                    )
-
-                print("\n========== CHUNK ==========")
-                print(message)
-                print("===========================\n")
-
-                result = send_expiry_customer_chunk(
-                    phone=phone,
-                    customer_text=message
-                )
-
-                print(result)
-
-                if result:
-                    print(
-                        f"Chunk {(start//chunk_size)+1} sent"
-                    )
-                else:
-                    print(
-                        f"Chunk {(start//chunk_size)+1} failed"
-                    )
-
-                time.sleep(2)
+            
 
             self.stdout.write(
                 self.style.SUCCESS(

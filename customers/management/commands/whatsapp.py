@@ -386,3 +386,67 @@ def send_ticket_update_whatsapp(
         logger.exception("Ticket WhatsApp Error")
 
         return None
+    
+
+
+
+
+
+
+    # invitation
+
+
+# def send_whatsapp_text(phone):
+
+#     phone = (
+#         str(phone)
+#         .replace("+", "")
+#         .replace(" ", "")
+#         .replace("-", "")
+#     )
+
+#     url = (
+#         f"https://graph.facebook.com/"
+#         f"{settings.WHATSAPP_API_VERSION}/"
+#         f"{settings.WHATSAPP_PHONE_NUMBER_ID}/messages"
+#     )
+
+#     headers = {
+#         "Authorization": f"Bearer {settings.WHATSAPP_ACCESS_TOKEN}",
+#         "Content-Type": "application/json",
+#     }
+
+#     payload = {
+#         "messaging_product": "whatsapp",
+#         "to": phone,
+#         "type": "text",
+#         "text": {
+#             "preview_url": False,
+#             "body": (
+#                 "Dear Operators,\n\n"
+#                 "You are cordially invited to the official launch of our new software.\n\n"
+#                 "📅 Date: 30 June\n"
+#                 "🕙 Time: 10:00 AM\n"
+#                 "📍 Venue: Hotel Periyar, Aluva\n\n"
+#                 "Your presence would mean a lot to us.\n\n"
+#                 "See you there!"
+#             )
+#         }
+#     }
+
+#     print(payload)
+
+#     response = requests.post(
+#         url,
+#         headers=headers,
+#         json=payload,
+#         timeout=30
+#     )
+
+#     print(response.status_code)
+#     print(response.text)
+
+#     if response.status_code in (200, 201):
+#         return response.json()
+
+#     return None
