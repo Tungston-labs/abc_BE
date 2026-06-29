@@ -28,9 +28,8 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
 
         # TESTING
-        customers = get_today_expiring_customers().filter(
-            lco_id=3
-        )
+        # Get all expiring customers
+        customers = get_today_expiring_customers()
 
         if not customers:
             self.stdout.write("No expiring customers today.")
