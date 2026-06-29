@@ -221,7 +221,38 @@ class TicketDetailUpdateDeleteAPIView(generics.RetrieveUpdateDestroyAPIView):
 
         print("===================================\n")
 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework import status
 
+class TicketAttachmentDeleteAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, pk):
+        try:
+            attachment = TicketAttachment.objects.get(id=pk)
+
+            # OPTIONAL BUT IMPORTANT: safety check
+            # (prevents deleting other tickets' attachments)
+            if attachment.ticket.lco != request.user:
+                return Response(
+                    {"error": "Not allowed"},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
+            attachment.delete()
+
+            return Response(
+                {"message": "deleted"},
+                status=status.HTTP_200_OK
+            )
+
+        except TicketAttachment.DoesNotExist:
+            return Response(
+                {"error": "not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
 from rest_framework import generics, permissions
 from .models import Ticket

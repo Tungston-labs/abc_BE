@@ -3,7 +3,7 @@ from .views import (
     WebsiteTicketCreateAPIView,
     LCOTicketCreateAPIView,
     TicketListAPIView,
-    TicketDetailUpdateDeleteAPIView,LCOTicketListAPIView,AdminTicketDashboardAPIView
+    TicketDetailUpdateDeleteAPIView,LCOTicketListAPIView,AdminTicketDashboardAPIView,TicketAttachmentDeleteAPIView
 )
 
 urlpatterns = [
@@ -22,4 +22,9 @@ urlpatterns = [
         AdminTicketDashboardAPIView.as_view(),
         name="admin-ticket-dashboard"
     ),
+    path(
+    "ticket-attachment/<int:pk>/",
+    TicketAttachmentDeleteAPIView.as_view(),
+    name="ticket-attachment-delete"
+),
 ]
