@@ -29,7 +29,7 @@ class Command(BaseCommand):
 
         # TESTING
         customers = get_today_expiring_customers().filter(
-            lco_id=1
+            lco_id=3
         )
 
         if not customers:
