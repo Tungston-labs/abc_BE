@@ -67,3 +67,23 @@ class TicketSerializer(serializers.ModelSerializer):
         ticket = Ticket.objects.create(**validated_data)
 
         return ticket
+    
+    def update(self, instance, validated_data):
+
+        files = validated_data.pop("files", None)
+
+        # update normal fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+
+        # handle file uploads
+        if files:
+            for file in files:
+                TicketAttachment.objects.create(
+                    ticket=instance,
+                    file=file
+                )
+
+        return instance
