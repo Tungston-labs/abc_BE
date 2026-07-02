@@ -36,7 +36,7 @@ class Command(BaseCommand):
             return
 
         from_date = date.today()
-        to_date = from_date + timedelta(days=5)
+        to_date = from_date + timedelta(days=2)
 
         from_date_str = from_date.strftime("%d %b %Y")
         to_date_str = to_date.strftime("%d %b %Y")
