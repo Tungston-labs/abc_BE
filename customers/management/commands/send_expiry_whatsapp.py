@@ -114,6 +114,7 @@ class Command(BaseCommand):
                 Phone : {c.phone}<br/>
                 Username : {c.username}<br/>
                 ISP : {c.isp.name if c.isp else "-"}<br/><br/>
+                Expiry Date : {c.expiry_date.strftime('%d %b %Y') if c.expiry_date else "-"}<br/><br/>
                 """
 
                 content.append(
