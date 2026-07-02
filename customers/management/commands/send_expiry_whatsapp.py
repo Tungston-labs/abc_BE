@@ -2,7 +2,7 @@
 
 # # # ----whtspp meta
 from django.core.management.base import BaseCommand
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 import time
 
@@ -35,7 +35,11 @@ class Command(BaseCommand):
             self.stdout.write("No expiring customers today.")
             return
 
-        today_str = date.today().strftime("%d %b %Y")
+        from_date = date.today()
+        to_date = from_date + timedelta(days=5)
+
+        from_date_str = from_date.strftime("%d %b %Y")
+        to_date_str = to_date.strftime("%d %b %Y")
 
         lco_map = {}
 
@@ -89,7 +93,7 @@ class Command(BaseCommand):
 
             content.append(
                 Paragraph(
-                    f"<b>Expiry Report - {today_str}</b>",
+                    f"<b>Expiry Report ({from_date_str} - {to_date_str})</b>",
                     styles["Title"]
                 )
             )
