@@ -201,10 +201,8 @@ class TicketDetailUpdateDeleteAPIView(generics.RetrieveUpdateDestroyAPIView):
                 phone=phone,
                 lco_name=lco_profile.name,
                 ticket_id=str(ticket.id),
-                ticket_type=str(
-                    getattr(ticket, "ticket_type", "Support Ticket")
-                ),
-                status=str(ticket.status),
+                ticket_type=ticket.get_category_display(),
+                status=ticket.get_status_display(),
                 admin_reply=str(
                     getattr(ticket, "admin_reply", "")
                     or "No remarks provided"

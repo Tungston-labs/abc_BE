@@ -136,6 +136,6 @@ Content-Type: application/json
 
 {
   "partnerName": "ABC_NASA NETWORK (Thaikkattukara)",
-  "expiryFrom": "2026-01-01 00:00:00",
-  "expiryTill": "2026-06-29 23:59:59"
+  "expiryFrom": "2026-07-02 00:00:00",
+  "expiryTill": "2026-07-05 23:59:59"
 }

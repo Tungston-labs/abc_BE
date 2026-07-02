@@ -167,119 +167,7 @@ def send_expiry_customer_chunk(
 
 
 
-# extra message-------   
-# def send_whatsapp_text(phone, message):
 
-#     phone = (
-#         str(phone)
-#         .replace("+", "")
-#         .replace(" ", "")
-#         .replace("-", "")
-#     )
-
-#     url = (
-#         f"https://graph.facebook.com/"
-#         f"{settings.WHATSAPP_API_VERSION}/"
-#         f"{settings.WHATSAPP_PHONE_NUMBER_ID}/messages"
-#     )
-
-#     headers = {
-#         "Authorization": f"Bearer {settings.WHATSAPP_ACCESS_TOKEN}",
-#         "Content-Type": "application/json",
-#     }
-
-#     payload = {
-#         "messaging_product": "whatsapp",
-#         "to": phone,
-#         "type": "text",
-#         "text": {
-#             "preview_url": False,
-#             "body": message
-#         }
-#     }
-
-#     response = requests.post(
-#         url,
-#         headers=headers,
-#         json=payload,
-#         timeout=30
-#     )
-
-#     print("\n===== TEXT RESPONSE =====")
-#     print(response.status_code)
-#     print(response.text)
-#     print("=========================\n")
-
-#     return response.json()
-
-
-
-
-
-
-
-
-
-# -----document sending through whatspp-----
-# import requests
-# from django.conf import settings
-
-# def send_whatsapp_document(
-#     phone,
-#     document_url,
-#     filename="Expiry_Report.pdf"
-# ):
-
-#     phone = (
-#         str(phone)
-#         .replace("+", "")
-#         .replace(" ", "")
-#         .replace("-", "")
-#     )
-
-#     url = (
-#         f"https://graph.facebook.com/"
-#         f"{settings.WHATSAPP_API_VERSION}/"
-#         f"{settings.WHATSAPP_PHONE_NUMBER_ID}/messages"
-#     )
-
-#     headers = {
-#         "Authorization": f"Bearer {settings.WHATSAPP_ACCESS_TOKEN}",
-#         "Content-Type": "application/json",
-#     }
-
-#     payload = {
-#         "messaging_product": "whatsapp",
-#         "recipient_type": "individual",
-#         "to": phone,
-#         "type": "document",
-#         "document": {
-#             "link": document_url,
-#             "filename": filename,
-#             "caption": "Expiry Customer Report"
-#         }
-#     }
-
-#     print("\n===== DOCUMENT REQUEST =====")
-#     print(payload)
-#     print("============================\n")
-
-#     response = requests.post(
-#         url,
-#         headers=headers,
-#         json=payload,
-#         timeout=60
-#     )
-
-#     print("\n===== DOCUMENT RESPONSE =====")
-#     print("STATUS:", response.status_code)
-#     print("RESPONSE:", response.text)
-#     print("=============================\n")
-
-#     try:
-#         return response.json()
-#     except Exception:
-#         return response.text
 # --------------ticket notifications-------
 
 
@@ -317,6 +205,11 @@ def send_ticket_update_whatsapp(
             "Authorization": f"Bearer {settings.WHATSAPP_ACCESS_TOKEN}",
             "Content-Type": "application/json",
         }
+        print("lco_name:", lco_name)
+        print("ticket_type:", ticket_type)
+        print("status:", status)
+        print("ticket_id:", ticket_id)
+        print("admin_reply:", admin_reply)
 
         payload = {
             "messaging_product": "whatsapp",
