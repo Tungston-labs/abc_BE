@@ -147,7 +147,7 @@ class Command(BaseCommand):
             template_result = send_whatsapp_message(
                 phone=phone,
                 lco_name=lco_name,
-                date_str=today_str,
+                date_str=f"{from_date_str} - {to_date_str}",
                 customer_list=(
                     f"{len(customer_lines)} customer(s) nearing expiry. "
                     f"Complete customer report: {pdf_url}"
