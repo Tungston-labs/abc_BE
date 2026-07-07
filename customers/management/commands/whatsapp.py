@@ -280,8 +280,73 @@ def send_ticket_update_whatsapp(
 
         return None
     
+# remote server signal alert
 
+def send_signal_alert(phone, service, status, time_str, reason):
 
+    phone = (
+        str(phone)
+        .replace("+", "")
+        .replace(" ", "")
+        .replace("-", "")
+    )
+
+    url = (
+        f"https://graph.facebook.com/"
+        f"{settings.WHATSAPP_API_VERSION}/"
+        f"{settings.WHATSAPP_PHONE_NUMBER_ID}/messages"
+    )
+
+    headers = {
+        "Authorization": f"Bearer {settings.WHATSAPP_ACCESS_TOKEN}",
+        "Content-Type": "application/json",
+    }
+
+    payload = {
+        "messaging_product": "whatsapp",
+        "to": phone,
+        "type": "template",
+        "template": {
+            "name": "signal_sync_alert",
+            "language": {
+                "code": "en"
+            },
+            "components": [
+                {
+                    "type": "body",
+                    "parameters": [
+                        {
+                            "type": "text",
+                            "text": service
+                        },
+                        {
+                            "type": "text",
+                            "text": status
+                        },
+                        {
+                            "type": "text",
+                            "text": time_str
+                        },
+                        {
+                            "type": "text",
+                            "text": reason
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+
+    response = requests.post(
+        url,
+        headers=headers,
+        json=payload
+    )
+
+    print(response.status_code)
+    print(response.text)
+
+    return response.json()
 
 
 
