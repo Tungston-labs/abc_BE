@@ -99,6 +99,7 @@ class Command(BaseCommand):
                 item["serial_number"]: {
                     "signal": item.get("rx_power"),
                     "port": item.get("port"),
+                    "mac_id": item.get("mac_address"),
                 }
                 for item in data
                 if isinstance(item, dict)
@@ -132,6 +133,11 @@ class Command(BaseCommand):
                     if api_data.get("port") is not None
                     else None
                 )
+                customer.mac_id = (
+                    api_data.get("mac_id").upper()
+                    if api_data.get("mac_id")
+                    else None
+                )
 
                 customer.last_updated = sync_time
 
@@ -145,7 +151,12 @@ class Command(BaseCommand):
 
                 Customer.objects.bulk_update(
                     update_list[i:i + batch_size],
-                    ["signal", "port", "last_updated"],
+                    [
+                        "signal",
+                        "port",
+                        "mac_id",
+                        "last_updated",
+                    ],
                 )
 
                 print(
