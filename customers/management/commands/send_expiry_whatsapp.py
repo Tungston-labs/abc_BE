@@ -1,5 +1,3 @@
-
-
 # # # ----whtspp meta
 from django.core.management.base import BaseCommand
 from datetime import date, timedelta
