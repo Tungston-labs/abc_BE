@@ -140,6 +140,8 @@ DATABASES = {
         'PASSWORD': 'password@123',
         'HOST': '178.248.112.16',
         'PORT': '5432',
+        'CONN_MAX_AGE': 60,
+        'CONN_HEALTH_CHECKS': True,
     }
 }
 
