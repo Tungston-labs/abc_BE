@@ -437,16 +437,20 @@ class BulkCustomerUpload(APIView):
         post_save.disconnect(log_create_or_update, sender=Customer)
 
         try:
-            # ✅ SINGLE TRANSACTION (important)
-            with transaction.atomic():
 
-                for index, row in df.iterrows():
-                    try:
+            # ✅ Process each Excel row separately
+            for index, row in df.iterrows():
+
+                try:
+                    # ✅ Each row gets its own transaction
+                    with transaction.atomic():
+
                         data = {}
 
                         for field, excel_col in header_map.items():
                             val = row.get(excel_col)
                             data[field] = None if pd.isna(val) else val
+
 
                         # -------- USERNAME --------
                         username = str(data.get("username", "")).strip().lower()
@@ -456,120 +460,237 @@ class BulkCustomerUpload(APIView):
                             errors.append(f"Row {index+1}: Missing username")
                             continue
 
+
                         if username in seen_usernames:
                             print(f"❌ SKIPPED Row {index+1}: Duplicate username in file")
                             errors.append(f"Row {index+1}: Duplicate username in file")
                             continue
 
+
                         seen_usernames.add(username)
+
 
                         # -------- ONT --------
                         ont_number = data.get("ont_number")
+
                         if ont_number:
                             ont_number = str(ont_number).strip()
 
-                        # ✅ FIX: Allow update instead of skipping
+
+                        # -------- ONT REASSIGN --------
                         if ont_number:
+
                             existing_ont = Customer.objects.filter(
                                 ont_number=ont_number
-                            ).exclude(username=username).first()
+                            ).exclude(
+                                username=username
+                            ).first()
+
 
                             if existing_ont:
-                                print(f"⚠️ ONT reassigned {existing_ont.username} → {username}")
+                                print(
+                                    f"⚠️ ONT reassigned "
+                                    f"{existing_ont.username} → {username}"
+                                )
+
                                 existing_ont.username = username
                                 existing_ont.save()
+
 
                         # -------- DEFAULTS --------
                         defaults = {}
 
+
                         text_fields = [
-                            "full_name", "email", "address", "plan",
-                            "mac_id", "v_lan", "signal", "kseb_post",
-                            "port", "lco_ref"
+                            "full_name",
+                            "email",
+                            "address",
+                            "plan",
+                            "mac_id",
+                            "v_lan",
+                            "signal",
+                            "kseb_post",
+                            "port",
+                            "lco_ref"
                         ]
 
+
                         for field in text_fields:
+
                             if data.get(field) not in (None, ""):
-                                defaults[field] = str(data[field]).strip()
+                                defaults[field] = str(
+                                    data[field]
+                                ).strip()
 
-                        # PHONE
+
+
+                        # -------- PHONE --------
                         if data.get("phone"):
-                            defaults["phone"] = str(data["phone"]).split('.')[0].strip()
 
-                        # DISTANCE
+                            defaults["phone"] = (
+                                str(data["phone"])
+                                .split('.')[0]
+                                .strip()
+                            )
+
+
+
+                        # -------- DISTANCE --------
                         if data.get("distance") not in (None, ""):
-                            try:
-                                defaults["distance"] = float(data["distance"])
-                            except:
-                                errors.append(f"Row {index+1}: Invalid distance")
 
-                        # EXPIRY DATE
-                        if data.get("expiry_date"):
                             try:
-                                defaults["expiry_date"] = pd.to_datetime(
-                                    data["expiry_date"], errors="coerce"
-                                ).date()
+                                defaults["distance"] = float(
+                                    data["distance"]
+                                )
+
+                            except:
+                                errors.append(
+                                    f"Row {index+1}: Invalid distance"
+                                )
+
+
+
+                        # -------- EXPIRY DATE --------
+                        if data.get("expiry_date"):
+
+                            try:
+                                defaults["expiry_date"] = (
+                                    pd.to_datetime(
+                                        data["expiry_date"],
+                                        errors="coerce"
+                                    )
+                                    .date()
+                                )
+
                             except:
                                 pass
+
+
 
                         if ont_number:
                             defaults["ont_number"] = ont_number
 
-                        # ISP
+
+
+                        # -------- ISP --------
                         if selected_isp:
+
                             defaults["isp"] = selected_isp
+
                         elif data.get("isp"):
-                            isp_name = str(data["isp"]).strip().lower()
+
+                            isp_name = str(
+                                data["isp"]
+                            ).strip().lower()
+
+
                             if isp_name in isp_cache:
                                 defaults["isp"] = isp_cache[isp_name]
 
-                        # LCO
+
+
+                        # -------- LCO --------
                         if selected_lco:
+
                             defaults["lco"] = selected_lco
+
                             if hasattr(selected_lco, "isp"):
                                 defaults["isp"] = selected_lco.isp
+
+
                         elif data.get("lco"):
-                            lco_code = str(data["lco"]).strip().lower()
+
+                            lco_code = str(
+                                data["lco"]
+                            ).strip().lower()
+
+
                             if lco_code in lco_cache:
                                 defaults["lco"] = lco_cache[lco_code]
 
-                        # OLT
-                        if data.get("olt"):
-                            olt_val = str(data["olt"]).strip()
-                            try:
-                                defaults["olt"] = OLT.objects.get(pk=int(olt_val))
-                            except:
-                                if olt_val.lower() in olt_cache:
-                                    defaults["olt"] = olt_cache[olt_val.lower()]
 
-                        # DEBUG
+
+                        # -------- OLT --------
+                        if data.get("olt"):
+
+                            olt_val = str(
+                                data["olt"]
+                            ).strip()
+
+
+                            try:
+
+                                defaults["olt"] = OLT.objects.get(
+                                    pk=int(olt_val)
+                                )
+
+
+                            except:
+
+                                if olt_val.lower() in olt_cache:
+                                    defaults["olt"] = olt_cache[
+                                        olt_val.lower()
+                                    ]
+
+
+
+                        # -------- DEBUG --------
                         print(f"\n📌 Row {index+1}")
                         print("Username:", username)
                         print("Defaults:", defaults)
 
-                        # SAVE
+
+
+                        # -------- SAVE --------
                         obj, created = Customer.objects.update_or_create(
+
                             username=username,
+
                             defaults=defaults
+
                         )
 
+
                         if created:
+
                             created_count += 1
-                            print(f"✅ CREATED: {username}")
+
+                            print(
+                                f"✅ CREATED: {username}"
+                            )
+
+
                         else:
+
                             updated_count += 1
-                            print(f"🔄 UPDATED: {username}")
+
+                            print(
+                                f"🔄 UPDATED: {username}"
+                            )
+
 
                         success_count += 1
 
-                    except Exception as e:
-                        print("\n🔥 ERROR:")
-                        traceback.print_exc()
-                        errors.append(f"Row {index+1}: {str(e)}")
+
+
+                except Exception as e:
+
+                    print("\n🔥 ROW ERROR:")
+                    traceback.print_exc()
+
+                    errors.append(
+                        f"Row {index+1}: {str(e)}"
+                    )
+
+
 
         finally:
+
             # ✅ RE-ENABLE SIGNALS
-            post_save.connect(log_create_or_update, sender=Customer)
+            post_save.connect(
+                log_create_or_update,
+                sender=Customer
+            )
 
         return Response({
             "message": f"{success_count} processed",
