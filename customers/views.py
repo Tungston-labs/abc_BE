@@ -438,7 +438,7 @@ class BulkCustomerUpload(APIView):
 
         try:
 
-            # ✅ Process each Excel row separately
+            # ✅ Process each Excel row separately 
             for index, row in df.iterrows():
 
                 try:
