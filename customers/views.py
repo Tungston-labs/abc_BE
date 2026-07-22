@@ -642,32 +642,25 @@ class BulkCustomerUpload(APIView):
 
 
                         # -------- SAVE --------
+                        defaults["updated_by"] = request.user
+
+                        # -------- SAVE --------
                         obj, created = Customer.objects.update_or_create(
-
                             username=username,
-
                             defaults=defaults
-
                         )
 
+                        # Set created_by only for newly created customers
+                        if created and obj.created_by is None:
+                            obj.created_by = request.user
+                            obj.save(update_fields=["created_by"])
 
                         if created:
-
                             created_count += 1
-
-                            print(
-                                f"✅ CREATED: {username}"
-                            )
-
-
+                            print(f"✅ CREATED: {username}")
                         else:
-
                             updated_count += 1
-
-                            print(
-                                f"🔄 UPDATED: {username}"
-                            )
-
+                            print(f"🔄 UPDATED: {username}")
 
                         success_count += 1
 
