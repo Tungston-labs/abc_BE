@@ -252,3 +252,6 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 SITE_URL = "https://api.aluvabroadband.com"
+
+EXTRANET_USERNAME = config("EXTRANET_USERNAME")
+EXTRANET_PASSWORD = config("EXTRANET_PASSWORD")

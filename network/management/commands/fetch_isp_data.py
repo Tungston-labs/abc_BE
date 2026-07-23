@@ -75,10 +75,19 @@ def update_expiry(item, mapping):
         return "not_found"
 
     try:
-        expiry_date = datetime.strptime(
-            expiry_str,
-            "%d-%b-%Y %H:%M:%S"
-        ).date()
+        try:
+            # Stampede
+            expiry_date = datetime.strptime(
+                expiry_str,
+                "%d-%b-%Y %H:%M:%S"
+            ).date()
+        except ValueError:
+            # Extranet
+            expiry_date = datetime.strptime(
+                expiry_str,
+                "%m/%d/%Y %I:%M:%S %p"
+            ).date()
+
     except Exception:
         print(f"❌ Invalid date format: {expiry_str}")
         return "not_found"
