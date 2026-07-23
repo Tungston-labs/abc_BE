@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand
+from django.db import close_old_connections, OperationalError
 from lcos.models import LCOISPMapping
 from network.services.isp_handler import fetch_isp_data
 from customers.models import Customer
@@ -18,6 +19,9 @@ class Command(BaseCommand):
         total_not_found = 0
 
         for mapping in mappings:
+            # Close stale DB connections before processing each mapping
+            close_old_connections()
+
             print(f"\n🔌 Processing ISP: {mapping.partner_name}")
 
             try:
@@ -29,14 +33,16 @@ class Command(BaseCommand):
                 not_found = 0
 
                 for item in data_list:
-                    result = update_expiry(item, mapping)
+                    result = update_expiry(item)
 
                     if result == "updated":
                         updated += 1
                     elif result == "not_found":
                         not_found += 1
 
-                print(f"✔ {mapping.partner_name} → Updated: {updated}, Not Found: {not_found}")
+                print(
+                    f"✔ {mapping.partner_name} → Updated: {updated}, Not Found: {not_found}"
+                )
 
                 total_updated += updated
                 total_not_found += not_found
@@ -52,7 +58,7 @@ class Command(BaseCommand):
 
 
 # ==========================
-# 🔧 HELPER FUNCTIONS
+# HELPER FUNCTIONS
 # ==========================
 
 def normalize_mac(mac):
@@ -61,21 +67,49 @@ def normalize_mac(mac):
     return mac.lower().replace(":", "").replace("-", "")
 
 
-def update_expiry(item, mapping):
+def get_customer_by_username(username):
+    """
+    Retry once if PostgreSQL connection was dropped.
+    """
+    try:
+        return Customer.objects.filter(username__iexact=username).first()
+
+    except OperationalError:
+        print("⚠ Database connection lost. Reconnecting...")
+        close_old_connections()
+        return Customer.objects.filter(username__iexact=username).first()
+
+
+def get_customer_by_mac(mac):
+    """
+    Retry once if PostgreSQL connection was dropped.
+    """
+    try:
+        return Customer.objects.filter(mac_id__iexact=mac).first()
+
+    except OperationalError:
+        print("⚠ Database connection lost. Reconnecting...")
+        close_old_connections()
+        return Customer.objects.filter(mac_id__iexact=mac).first()
+
+
+def update_expiry(item):
+    # Close stale DB connections before each query
+    close_old_connections()
+
     username = item.get("username")
     mac = normalize_mac(item.get("macAddress"))
 
-    # Normalize username
     if username:
         username = username.strip().lower()
 
-    # Handle expiry date safely
     expiry_str = item.get("expiryDate")
 
     if not expiry_str:
         print(f"❌ Missing expiry for {username}")
         return "not_found"
 
+    # Parse both ISP date formats
     try:
         try:
             # Stampede
@@ -83,6 +117,7 @@ def update_expiry(item, mapping):
                 expiry_str,
                 "%d-%b-%Y %H:%M:%S"
             ).date()
+
         except ValueError:
             # Extranet
             expiry_date = datetime.strptime(
@@ -96,28 +131,35 @@ def update_expiry(item, mapping):
 
     customer = None
 
-    # 🔍 Match by username
+    # Match by username
     if username:
-        customer = Customer.objects.filter(
-            username__iexact=username
-            
-        ).first()
+        customer = get_customer_by_username(username)
 
-    # 🔍 Fallback → MAC
+    # Fallback to MAC
     if not customer and mac:
-        customer = Customer.objects.filter(
-            mac_id__iexact=mac
-        ).first()
+        customer = get_customer_by_mac(mac)
 
     if not customer:
         print(f"❌ Not found: {username}")
         return "not_found"
 
-    # ✅ Update only expiry date (optimized)
-    if not customer.expiry_date or customer.expiry_date != expiry_date:
-        customer.expiry_date = expiry_date
-        customer.save(update_fields=["expiry_date"])
-        print(f"✅ Updated: {customer.username}")
-        return "updated"
+    # Update expiry if changed
+    if customer.expiry_date != expiry_date:
+        try:
+            customer.expiry_date = expiry_date
+            customer.save(update_fields=["expiry_date"])
+            print(f"✅ Updated: {customer.username}")
+            return "updated"
+
+        except OperationalError:
+            print("⚠ Database connection lost while saving. Retrying...")
+            close_old_connections()
+
+            customer = Customer.objects.get(pk=customer.pk)
+            customer.expiry_date = expiry_date
+            customer.save(update_fields=["expiry_date"])
+
+            print(f"✅ Updated: {customer.username}")
+            return "updated"
 
     return "skipped"
