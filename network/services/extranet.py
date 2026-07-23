@@ -45,6 +45,8 @@ def get_token():
 
 
 def fetch_extranet_data(mapping):
+    print("\n========== EXTRANET ==========")
+    print(f"Partner Code : {mapping.partner_name}")
 
     token = get_token()
 
