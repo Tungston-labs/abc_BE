@@ -3,6 +3,7 @@ from lcos.models import LCOISPMapping
 from network.services.isp_handler import fetch_isp_data
 from customers.models import Customer
 from datetime import datetime
+import traceback
 
 
 class Command(BaseCommand):
@@ -40,8 +41,9 @@ class Command(BaseCommand):
                 total_updated += updated
                 total_not_found += not_found
 
-            except Exception as e:
-                print(f"❌ Error for {mapping.partner_name}: {e}")
+            except Exception:
+                print(f"\n❌ Error for {mapping.partner_name}")
+                traceback.print_exc()
 
         print("\n🎯 FINAL SUMMARY")
         print(f"✅ Total Updated: {total_updated}")
