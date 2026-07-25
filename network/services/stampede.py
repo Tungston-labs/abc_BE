@@ -4,6 +4,8 @@ from datetime import datetime, timedelta
 
 def fetch_stampede_data(mapping):
     isp = mapping.isp
+    print("\n========== STAMPEDE ==========")
+    print(f"Partner Name : {mapping.partner_name}")
 
     token = isp.token  # static token for now
 
