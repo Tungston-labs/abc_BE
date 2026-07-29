@@ -31,3 +31,35 @@ class Customer(TimeStampedModel):
     def __str__(self):
         return str(self.full_name or self.username or f"Customer-{self.id}")
 
+
+
+
+class ServiceHealth(models.Model):
+    SERVICE_CHOICES = (
+        ("signal", "Signal Server"),
+    )
+
+    service = models.CharField(
+        max_length=30,
+        unique=True,
+        choices=SERVICE_CHOICES
+    )
+
+    is_down = models.BooleanField(default=False)
+
+    last_failure = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+
+    last_recovery = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+
+    last_error = models.TextField(
+        blank=True
+    )
+
+    def __str__(self):
+        return self.service
