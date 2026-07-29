@@ -256,3 +256,17 @@ SITE_URL = "https://api.aluvabroadband.com"
 
 EXTRANET_USERNAME = config("EXTRANET_USERNAME")
 EXTRANET_PASSWORD = config("EXTRANET_PASSWORD")
+
+
+
+SIGNAL_ALERT_EMAILS = [
+    email.strip()
+    for email in os.getenv("SIGNAL_ALERT_EMAILS", "").split(",")
+    if email.strip()
+]
+
+SIGNAL_ALERT_PHONES = [
+    phone.strip()
+    for phone in os.getenv("SIGNAL_ALERT_PHONES", "").split(",")
+    if phone.strip()
+]

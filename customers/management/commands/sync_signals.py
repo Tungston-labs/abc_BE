@@ -5,22 +5,27 @@ from django.conf import settings
 from django.utils import timezone
 from django.core.mail import send_mail
 
-from customers.models import Customer
+from customers.models import Customer, ServiceHealth
 from customers.management.commands.whatsapp import send_signal_alert
 
 API_URL = f"{settings.SIGNAL_API_BASE_URL}/signals"
 
-ADMIN_EMAILS = [
-    "aluvabroadband@gmail.com",
-    "nisna.u5@gmail.com",
-]
-ADMIN_PHONES = [
-    "919400148247",
-    "917025220037",
-    "919746467290",
-    "919048589584",
-    "919447922006"
-]
+
+def mark_failed(self, subject, error):
+    health, _ = ServiceHealth.objects.get_or_create(
+        service="signal",
+        defaults={"is_down": False},
+    )
+
+    if health.is_down:
+        return
+
+    self.send_alert(subject, error)
+
+    health.is_down = True
+    health.last_failure = timezone.now()
+    health.last_error = error
+    health.save()
 
 
 class Command(BaseCommand):
@@ -57,14 +62,14 @@ class Command(BaseCommand):
             This is an automated notification from ABC CRM.
             """,
                 from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=ADMIN_EMAILS,
+                recipient_list=settings.SIGNAL_ALERT_EMAILS,
                 fail_silently=False,
             )
 
             print("✅ Alert email sent successfully.")
             time_str = timezone.localtime().strftime("%d %b %Y %I:%M %p")
 
-            for phone in ADMIN_PHONES:
+            for phone in settings.SIGNAL_ALERT_PHONES:
                 try:
                     send_signal_alert(
                         phone=phone,
@@ -80,6 +85,52 @@ class Command(BaseCommand):
 
         except Exception as mail_error:
             print(f"❌ Failed to send alert email: {mail_error}")
+
+
+    def send_recovery(self):
+        try:
+
+            send_mail(
+                subject="✅ Signal Server Recovered",
+                message=f"""
+    Hello Admin,
+
+    Signal Synchronization has resumed successfully.
+
+    Time:
+    {timezone.now()}
+
+    API:
+    {API_URL}
+
+    The Signal Server is reachable again.
+
+    This is an automated notification from ABC CRM.
+    """,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=settings.SIGNAL_ALERT_EMAILS,
+                fail_silently=False,
+            )
+
+            time_str = timezone.localtime().strftime("%d %b %Y %I:%M %p")
+
+            for phone in settings.SIGNAL_ALERT_PHONES:
+
+                try:
+
+                    send_signal_alert(
+                        phone=phone,
+                        service="Signal Synchronization",
+                        status="Recovered",
+                        time_str=time_str,
+                        reason="Server reachable again",
+                    )
+
+                except Exception as e:
+                    print(e)
+
+        except Exception as e:
+            print(e)
 
     def handle(self, *args, **kwargs):
 
@@ -168,15 +219,31 @@ class Command(BaseCommand):
 
             print("7. Bulk update completed")
 
+            health, _ = ServiceHealth.objects.get_or_create(
+                service="signal",
+                defaults={"is_down": False},
+            )
+
+            if health.is_down:
+
+                self.send_recovery()
+
+                health.is_down = False
+                health.last_recovery = timezone.now()
+                health.last_error = ""
+                health.save()
+
             self.stdout.write(
                 self.style.SUCCESS(
                     f"Successfully updated {len(update_list)} customers"
                 )
             )
 
+        
+
         except requests.exceptions.ConnectionError as e:
 
-            self.send_alert(
+            self.mark_failed(
                 "🚨 Signal Server Unreachable",
                 str(e)
             )
@@ -189,7 +256,7 @@ class Command(BaseCommand):
 
         except requests.exceptions.Timeout as e:
 
-            self.send_alert(
+            self.mark_failed(
                 "🚨 Signal Server Timeout",
                 str(e)
             )
@@ -202,7 +269,7 @@ class Command(BaseCommand):
 
         except requests.exceptions.HTTPError as e:
 
-            self.send_alert(
+            self.mark_failed(
                 "🚨 Signal API HTTP Error",
                 str(e)
             )
@@ -215,7 +282,7 @@ class Command(BaseCommand):
 
         except Exception as e:
 
-            self.send_alert(
+            self.mark_failed(
                 "🚨 Signal Synchronization Failed",
                 str(e)
             )
@@ -225,3 +292,7 @@ class Command(BaseCommand):
                     f"Sync failed: {str(e)}"
                 )
             )
+
+        
+
+        

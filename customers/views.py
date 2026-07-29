@@ -83,23 +83,19 @@ class CustomerListCreateView(TrackCreatedUpdatedUserMixin, generics.ListCreateAP
 
 
 
+import logging
 import requests
+
+from django.conf import settings
+from django.utils.dateparse import parse_datetime
+
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .models import Customer
 from .serializers import CustomerSerializer
-
-
-import requests
-from django.conf import settings
-from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from django.utils.dateparse import parse_datetime
-import requests
-import logging
+from customers.utils.signal_health import mark_signal_recovered
 
 logger = logging.getLogger(__name__)
 
@@ -174,6 +170,8 @@ class CustomerRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
                             signal=instance.signal,
                             port=instance.port
                         )
+
+                        mark_signal_recovered()
 
             except Exception as e:
                 logger.error(
