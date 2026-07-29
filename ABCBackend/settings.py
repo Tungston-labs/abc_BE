@@ -132,14 +132,15 @@ WSGI_APPLICATION = 'ABCBackend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'abcde_db_new',
-        'USER': 'postgres',
-        'PASSWORD': 'password@123',
-        'HOST': '178.248.112.16',
-        'PORT': '5432',
+        'NAME': config('DB_NAME'),
+        'USER': config('DB_USER'),
+        'PASSWORD': config('DB_PASSWORD'),
+        'HOST': config('DB_HOST'),
+        'PORT': config('DB_PORT'),
         'CONN_MAX_AGE': 60,
         'CONN_HEALTH_CHECKS': True,
     }
