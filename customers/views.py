@@ -95,7 +95,7 @@ from rest_framework.response import Response
 
 from .models import Customer
 from .serializers import CustomerSerializer
-from customers.utils.signal_health import mark_signal_recovered
+from customers.management.commands.signal_health import mark_signal_recovered
 
 logger = logging.getLogger(__name__)
 
