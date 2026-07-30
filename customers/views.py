@@ -142,11 +142,9 @@ class CustomerRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
                         else None
                     )
 
-                    instance.port = (
-                        str(data.get("port"))
-                        if data.get("port")
-                        else None
-                    )
+                    # Update port only if it is currently empty
+                    if not instance.port and data.get("port"):
+                        instance.port = str(data.get("port"))
 
                     # Update last_updated from FastAPI response
                     updated_at = data.get("updated_at")
