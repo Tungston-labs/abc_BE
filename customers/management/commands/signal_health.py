@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.core.mail import send_mail
 from django.utils import timezone
+from zoneinfo import ZoneInfo
+
 
 from customers.models import ServiceHealth
 from customers.management.commands.whatsapp import send_signal_alert
@@ -41,7 +43,12 @@ This is an automated notification from ABC CRM.
     except Exception as e:
         print(f"Email Error: {e}")
 
-    time_str = timezone.localtime().strftime("%d %b %Y %I:%M %p")
+
+    time_str = (
+        timezone.now()
+        .astimezone(ZoneInfo("Asia/Kolkata"))
+        .strftime("%d %b %Y %I:%M %p")
+    )
 
     for phone in settings.SIGNAL_ALERT_PHONES:
         try:
