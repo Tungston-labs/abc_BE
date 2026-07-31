@@ -11,25 +11,28 @@ from customers.management.commands.whatsapp import send_signal_alert
 API_URL = f"{settings.SIGNAL_API_BASE_URL}/signals"
 
 
-def mark_failed(self, subject, error):
-    health, _ = ServiceHealth.objects.get_or_create(
-        service="signal",
-        defaults={"is_down": False},
-    )
 
-    if health.is_down:
-        return
-
-    self.send_alert(subject, error)
-
-    health.is_down = True
-    health.last_failure = timezone.now()
-    health.last_error = error
-    health.save()
 
 
 class Command(BaseCommand):
     help = "Fast sync ONU signals and ports"
+
+
+    def mark_failed(self, subject, error):
+        health, _ = ServiceHealth.objects.get_or_create(
+            service="signal",
+            defaults={"is_down": False},
+        )
+
+        if health.is_down:
+            return
+
+        self.send_alert(subject, error)
+
+        health.is_down = True
+        health.last_failure = timezone.now()
+        health.last_error = str(error)
+        health.save()
 
     def send_alert(self, subject, error):
         """
@@ -142,7 +145,14 @@ class Command(BaseCommand):
 
             print("2. API response received")
 
-            response.raise_for_status()
+            if response.status_code != 200:
+
+                try:
+                    detail = response.json().get("detail", response.text)
+                except Exception:
+                    detail = response.text
+
+                raise requests.exceptions.HTTPError(detail)
 
             data = response.json()
 
