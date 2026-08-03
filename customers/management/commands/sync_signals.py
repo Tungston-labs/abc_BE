@@ -7,6 +7,7 @@ from django.core.mail import send_mail
 
 from customers.models import Customer, ServiceHealth
 from customers.management.commands.whatsapp import send_signal_alert
+from customers.management.commands.signal_health import mark_signal_recovered               
 
 API_URL = f"{settings.SIGNAL_API_BASE_URL}/signals"
 
@@ -25,14 +26,21 @@ class Command(BaseCommand):
         )
 
         if health.is_down:
+            print("Signal already marked DOWN. Alert skipped.")
             return
-
-        self.send_alert(subject, error)
 
         health.is_down = True
         health.last_failure = timezone.now()
         health.last_error = str(error)
-        health.save()
+        health.save(update_fields=[
+            "is_down",
+            "last_failure",
+            "last_error",
+        ])
+
+        print("Signal Server marked DOWN")
+
+        self.send_alert(subject, error)
 
     def send_alert(self, subject, error):
         """
@@ -47,7 +55,7 @@ class Command(BaseCommand):
             The Signal Synchronization process has failed.
 
             Time:
-            {timezone.now()}
+            {timezone.localtime()}
 
             API:
             {API_URL}
@@ -89,51 +97,6 @@ class Command(BaseCommand):
         except Exception as mail_error:
             print(f"❌ Failed to send alert email: {mail_error}")
 
-
-    def send_recovery(self):
-        try:
-
-            send_mail(
-                subject="✅ Signal Server Recovered",
-                message=f"""
-    Hello Admin,
-
-    Signal Synchronization has resumed successfully.
-
-    Time:
-    {timezone.now()}
-
-    API:
-    {API_URL}
-
-    The Signal Server is reachable again.
-
-    This is an automated notification from ABC CRM.
-    """,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=settings.SIGNAL_ALERT_EMAILS,
-                fail_silently=False,
-            )
-
-            time_str = timezone.localtime().strftime("%d %b %Y %I:%M %p")
-
-            for phone in settings.SIGNAL_ALERT_PHONES:
-
-                try:
-
-                    send_signal_alert(
-                        phone=phone,
-                        service="Signal Synchronization",
-                        status="Recovered",
-                        time_str=time_str,
-                        reason="Server reachable again",
-                    )
-
-                except Exception as e:
-                    print(e)
-
-        except Exception as e:
-            print(e)
 
     def handle(self, *args, **kwargs):
 
@@ -229,19 +192,7 @@ class Command(BaseCommand):
 
             print("7. Bulk update completed")
 
-            health, _ = ServiceHealth.objects.get_or_create(
-                service="signal",
-                defaults={"is_down": False},
-            )
-
-            if health.is_down:
-
-                self.send_recovery()
-
-                health.is_down = False
-                health.last_recovery = timezone.now()
-                health.last_error = ""
-                health.save()
+            mark_signal_recovered()
 
             self.stdout.write(
                 self.style.SUCCESS(

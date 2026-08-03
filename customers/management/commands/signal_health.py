@@ -3,7 +3,6 @@ from django.core.mail import send_mail
 from django.utils import timezone
 from zoneinfo import ZoneInfo
 
-
 from customers.models import ServiceHealth
 from customers.management.commands.whatsapp import send_signal_alert
 
@@ -21,6 +20,12 @@ def mark_signal_recovered():
     if not health.is_down:
         return
 
+    # Mark as recovered BEFORE sending notifications
+    health.is_down = False
+    health.last_recovery = timezone.now()
+    health.last_error = ""
+    health.save(update_fields=["is_down", "last_recovery", "last_error"])
+
     try:
         send_mail(
             subject="✅ Signal Server Recovered",
@@ -30,7 +35,7 @@ Hello Admin,
 Signal Synchronization has resumed successfully.
 
 Time:
-{timezone.now()}
+{timezone.localtime()}
 
 The Signal Server is reachable again.
 
@@ -42,7 +47,6 @@ This is an automated notification from ABC CRM.
         )
     except Exception as e:
         print(f"Email Error: {e}")
-
 
     time_str = (
         timezone.now()
@@ -61,8 +65,3 @@ This is an automated notification from ABC CRM.
             )
         except Exception as e:
             print(f"WhatsApp Error ({phone}): {e}")
-
-    health.is_down = False
-    health.last_recovery = timezone.now()
-    health.last_error = ""
-    health.save()
