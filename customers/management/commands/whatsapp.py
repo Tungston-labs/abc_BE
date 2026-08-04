@@ -349,62 +349,67 @@ def send_signal_alert(phone, service, status, time_str, reason):
     return response.json()
 
 
+def send_signal_recovered(phone, service, status, time_str):
 
+    phone = (
+        str(phone)
+        .replace("+", "")
+        .replace(" ", "")
+        .replace("-", "")
+    )
 
-    # invitation
+    url = (
+        f"https://graph.facebook.com/"
+        f"{settings.WHATSAPP_API_VERSION}/"
+        f"{settings.WHATSAPP_PHONE_NUMBER_ID}/messages"
+    )
 
+    headers = {
+        "Authorization": f"Bearer {settings.WHATSAPP_ACCESS_TOKEN}",
+        "Content-Type": "application/json",
+    }
 
-# def send_whatsapp_text(phone):
+    payload = {
+        "messaging_product": "whatsapp",
+        "to": phone,
+        "type": "template",
+        "template": {
+            "name": "signal_server_recovered",
+            "language": {
+                "code": "en"
+            },
+            "components": [
+                {
+                    "type": "body",
+                    "parameters": [
+                        {
+                            "type": "text",
+                            "text": service
+                        },
+                        {
+                            "type": "text",
+                            "text": status
+                        },
+                        {
+                            "type": "text",
+                            "text": time_str
+                        }
+                    ]
+                }
+            ]
+        }
+    }
 
-#     phone = (
-#         str(phone)
-#         .replace("+", "")
-#         .replace(" ", "")
-#         .replace("-", "")
-#     )
+    response = requests.post(
+        url,
+        headers=headers,
+        json=payload,
+        timeout=30,
+    )
 
-#     url = (
-#         f"https://graph.facebook.com/"
-#         f"{settings.WHATSAPP_API_VERSION}/"
-#         f"{settings.WHATSAPP_PHONE_NUMBER_ID}/messages"
-#     )
+    print("\n===== SIGNAL RECOVERED RESPONSE =====")
+    print(response.status_code)
+    print(response.text)
+    print("=====================================\n")
 
-#     headers = {
-#         "Authorization": f"Bearer {settings.WHATSAPP_ACCESS_TOKEN}",
-#         "Content-Type": "application/json",
-#     }
-
-#     payload = {
-#         "messaging_product": "whatsapp",
-#         "to": phone,
-#         "type": "text",
-#         "text": {
-#             "preview_url": False,
-#             "body": (
-#                 "Dear Operators,\n\n"
-#                 "You are cordially invited to the official launch of our new software.\n\n"
-#                 "📅 Date: 30 June\n"
-#                 "🕙 Time: 10:00 AM\n"
-#                 "📍 Venue: Hotel Periyar, Aluva\n\n"
-#                 "Your presence would mean a lot to us.\n\n"
-#                 "See you there!"
-#             )
-#         }
-#     }
-
-#     print(payload)
-
-#     response = requests.post(
-#         url,
-#         headers=headers,
-#         json=payload,
-#         timeout=30
-#     )
-
-#     print(response.status_code)
-#     print(response.text)
-
-#     if response.status_code in (200, 201):
-#         return response.json()
-
-#     return None
+    return response.json()

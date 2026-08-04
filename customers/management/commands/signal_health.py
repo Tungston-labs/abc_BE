@@ -4,7 +4,7 @@ from django.utils import timezone
 from zoneinfo import ZoneInfo
 
 from customers.models import ServiceHealth
-from customers.management.commands.whatsapp import send_signal_alert
+from customers.management.commands.whatsapp import send_signal_recovered
 
 
 def mark_signal_recovered():
@@ -56,12 +56,11 @@ This is an automated notification from ABC CRM.
 
     for phone in settings.SIGNAL_ALERT_PHONES:
         try:
-            send_signal_alert(
+            send_signal_recovered(
                 phone=phone,
                 service="Signal Synchronization",
                 status="Recovered",
                 time_str=time_str,
-                reason="Server reachable again",
             )
         except Exception as e:
             print(f"WhatsApp Error ({phone}): {e}")
