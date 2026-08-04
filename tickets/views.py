@@ -106,17 +106,10 @@ class LCOTicketListAPIView(generics.ListAPIView):
 
 
 from customers.management.commands.whatsapp import send_ticket_update_whatsapp
-
-
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
-
 from tickets.models import Ticket
 from tickets.serializers import TicketSerializer
-
-
-
-
 from customers.management.commands.whatsapp import (
     send_ticket_update_whatsapp
 )

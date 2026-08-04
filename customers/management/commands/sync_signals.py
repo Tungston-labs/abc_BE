@@ -20,26 +20,28 @@ class Command(BaseCommand):
 
 
     def mark_failed(self, subject, error):
-        health, _ = ServiceHealth.objects.get_or_create(
-            service="signal",
-            defaults={"is_down": False},
-        )
+        try:
+            health, _ = ServiceHealth.objects.get_or_create(
+                service="signal",
+                defaults={"is_down": False},
+            )
 
-        if health.is_down:
-            print("Signal already marked DOWN. Alert skipped.")
-            return
+            if health.is_down:
+                return
 
-        health.is_down = True
-        health.last_failure = timezone.now()
-        health.last_error = str(error)
-        health.save(update_fields=[
-            "is_down",
-            "last_failure",
-            "last_error",
-        ])
+            health.is_down = True
+            health.last_failure = timezone.now()
+            health.last_error = str(error)
+            health.save(update_fields=[
+                "is_down",
+                "last_failure",
+                "last_error",
+            ])
 
-        print("Signal Server marked DOWN")
+        except Exception as db_error:
+            print(f"Could not update ServiceHealth: {db_error}")
 
+        # Always try to send alerts, even if the database is unavailable.
         self.send_alert(subject, error)
 
     def send_alert(self, subject, error):
