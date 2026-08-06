@@ -85,6 +85,7 @@ def fetch_extranet_data(mapping):
             "username": customer.get("Username"),
             "macAddress": customer.get("MAC_address"),
             "expiryDate": customer.get("ExpiryDate"),
+            "planName": customer.get("PlanName"),
         })
 
     return {

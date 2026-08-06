@@ -94,14 +94,20 @@ def get_customer_by_mac(mac):
 
 
 def update_expiry(item):
-    # Close stale DB connections before each query
     close_old_connections()
 
     username = item.get("username")
     mac = normalize_mac(item.get("macAddress"))
+    plan_name = item.get("planName")
 
     if username:
         username = username.strip().lower()
+
+    # Treat empty plan names as None
+    if isinstance(plan_name, str):
+        plan_name = plan_name.strip()
+        if not plan_name:
+            plan_name = None
 
     expiry_str = item.get("expiryDate")
 
@@ -112,14 +118,11 @@ def update_expiry(item):
     # Parse both ISP date formats
     try:
         try:
-            # Stampede
             expiry_date = datetime.strptime(
                 expiry_str,
                 "%d-%b-%Y %H:%M:%S"
             ).date()
-
         except ValueError:
-            # Extranet
             expiry_date = datetime.strptime(
                 expiry_str,
                 "%m/%d/%Y %I:%M:%S %p"
@@ -131,11 +134,9 @@ def update_expiry(item):
 
     customer = None
 
-    # Match by username
     if username:
         customer = get_customer_by_username(username)
 
-    # Fallback to MAC
     if not customer and mac:
         customer = get_customer_by_mac(mac)
 
@@ -143,23 +144,47 @@ def update_expiry(item):
         print(f"❌ Not found: {username}")
         return "not_found"
 
-    # Update expiry if changed
+    fields_to_update = []
+
+    # Update expiry date if changed
     if customer.expiry_date != expiry_date:
-        try:
+        customer.expiry_date = expiry_date
+        fields_to_update.append("expiry_date")
+
+    # Update plan only if ISP returned a non-empty value
+    if (
+        plan_name is not None
+        and plan_name != ""
+        and customer.plan != plan_name
+    ):
+        customer.plan = plan_name
+        fields_to_update.append("plan")
+
+    if not fields_to_update:
+        return "skipped"
+
+    try:
+        customer.save(update_fields=fields_to_update)
+        print(
+            f"✅ Updated: {customer.username} ({', '.join(fields_to_update)})"
+        )
+        return "updated"
+
+    except OperationalError:
+        print("⚠ Database connection lost while saving. Retrying...")
+        close_old_connections()
+
+        customer = Customer.objects.get(pk=customer.pk)
+
+        if "expiry_date" in fields_to_update:
             customer.expiry_date = expiry_date
-            customer.save(update_fields=["expiry_date"])
-            print(f"✅ Updated: {customer.username}")
-            return "updated"
 
-        except OperationalError:
-            print("⚠ Database connection lost while saving. Retrying...")
-            close_old_connections()
+        if "plan" in fields_to_update:
+            customer.plan = plan_name
 
-            customer = Customer.objects.get(pk=customer.pk)
-            customer.expiry_date = expiry_date
-            customer.save(update_fields=["expiry_date"])
+        customer.save(update_fields=fields_to_update)
 
-            print(f"✅ Updated: {customer.username}")
-            return "updated"
-
-    return "skipped"
+        print(
+            f"✅ Updated: {customer.username} ({', '.join(fields_to_update)})"
+        )
+        return "updated"
