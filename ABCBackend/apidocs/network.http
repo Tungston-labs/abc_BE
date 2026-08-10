@@ -162,3 +162,13 @@ Content-Type: application/json
   "FromDate": "2026-08-08 00:00:00", 
   "ToDate": "2026-08-23 23:59:59"
 }
+
+
+###
+POST https://adminisp.weonebroadband.com/H8IntegrationApi/Token 
+Content-Type: application/json
+
+{ 
+  "Username": "weoneabc1",
+  "Password": "123456"
+}

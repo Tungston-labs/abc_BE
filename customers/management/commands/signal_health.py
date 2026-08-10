@@ -8,23 +8,43 @@ from customers.management.commands.whatsapp import send_signal_recovered
 
 
 def mark_signal_recovered():
-    """
-    Send recovery notification only once.
-    """
 
-    health, _ = ServiceHealth.objects.get_or_create(
-        service="signal",
-        defaults={"is_down": False},
-    )
+    try:
+        health, _ = ServiceHealth.objects.get_or_create(
+            service="signal",
+            defaults={"is_down": False},
+        )
 
-    if not health.is_down:
+        # Already UP → nothing to do
+        if not health.is_down:
+            print("ℹ️ Signal already UP. No recovery alert.")
+            return
+
+        # DOWN → UP
+        health.is_down = False
+        health.last_recovery = timezone.now()
+        health.last_error = ""
+
+        health.save(
+            update_fields=[
+                "is_down",
+                "last_recovery",
+                "last_error",
+            ]
+        )
+
+        print("✅ Signal changed: DOWN → UP")
+
+    except Exception as db_error:
+        print(
+            f"❌ Could not update ServiceHealth during recovery: "
+            f"{db_error}"
+        )
         return
 
-    # Mark as recovered BEFORE sending notifications
-    health.is_down = False
-    health.last_recovery = timezone.now()
-    health.last_error = ""
-    health.save(update_fields=["is_down", "last_recovery", "last_error"])
+    # =========================
+    # RECOVERY EMAIL
+    # =========================
 
     try:
         send_mail(
@@ -45,8 +65,17 @@ This is an automated notification from ABC CRM.
             recipient_list=settings.SIGNAL_ALERT_EMAILS,
             fail_silently=False,
         )
-    except Exception as e:
-        print(f"Email Error: {e}")
+
+        print("✅ Recovery email sent successfully.")
+
+    except Exception as email_error:
+        print(
+            f"❌ Recovery email failed: {email_error}"
+        )
+
+    # =========================
+    # RECOVERY WHATSAPP
+    # =========================
 
     time_str = (
         timezone.now()
@@ -55,12 +84,26 @@ This is an automated notification from ABC CRM.
     )
 
     for phone in settings.SIGNAL_ALERT_PHONES:
+
         try:
-            send_signal_recovered(
+            result = send_signal_recovered(
                 phone=phone,
                 service="Signal Synchronization",
                 status="Recovered",
                 time_str=time_str,
             )
-        except Exception as e:
-            print(f"WhatsApp Error ({phone}): {e}")
+
+            if result:
+                print(
+                    f"✅ Recovery WhatsApp sent to {phone}"
+                )
+            else:
+                print(
+                    f"❌ Recovery WhatsApp rejected for {phone}"
+                )
+
+        except Exception as whatsapp_error:
+            print(
+                f"❌ Recovery WhatsApp error for "
+                f"{phone}: {whatsapp_error}"
+            )

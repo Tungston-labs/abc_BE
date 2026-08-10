@@ -337,18 +337,34 @@ def send_signal_alert(phone, service, status, time_str, reason):
         }
     }
 
-    response = requests.post(
-        url,
-        headers=headers,
-        json=payload
-    )
+    try:
 
-    print(response.status_code)
-    print(response.text)
+        response = requests.post(
+            url,
+            headers=headers,
+            json=payload,
+            timeout=30,
+        )
 
-    return response.json()
+        print("\n===== SIGNAL FAILURE WHATSAPP =====")
+        print("PHONE:", phone)
+        print("STATUS:", response.status_code)
+        print("RESPONSE:", response.text)
+        print("====================================\n")
 
+        if response.status_code in (200, 201):
+            return response.json()
 
+        return None
+
+    except Exception as e:
+
+        print(
+            f"❌ Signal failure WhatsApp request failed: {e}"
+        )
+
+        return None
+    
 def send_signal_recovered(phone, service, status, time_str):
 
     phone = (
@@ -384,15 +400,15 @@ def send_signal_recovered(phone, service, status, time_str):
                     "parameters": [
                         {
                             "type": "text",
-                            "text": service
+                            "text": str(service)
                         },
                         {
                             "type": "text",
-                            "text": status
+                            "text": str(status)
                         },
                         {
                             "type": "text",
-                            "text": time_str
+                            "text": str(time_str)
                         }
                     ]
                 }
@@ -400,16 +416,30 @@ def send_signal_recovered(phone, service, status, time_str):
         }
     }
 
-    response = requests.post(
-        url,
-        headers=headers,
-        json=payload,
-        timeout=30,
-    )
+    try:
 
-    print("\n===== SIGNAL RECOVERED RESPONSE =====")
-    print(response.status_code)
-    print(response.text)
-    print("=====================================\n")
+        response = requests.post(
+            url,
+            headers=headers,
+            json=payload,
+            timeout=30,
+        )
 
-    return response.json()
+        print("\n===== SIGNAL RECOVERY WHATSAPP =====")
+        print("PHONE:", phone)
+        print("STATUS:", response.status_code)
+        print("RESPONSE:", response.text)
+        print("=====================================\n")
+
+        if response.status_code in (200, 201):
+            return response.json()
+
+        return None
+
+    except Exception as e:
+
+        print(
+            f"❌ Signal recovery WhatsApp request failed: {e}"
+        )
+
+        return None

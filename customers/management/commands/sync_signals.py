@@ -26,79 +26,106 @@ class Command(BaseCommand):
                 defaults={"is_down": False},
             )
 
+            # Already DOWN → do not send another alert
             if health.is_down:
+                print("⚠️ Signal already DOWN. Skipping duplicate failure alert.")
                 return
 
+            # UP → DOWN
             health.is_down = True
             health.last_failure = timezone.now()
             health.last_error = str(error)
-            health.save(update_fields=[
-                "is_down",
-                "last_failure",
-                "last_error",
-            ])
+
+            health.save(
+                update_fields=[
+                    "is_down",
+                    "last_failure",
+                    "last_error",
+                ]
+            )
+
+            print("🚨 Signal changed: UP → DOWN")
 
         except Exception as db_error:
-            print(f"Could not update ServiceHealth: {db_error}")
+            print(f"❌ Could not update ServiceHealth: {db_error}")
+            return
 
-        # Always try to send alerts, even if the database is unavailable.
+        # Only send after successful UP → DOWN transition
         self.send_alert(subject, error)
 
+
     def send_alert(self, subject, error):
-        """
-        Send email alert to administrators.
-        """
+
+        # =========================
+        # EMAIL
+        # =========================
+
         try:
             send_mail(
                 subject=subject,
                 message=f"""
-            Hello Admin,
+    Hello Admin,
 
-            The Signal Synchronization process has failed.
+    The Signal Synchronization process has failed.
 
-            Time:
-            {timezone.localtime()}
+    Time:
+    {timezone.localtime()}
 
-            API:
-            {API_URL}
+    API:
+    {API_URL}
 
-            Reason:
-            {error}
+    Reason:
+    {error}
 
-            Please check:
+    Please check:
 
-            • Remote Signal Server
-            • FastAPI Service
-            • Network Connectivity
-            • Server Status
+    • Remote Signal Server
+    • FastAPI Service
+    • Network Connectivity
+    • PostgreSQL Database
+    • Server Status
 
-            This is an automated notification from ABC CRM.
-            """,
+    This is an automated notification from ABC CRM.
+    """,
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=settings.SIGNAL_ALERT_EMAILS,
                 fail_silently=False,
             )
 
-            print("✅ Alert email sent successfully.")
-            time_str = timezone.localtime().strftime("%d %b %Y %I:%M %p")
-
-            for phone in settings.SIGNAL_ALERT_PHONES:
-                try:
-                    send_signal_alert(
-                        phone=phone,
-                        service="Signal Synchronization",
-                        status="Failed",
-                        time_str=time_str,
-                        reason=str(error),
-                    )
-                    print(f"✅ WhatsApp alert sent to {phone}")
-
-                except Exception as whatsapp_error:
-                    print(f"❌ WhatsApp failed for {phone}: {whatsapp_error}")
+            print("✅ Failure email sent successfully.")
 
         except Exception as mail_error:
-            print(f"❌ Failed to send alert email: {mail_error}")
+            print(f"❌ Failure email failed: {mail_error}")
 
+        # =========================
+        # WHATSAPP
+        # =========================
+
+        time_str = timezone.localtime().strftime(
+            "%d %b %Y %I:%M %p"
+        )
+
+        for phone in settings.SIGNAL_ALERT_PHONES:
+
+            try:
+                result = send_signal_alert(
+                    phone=phone,
+                    service="Signal Synchronization",
+                    status="Failed",
+                    time_str=time_str,
+                    reason=str(error),
+                )
+
+                if result:
+                    print(f"✅ Failure WhatsApp sent to {phone}")
+                else:
+                    print(f"❌ Failure WhatsApp rejected for {phone}")
+
+            except Exception as whatsapp_error:
+                print(
+                    f"❌ Failure WhatsApp error for "
+                    f"{phone}: {whatsapp_error}"
+                )
 
     def handle(self, *args, **kwargs):
 
@@ -194,7 +221,13 @@ class Command(BaseCommand):
 
             print("7. Bulk update completed")
 
-            mark_signal_recovered()
+            try:
+                mark_signal_recovered()
+            except Exception as recovery_error:
+                print(
+                    f"⚠️ Recovery notification process failed: "
+                    f"{recovery_error}"
+                )
 
             self.stdout.write(
                 self.style.SUCCESS(
