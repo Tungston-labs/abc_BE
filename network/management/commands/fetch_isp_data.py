@@ -189,8 +189,6 @@
 #         )
 #         return "updated"
 
-
-
 from django.core.management.base import BaseCommand
 from django.db import close_old_connections, OperationalError
 from lcos.models import LCOISPMapping
@@ -201,10 +199,10 @@ import traceback
 
 
 class Command(BaseCommand):
-    help = "Fetch ISP Data and update/create customer records"
+    help = "Fetch ISP Data, update existing customers and create new customers"
 
     def handle(self, *args, **kwargs):
-        print("🚀 Starting ISP expiry update...")
+        print("🚀 Starting ISP customer sync...")
 
         mappings = LCOISPMapping.objects.filter(
             is_active=True
@@ -215,13 +213,11 @@ class Command(BaseCommand):
         total_not_found = 0
 
         for mapping in mappings:
-
-            # Close stale DB connections before processing each mapping
             close_old_connections()
 
             print(f"\n🔌 Processing ISP: {mapping.partner_name}")
             print(f"🏢 LCO: {mapping.lco}")
-            print(f"📡 ISP: {mapping.isp}")
+            print(f"📡 ISP: {mapping.isp.name}")
 
             try:
                 data = fetch_isp_data(mapping)
@@ -234,9 +230,9 @@ class Command(BaseCommand):
 
                 for item in data_list:
 
-                    result = update_expiry(
-                        item,
-                        mapping
+                    result = sync_customer(
+                        item=item,
+                        mapping=mapping
                     )
 
                     if result == "updated":
@@ -272,11 +268,37 @@ class Command(BaseCommand):
         print("🏁 Done.")
 
 
-# =========================================================
+# ============================================================
 # HELPER FUNCTIONS
-# =========================================================
+# ============================================================
+
+def clean_value(value):
+    """
+    Convert empty strings / whitespace to None.
+    """
+    if value is None:
+        return None
+
+    if isinstance(value, str):
+        value = value.strip()
+
+        if not value:
+            return None
+
+    return value
+
 
 def normalize_mac(mac):
+    """
+    Used ONLY for comparison/searching.
+
+    Example:
+        bc:62:d2:87:72:09
+        ->
+        bc62d2877209
+
+    The normalized value is NEVER saved to Customer.mac_id.
+    """
     if not mac:
         return None
 
@@ -290,9 +312,8 @@ def normalize_mac(mac):
 
 def get_customer_by_username(username):
     """
-    Retry once if PostgreSQL connection was dropped.
+    Find customer by username.
     """
-
     try:
         return Customer.objects.filter(
             username__iexact=username
@@ -312,13 +333,57 @@ def get_customer_by_username(username):
 
 def get_customer_by_mac(mac):
     """
-    Retry once if PostgreSQL connection was dropped.
+    Find customer using normalized MAC.
+
+    This handles existing customers whose MAC may have been
+    stored without ':'.
+
+    Example:
+
+    DB:
+        44953be28a81
+
+    ISP:
+        44:95:3b:e2:8a:81
+
+    Both will match.
     """
 
+    if not mac:
+        return None
+
+    normalized_mac = normalize_mac(mac)
+
+    if not normalized_mac:
+        return None
+
     try:
-        return Customer.objects.filter(
+        # First try exact response format
+        customer = Customer.objects.filter(
             mac_id__iexact=mac
         ).first()
+
+        if customer:
+            return customer
+
+        # If not found, compare against existing records
+        # after removing ':' and '-'.
+        customers = Customer.objects.exclude(
+            mac_id__isnull=True
+        ).exclude(
+            mac_id=""
+        )
+
+        for customer in customers:
+
+            existing_normalized_mac = normalize_mac(
+                customer.mac_id
+            )
+
+            if existing_normalized_mac == normalized_mac:
+                return customer
+
+        return None
 
     except OperationalError:
         print(
@@ -327,112 +392,28 @@ def get_customer_by_mac(mac):
 
         close_old_connections()
 
-        return Customer.objects.filter(
-            mac_id__iexact=mac
-        ).first()
+        return get_customer_by_mac(mac)
 
 
-def create_customer(item, mapping, username, mac, expiry_date, plan_name):
+def parse_expiry_date(expiry_str):
     """
-    Create a new customer using ISP data.
+    Supports:
 
-    LCO and ISP are taken from the LCOISPMapping.
+    Stampede:
+        04-Sep-2026 23:59:59
+
+    Xtra Net / WEONE:
+        8/19/2026 11:59:59 PM
     """
-
-    full_name = item.get("full_name")
-    phone = item.get("phone")
-    email = item.get("email")
-    address = item.get("address")
-
-    # Clean empty strings
-    if isinstance(full_name, str):
-        full_name = full_name.strip() or None
-
-    if isinstance(phone, str):
-        phone = phone.strip() or None
-
-    if isinstance(email, str):
-        email = email.strip() or None
-
-    if isinstance(address, str):
-        address = address.strip() or None
-
-    customer = Customer.objects.create(
-        full_name=full_name,
-        username=username,
-        phone=phone,
-        address=address,
-        email=email,
-        mac_id=mac,
-        plan=plan_name,
-        isp=mapping.isp,
-        lco=mapping.lco,
-        expiry_date=expiry_date,
-    )
-
-    print(
-        f"🆕 Created Customer: {customer.username} | "
-        f"Name: {customer.full_name} | "
-        f"LCO: {mapping.lco} | "
-        f"ISP: {mapping.isp}"
-    )
-
-    return customer
-
-
-def update_expiry(item, mapping):
-
-    # Close stale DB connection before each item
-    close_old_connections()
-
-    # =====================================================
-    # ISP CUSTOMER DATA
-    # =====================================================
-
-    username = item.get("username")
-    mac = normalize_mac(
-        item.get("macAddress")
-    )
-
-    plan_name = item.get("planName")
-
-    full_name = item.get("full_name")
-    phone = item.get("phone")
-    email = item.get("email")
-    address = item.get("address")
-
-    # Normalize username
-    if username:
-        username = username.strip().lower()
-
-    # Normalize plan
-    if isinstance(plan_name, str):
-        plan_name = plan_name.strip()
-
-        if not plan_name:
-            plan_name = None
-
-    # =====================================================
-    # EXPIRY DATE
-    # =====================================================
-
-    expiry_str = item.get("expiryDate")
 
     if not expiry_str:
-        print(
-            f"❌ Missing expiry for {username}"
-        )
-        return "not_found"
-
-    # =====================================================
-    # PARSE ISP DATE FORMATS
-    # =====================================================
+        return None
 
     try:
 
         try:
             # Stampede
-            expiry_date = datetime.strptime(
+            return datetime.strptime(
                 expiry_str,
                 "%d-%b-%Y %H:%M:%S"
             ).date()
@@ -440,179 +421,415 @@ def update_expiry(item, mapping):
         except ValueError:
 
             # Xtra Net / WEONE
-            expiry_date = datetime.strptime(
+            return datetime.strptime(
                 expiry_str,
                 "%m/%d/%Y %I:%M:%S %p"
             ).date()
 
     except Exception:
-
         print(
             f"❌ Invalid date format: {expiry_str}"
         )
 
+        return None
+
+
+# ============================================================
+# CREATE / UPDATE CUSTOMER
+# ============================================================
+
+def sync_customer(item, mapping):
+
+    close_old_connections()
+
+    # --------------------------------------------------------
+    # Values coming from normalized ISP response
+    # --------------------------------------------------------
+
+    username = clean_value(
+        item.get("username")
+    )
+
+    original_mac = clean_value(
+        item.get("macAddress")
+    )
+
+    plan_name = clean_value(
+        item.get("planName")
+    )
+
+    expiry_str = clean_value(
+        item.get("expiryDate")
+    )
+
+    full_name = clean_value(
+        item.get("customerName")
+    )
+
+    phone = clean_value(
+        item.get("phone")
+    )
+
+    email = clean_value(
+        item.get("email")
+    )
+
+    address = clean_value(
+        item.get("address")
+    )
+
+    # --------------------------------------------------------
+    # Username is required for new customer creation
+    # --------------------------------------------------------
+
+    if not username:
+        print(
+            "❌ Username missing. Cannot create/update customer."
+        )
+
         return "not_found"
 
-    # =====================================================
-    # FIND EXISTING CUSTOMER
-    # =====================================================
+    username = username.lower()
 
-    customer = None
+    # --------------------------------------------------------
+    # Parse expiry
+    # --------------------------------------------------------
 
-    # 1️⃣ Match by username
-    if username:
+    expiry_date = parse_expiry_date(
+        expiry_str
+    )
 
-        customer = get_customer_by_username(
-            username
+    if not expiry_date:
+        print(
+            f"❌ Invalid/missing expiry for {username}"
         )
 
-    # 2️⃣ Fallback to MAC
-    if not customer and mac:
+        return "not_found"
+
+    # --------------------------------------------------------
+    # Find existing customer
+    # --------------------------------------------------------
+
+    customer = get_customer_by_username(
+        username
+    )
+
+    # --------------------------------------------------------
+    # If username doesn't match, try MAC
+    # --------------------------------------------------------
+
+    if not customer and original_mac:
 
         customer = get_customer_by_mac(
-            mac
+            original_mac
         )
 
-    # =====================================================
-    # CREATE NEW CUSTOMER
-    # =====================================================
-
-    if not customer:
-
-        print(
-            f"🆕 Customer not found: {username}"
-        )
-
-        # Username is required for automatic creation
-        if not username:
-
+        if customer:
             print(
-                "❌ Cannot create customer because "
-                "username is missing"
+                f"🔎 Customer matched by MAC: "
+                f"{username} → {customer.username}"
             )
 
-            return "not_found"
+    # ========================================================
+    # EXISTING CUSTOMER
+    # ========================================================
+
+    if customer:
+
+        fields_to_update = []
+
+        # ----------------------------------------------------
+        # Update username if customer was found by MAC
+        # ----------------------------------------------------
+
+        if (
+            username
+            and customer.username != username
+        ):
+            customer.username = username
+            fields_to_update.append("username")
+
+        # ----------------------------------------------------
+        # Update expiry
+        # ----------------------------------------------------
+
+        if customer.expiry_date != expiry_date:
+
+            customer.expiry_date = expiry_date
+
+            fields_to_update.append(
+                "expiry_date"
+            )
+
+        # ----------------------------------------------------
+        # Update plan ONLY if ISP returned a value
+        # ----------------------------------------------------
+
+        if (
+            plan_name is not None
+            and customer.plan != plan_name
+        ):
+
+            customer.plan = plan_name
+
+            fields_to_update.append(
+                "plan"
+            )
+
+        # ----------------------------------------------------
+        # IMPORTANT:
+        # Save MAC EXACTLY as ISP response
+        #
+        # Example:
+        # ISP -> bc:62:d2:87:72:09
+        #
+        # DB will become:
+        # bc:62:d2:87:72:09
+        #
+        # NOT:
+        # bc62d2877209
+        # ----------------------------------------------------
+
+        if (
+            original_mac
+            and customer.mac_id != original_mac
+        ):
+
+            customer.mac_id = original_mac
+
+            fields_to_update.append(
+                "mac_id"
+            )
+
+        # ----------------------------------------------------
+        # Update other customer details when available
+        # ----------------------------------------------------
+
+        if (
+            full_name is not None
+            and customer.full_name != full_name
+        ):
+
+            customer.full_name = full_name
+
+            fields_to_update.append(
+                "full_name"
+            )
+
+        if (
+            phone is not None
+            and customer.phone != phone
+        ):
+
+            customer.phone = phone
+
+            fields_to_update.append(
+                "phone"
+            )
+
+        if (
+            email is not None
+            and customer.email != email
+        ):
+
+            customer.email = email
+
+            fields_to_update.append(
+                "email"
+            )
+
+        if (
+            address is not None
+            and customer.address != address
+        ):
+
+            customer.address = address
+
+            fields_to_update.append(
+                "address"
+            )
+
+        # ----------------------------------------------------
+        # Ensure LCO and ISP are correct
+        # ----------------------------------------------------
+
+        if customer.lco_id != mapping.lco_id:
+
+            customer.lco_id = mapping.lco_id
+
+            fields_to_update.append(
+                "lco"
+            )
+
+        if customer.isp_id != mapping.isp_id:
+
+            customer.isp_id = mapping.isp_id
+
+            fields_to_update.append(
+                "isp"
+            )
+
+        # ----------------------------------------------------
+        # Nothing changed
+        # ----------------------------------------------------
+
+        if not fields_to_update:
+
+            print(
+                f"⏭ Skipped: {username}"
+            )
+
+            return "skipped"
+
+        # ----------------------------------------------------
+        # Save
+        # ----------------------------------------------------
 
         try:
 
-            create_customer(
-                item=item,
-                mapping=mapping,
-                username=username,
-                mac=mac,
-                expiry_date=expiry_date,
-                plan_name=plan_name,
+            customer.save(
+                update_fields=fields_to_update
             )
 
-            return "created"
+            print(
+                f"✅ Updated: {customer.username} "
+                f"({', '.join(fields_to_update)})"
+            )
+
+            return "updated"
 
         except OperationalError:
 
             print(
-                "⚠ Database connection lost "
-                "while creating customer. Retrying..."
+                "⚠ Database connection lost while saving. "
+                "Retrying..."
             )
 
             close_old_connections()
 
-            create_customer(
-                item=item,
-                mapping=mapping,
-                username=username,
-                mac=mac,
-                expiry_date=expiry_date,
-                plan_name=plan_name,
+            customer = Customer.objects.get(
+                pk=customer.pk
             )
 
-            return "created"
+            # Re-apply values
 
-    # =====================================================
-    # EXISTING CUSTOMER
-    # =====================================================
+            if "username" in fields_to_update:
+                customer.username = username
 
-    fields_to_update = []
+            if "expiry_date" in fields_to_update:
+                customer.expiry_date = expiry_date
 
-    # =====================================================
-    # UPDATE EXPIRY
-    # =====================================================
+            if "plan" in fields_to_update:
+                customer.plan = plan_name
 
-    if customer.expiry_date != expiry_date:
+            if "mac_id" in fields_to_update:
+                customer.mac_id = original_mac
 
-        customer.expiry_date = expiry_date
+            if "full_name" in fields_to_update:
+                customer.full_name = full_name
 
-        fields_to_update.append(
-            "expiry_date"
-        )
+            if "phone" in fields_to_update:
+                customer.phone = phone
 
-    # =====================================================
-    # UPDATE PLAN
-    # Only when ISP returned a non-empty plan
-    # =====================================================
+            if "email" in fields_to_update:
+                customer.email = email
 
-    if (
-        plan_name is not None
-        and customer.plan != plan_name
-    ):
+            if "address" in fields_to_update:
+                customer.address = address
 
-        customer.plan = plan_name
+            if "lco" in fields_to_update:
+                customer.lco_id = mapping.lco_id
 
-        fields_to_update.append(
-            "plan"
-        )
+            if "isp" in fields_to_update:
+                customer.isp_id = mapping.isp_id
 
-    # =====================================================
-    # NOTHING TO UPDATE
-    # =====================================================
+            customer.save(
+                update_fields=fields_to_update
+            )
 
-    if not fields_to_update:
+            print(
+                f"✅ Updated after retry: "
+                f"{customer.username}"
+            )
 
-        return "skipped"
+            return "updated"
 
-    # =====================================================
-    # SAVE EXISTING CUSTOMER
-    # =====================================================
+    # ========================================================
+    # NEW CUSTOMER
+    # ========================================================
+
+    print(
+        f"🆕 New customer found from ISP: {username}"
+    )
 
     try:
 
-        customer.save(
-            update_fields=fields_to_update
+        customer = Customer.objects.create(
+
+            # ISP response
+            full_name=full_name,
+            username=username,
+            phone=phone,
+            email=email,
+            address=address,
+
+            # IMPORTANT:
+            # Store MAC exactly as received
+            mac_id=original_mac,
+
+            plan=plan_name,
+            expiry_date=expiry_date,
+
+            # From LCOISPMapping
+            lco=mapping.lco,
+            isp=mapping.isp,
         )
 
         print(
-            f"✅ Updated: {customer.username} "
-            f"({', '.join(fields_to_update)})"
+            f"🆕 Created customer: "
+            f"{customer.username}"
         )
 
-        return "updated"
+        print(
+            f"   LCO : {mapping.lco}"
+        )
+
+        print(
+            f"   ISP : {mapping.isp.name}"
+        )
+
+        print(
+            f"   MAC : {original_mac}"
+        )
+
+        return "created"
 
     except OperationalError:
 
         print(
-            "⚠ Database connection lost "
-            "while saving. Retrying..."
+            "⚠ Database connection lost while creating. "
+            "Retrying..."
         )
 
         close_old_connections()
 
-        customer = Customer.objects.get(
-            pk=customer.pk
-        )
+        customer = Customer.objects.create(
 
-        if "expiry_date" in fields_to_update:
-
-            customer.expiry_date = expiry_date
-
-        if "plan" in fields_to_update:
-
-            customer.plan = plan_name
-
-        customer.save(
-            update_fields=fields_to_update
+            full_name=full_name,
+            username=username,
+            phone=phone,
+            email=email,
+            address=address,
+            mac_id=original_mac,
+            plan=plan_name,
+            expiry_date=expiry_date,
+            lco=mapping.lco,
+            isp=mapping.isp,
         )
 
         print(
-            f"✅ Updated: {customer.username} "
-            f"({', '.join(fields_to_update)})"
+            f"🆕 Created customer after retry: "
+            f"{customer.username}"
         )
 
-        return "updated"
+        return "created"
