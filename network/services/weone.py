@@ -68,11 +68,11 @@ def fetch_weone_data(mapping):
     today = datetime.now()
 
     from_date = (
-        today - timedelta(days=100)
+        today - timedelta(days=200)
     ).strftime("%Y-%m-%d %H:%M:%S")
 
     to_date = (
-        today + timedelta(days=100)
+        today + timedelta(days=200)
     ).strftime("%Y-%m-%d %H:%M:%S")
 
     payload = {
