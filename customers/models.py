@@ -63,3 +63,46 @@ class ServiceHealth(models.Model):
 
     def __str__(self):
         return self.service
+    
+
+class SignalBatch(models.Model):
+
+    batch_id = models.CharField(
+        max_length=100,
+        unique=True
+    )
+
+    batch_number = models.IntegerField()
+
+    record_count = models.IntegerField(
+        default=0
+    )
+
+    status = models.CharField(
+        max_length=20,
+        default="RECEIVED"
+    )
+
+    received_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    processed_at = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+
+    error_message = models.TextField(
+        null=True,
+        blank=True
+    )
+
+    class Meta:
+
+        ordering = [
+            "-received_at"
+        ]
+
+    def __str__(self):
+
+        return self.batch_id

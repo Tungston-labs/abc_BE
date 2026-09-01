@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import CustomerListCreateView,  CustomerRetrieveUpdateDestroyView,BulkCustomerUpload,CustomerSearchListView,LCOByOLTView,ISPByLCOView,CustomerReportView,LCOCustomerSearchListView,DropdownDataAPIView,DashboardCountsView,CustomersExpiringSoonFilteredView,CustomerSignalListView
+from .views import CustomerListCreateView,  CustomerRetrieveUpdateDestroyView,BulkCustomerUpload,CustomerSearchListView,LCOByOLTView,ISPByLCOView,CustomerReportView,LCOCustomerSearchListView,DropdownDataAPIView,DashboardCountsView,CustomersExpiringSoonFilteredView,CustomerSignalListView,SignalBatchAPIView
 from django.conf.urls.static import static
 from django.conf import settings
 
@@ -34,6 +34,12 @@ urlpatterns = [
     path('expiring-soon/', CustomersExpiringSoonFilteredView.as_view(), name='customers-expiring-soon'),
 
     path('customer/signal-list/', CustomerSignalListView.as_view()),
+
+    path(
+        "signals/batch/",
+        SignalBatchAPIView.as_view(),
+        name="signal-batch"
+    ),
 
 ]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

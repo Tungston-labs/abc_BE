@@ -1049,3 +1049,332 @@ class CustomerSignalListView(APIView):
             "offset": offset,
             "results": list(queryset)
         })
+    
+
+
+#  BATCH WISE SIGNALS
+
+from django.db import transaction
+
+from django.utils import timezone
+
+from rest_framework.views import APIView
+
+from rest_framework.response import Response
+
+from rest_framework import status
+
+from customers.models import (
+    Customer,
+    SignalBatch
+)
+
+from customers.serializers import (
+    SignalBatchSerializer
+)
+
+from customers.permissions import (
+    IsSignalServer
+)
+
+
+class SignalBatchAPIView(
+    APIView
+):
+
+    permission_classes = [
+        IsSignalServer
+    ]
+
+    def post(
+        self,
+        request
+    ):
+
+        serializer = (
+            SignalBatchSerializer(
+                data=request.data
+            )
+        )
+
+        serializer.is_valid(
+            raise_exception=True
+        )
+
+        batch_id = (
+            serializer.validated_data[
+                "batch_id"
+            ]
+        )
+
+        batch_number = (
+            serializer.validated_data[
+                "batch_number"
+            ]
+        )
+
+        signals = (
+            serializer.validated_data[
+                "signals"
+            ]
+        )
+
+        # ============================================
+        # DUPLICATE CHECK
+        # ============================================
+
+        existing_batch = (
+            SignalBatch.objects.filter(
+                batch_id=batch_id
+            ).first()
+        )
+
+        if existing_batch:
+
+            if (
+                existing_batch.status
+                == "PROCESSED"
+            ):
+
+                return Response({
+
+                    "status":
+                        "already_processed",
+
+                    "batch_id":
+                        batch_id
+
+                }, status=200)
+
+        # ============================================
+        # CREATE BATCH RECORD
+        # ============================================
+
+        if not existing_batch:
+
+            batch = (
+                SignalBatch.objects.create(
+
+                    batch_id=batch_id,
+
+                    batch_number=batch_number,
+
+                    record_count=len(
+                        signals
+                    ),
+
+                    status="PROCESSING"
+                )
+            )
+
+        else:
+
+            batch = existing_batch
+
+            batch.status = "PROCESSING"
+
+            batch.error_message = None
+
+            batch.save(
+                update_fields=[
+                    "status",
+                    "error_message"
+                ]
+            )
+
+        try:
+
+            # ========================================
+            # CREATE SERIAL MAP
+            # ========================================
+
+            customer_map = {}
+
+            for item in signals:
+
+                serial = item.get(
+                    "serial_number"
+                )
+
+                if not serial:
+                    continue
+
+                customer_map[
+                    serial
+                ] = item
+
+            # ========================================
+            # GET CUSTOMERS
+            # ========================================
+
+            customers = (
+                Customer.objects.filter(
+                    ont_number__in=
+                        customer_map.keys()
+                )
+            )
+
+            update_list = []
+
+            sync_time = (
+                timezone.now()
+            )
+
+            # ========================================
+            # PREPARE UPDATES
+            # ========================================
+
+            for customer in customers:
+
+                data = customer_map.get(
+                    customer.ont_number
+                )
+
+                if not data:
+                    continue
+
+                signal = data.get(
+                    "rx_power"
+                )
+
+                port = data.get(
+                    "port"
+                )
+
+                customer.signal = (
+
+                    str(signal)
+
+                    if signal is not None
+
+                    else None
+                )
+
+                customer.port = (
+
+                    str(port)
+
+                    if port is not None
+
+                    else None
+                )
+
+                customer.last_updated = (
+                    sync_time
+                )
+
+                update_list.append(
+                    customer
+                )
+
+            # ========================================
+            # DATABASE TRANSACTION
+            # ========================================
+
+            with transaction.atomic():
+
+                # Process in chunks
+                # so PostgreSQL does not receive
+                # one enormous operation.
+
+                for i in range(
+                    0,
+                    len(update_list),
+                    1000
+                ):
+
+                    chunk = update_list[
+                        i:i + 1000
+                    ]
+
+                    Customer.objects.bulk_update(
+
+                        chunk,
+
+                        [
+                            "signal",
+                            "port",
+                            "last_updated"
+                        ]
+
+                    )
+
+                # ------------------------------------
+                # Mark batch processed
+                # ------------------------------------
+
+                batch.status = (
+                    "PROCESSED"
+                )
+
+                batch.processed_at = (
+                    timezone.now()
+                )
+
+                batch.error_message = None
+
+                batch.save(
+                    update_fields=[
+                        "status",
+                        "processed_at",
+                        "error_message"
+                    ]
+                )
+
+            # ========================================
+            # SUCCESS
+            # ========================================
+
+            return Response({
+
+                "status":
+                    "success",
+
+                "batch_id":
+                    batch_id,
+
+                "batch_number":
+                    batch_number,
+
+                "received":
+                    len(signals),
+
+                "matched_customers":
+                    len(update_list),
+
+                "updated":
+                    len(update_list)
+
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+
+            # ========================================
+            # FAILURE
+            # ========================================
+
+            batch.status = "FAILED"
+
+            batch.error_message = (
+                str(e)
+            )
+
+            batch.save(
+                update_fields=[
+                    "status",
+                    "error_message"
+                ]
+            )
+
+            return Response({
+
+                "status":
+                    "failed",
+
+                "batch_id":
+                    batch_id,
+
+                "error":
+                    str(e)
+
+            }, status=500)

@@ -143,14 +143,14 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 
 
 ### STAMPEDE
-POST https://bssadmin.stampedecom.in/eapi/api/v1/searchCustomerData
+POST https://bssadmin.stampedecom.in/eapi/api/v1/searchCustomerData+
 Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJzdGFtZXhhcGkiLCJ1c2VyTmFtZSI6InN0YW1leGFwaSIsImlwQWRkcmVzcyI6ImFub25pbXVzIiwib2lkIjoiLTExMiIsImlhdCI6MTc3NDU5MjgzNiwiZXhwIjoxOTMyMzU5MjM2fQ.dQG-3BZ2XqoGLF2AOcPSeAXZ4kX-UFR58e0zuEmJ-5sok5hW9nbH1XF3pBNsrrHrzd7WKS_qTXiv0vhCtE6FSQ
 Content-Type: application/json
 
 {
-  "partnerName": "ABC_STAR VISION NAD (NAD)",
-  "expiryFrom": "2026-06-19 00:00:00",
-  "expiryTill": "2026-10-20 23:59:59"
+  "partnerName": "ABC_STAR VISION CABLE T V (Pazhanganad)",
+  "expiryFrom": "2026-08-24 00:00:00",
+  "expiryTill": "2026-08-24 23:59:59"
 }
 
 

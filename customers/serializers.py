@@ -44,3 +44,64 @@ class ISPDropdownSerializer(serializers.ModelSerializer):
         model = ISP
         fields = ['id', 'name']
 
+from rest_framework import serializers
+
+
+class SignalItemSerializer(
+    serializers.Serializer
+):
+
+    serial_number = serializers.CharField()
+
+    mac_address = serializers.CharField(
+        required=False,
+        allow_null=True,
+        allow_blank=True
+    )
+
+    rx_power = serializers.FloatField(
+        required=False,
+        allow_null=True
+    )
+
+    olt_ip = serializers.CharField(
+        required=False,
+        allow_null=True,
+        allow_blank=True
+    )
+
+    port = serializers.CharField(
+        required=False,
+        allow_null=True,
+        allow_blank=True
+    )
+
+    onu_id = serializers.CharField(
+        required=False,
+        allow_null=True,
+        allow_blank=True
+    )
+
+    index = serializers.CharField(
+        required=False,
+        allow_null=True,
+        allow_blank=True
+    )
+
+    updated_at = serializers.CharField(
+        required=False,
+        allow_null=True
+    )
+
+
+class SignalBatchSerializer(
+    serializers.Serializer
+):
+
+    batch_id = serializers.CharField()
+
+    batch_number = serializers.IntegerField()
+
+    signals = SignalItemSerializer(
+        many=True
+    )
