@@ -1078,10 +1078,8 @@ from customers.permissions import (
 )
 
 
-class SignalBatchAPIView(
-    APIView
-):
-
+class SignalBatchAPIView(APIView):
+    authentication_classes = []
     permission_classes = [
         IsSignalServer
     ]
