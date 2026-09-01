@@ -37,9 +37,7 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SIGNAL_SYNC_API_KEY = os.environ.get(
-    "SIGNAL_SYNC_API_KEY"
-)
+SIGNAL_SYNC_API_KEY = config("SIGNAL_SYNC_API_KEY")
 
 
 # Quick-start development settings - unsuitable for production
