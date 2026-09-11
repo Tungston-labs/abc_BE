@@ -1189,17 +1189,56 @@ class SignalBatchAPIView(APIView):
             customer_map = {}
 
             for item in signals:
-
-                serial = item.get(
-                    "serial_number"
-                )
+                serial = item.get("serial_number")
 
                 if not serial:
                     continue
 
-                customer_map[
-                    serial
-                ] = item
+                serial = str(serial).strip()
+
+                customer_map[serial] = item
+
+
+            # ========================================
+            # FIND SERIALS NOT IN DJANGO
+            # ========================================
+
+            incoming_serials = set(customer_map.keys())
+
+            existing_serials = set(
+                Customer.objects.filter(
+                    ont_number__in=incoming_serials
+                ).values_list(
+                    "ont_number",
+                    flat=True
+                )
+            )
+
+            missing_serials = sorted(
+                incoming_serials - set(
+                    str(serial).strip()
+                    for serial in existing_serials
+                    if serial
+                )
+            )
+
+            print(
+                f"Incoming serials: {len(incoming_serials)}"
+            )
+
+            print(
+                f"Matching customers: {len(existing_serials)}"
+            )
+
+            print(
+                f"Missing serials: {len(missing_serials)}"
+            )
+
+            if missing_serials:
+                print("⚠️ Serial numbers not found in Django:")
+
+                for serial in missing_serials:
+                    print(f"   ❌ {serial}")
 
             # ========================================
             # GET CUSTOMERS
@@ -1324,25 +1363,14 @@ class SignalBatchAPIView(APIView):
             # ========================================
 
             return Response({
-
-                "status":
-                    "success",
-
-                "batch_id":
-                    batch_id,
-
-                "batch_number":
-                    batch_number,
-
-                "received":
-                    len(signals),
-
-                "matched_customers":
-                    len(update_list),
-
-                "updated":
-                    len(update_list)
-
+                "status": "success",
+                "batch_id": batch_id,
+                "batch_number": batch_number,
+                "received": len(signals),
+                "matched_customers": len(update_list),
+                "updated": len(update_list),
+                "missing_serials": missing_serials,
+                "missing_count": len(missing_serials),
             }, status=status.HTTP_200_OK)
 
         except Exception as e:
