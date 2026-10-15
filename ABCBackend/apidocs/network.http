@@ -149,8 +149,8 @@ Content-Type: application/json
 
 {
   "partnerName": "ABC_STAR VISION NAD (NAD)",
-  "expiryFrom": "2026-08-07 00:00:00",
-  "expiryTill": "2026-09-20 23:59:59"
+  "expiryFrom": "2026-10-01 00:00:00",
+  "expiryTill": "2026-10-20 23:59:59"
 }
 
 
@@ -198,3 +198,25 @@ Content-Type: application/json
   "FromDate": "2026-08-18 00:00:00", 
   "ToDate": "2026-09-23 23:59:59"
 }
+
+
+###
+POST https://bb.inygo.in/eapi/api/v1/searchCustomerData
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJzeXNhZG1pbiIsInVzZXJOYW1lIjoic3lzYWRtaW4iLCJpcEFkZHJlc3MiOiIxNzguMjQ4LjExMi4xNiIsIm9pZCI6Ii0xMTIiLCJpYXQiOjE3ODkxMjYyODMsImV4cCI6MTk0NjgwNjI4M30.fHbvoQEMR8-9vz9dro7zb1xW_3lF3RvmUzGJKL1tfI4jJtRtv-WMhr7JuZ2HAnPkpV3_EsmduhoQvJK5z8lvNQ
+Content-Type: application/json
+
+{
+  "partnerName": "ACE_ACME CABLE TV ABC",
+  "expiryFrom": "2026-09-01 00:00:00",
+  "expiryTill": "2026-09-31 23:59:59"
+}'
+
+
+curl -k --location 'https://bb.inygo.in/eapi/api/v1/searchCustomerData' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJzeXNhZG1pbiIsInVzZXJOYW1lIjoic3lzYWRtaW4iLCJpcEFkZHJlc3MiOiIxNzguMjQ4LjExMi4xNiwxNzguMjQ4LjExOS43NCIsIm9pZCI6Ii0xMTIiLCJpYXQiOjE3OTE5NTUwNDcsImV4cCI6MTk0OTYzNTA0N30.XlWFFCmQYq9CZ5XRcu8fcpnCW3UKIfYI_58OczK0AYXPtjYREq8OlrB-9lKmMHIyxB-Qy4wPrfYE2qLrLFDR6w' \
+--data '{
+  "partnerName": "ACE_ACME CABLE TV ABC",
+  "expiryFrom": "2026-01-01 00:00:00",
+  "expiryTill": "2026-12-31 23:59:59"
+}'
